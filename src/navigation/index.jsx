@@ -2,12 +2,35 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HeaderButton, Text } from '@react-navigation/elements';
 import { createStaticNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Image } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 
 import { Home, Lectures, Stats, Profile, NotFound } from './screens';
-import { Home as HomeIcon, Lectures as LecturesIcon, Stats as StatsIcon } from '../assets';
+import { Home as HomeIcon, Lectures as LecturesIcon, Stats as StatsIcon, profilePic } from '../assets';
 
 const HomeTabs = createBottomTabNavigator({
+  screenOptions: ({ navigation }) => ({
+    headerRight: () => (
+      <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <Image 
+          source={profilePic}
+          style={{ width: 30, height: 30, marginRight: 15, borderRadius: 15 }} 
+        />
+      </TouchableOpacity>
+    ),
+    
+    headerTintColor: '#29303d',
+    tabBarActiveTintColor: '#29303d',
+    tabBarInactiveTintColor: '#888',
+    tabBarLabelStyle: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    tabBarStyle: {
+      height: 60,
+      paddingBottom: 5,
+      paddingTop: 5,
+    },
+  }),
   screens: {
     Home: {
       screen: Home,
@@ -84,6 +107,10 @@ const RootStack = createNativeStackNavigator({
     },
     Profile: {
       screen: Profile,
+      options: {
+        headerShown: false,
+        presentation: 'modal',
+      },
       linking: {
         path: ':user(@[a-zA-Z0-9-_]+)',
         parse: {

@@ -4,7 +4,7 @@
     "slug": "AttTrack",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo-1024x1024.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "atttrack",
@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo-1024x1024.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.atttrack"
@@ -28,9 +28,15 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#ffffff",
-          "image": "./assets/splash-icon.png"
+          "image": "./assets/splash-1242x2688.png",
+          "resizeMode": "contain"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b3712540-b0f9-48ed-8fa4-102b2fa2fa95"
+      }
+    }
   }
 }

@@ -1,11 +1,29 @@
 import { Text } from '@react-navigation/elements';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
-export function Profile({ route }) {
+import { closeIcon } from './../../assets';
+
+export function Profile() {
+  const navigation = useNavigation();
+
   return (
-    <View style={styles.container}>
-      <Text>Profile Screen</Text>
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <TouchableOpacity
+        style={{ margin: 15, alignSelf: 'flex-end' }}
+        onPress={() => navigation.goBack()}
+      >
+        <Image
+          source={closeIcon}
+          style={{ width: 25, height: 25 }}
+        />
+      </TouchableOpacity>
+
+      <View style={styles.container}>
+        <Text>Profile Screen</Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
