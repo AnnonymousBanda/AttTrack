@@ -1,7 +1,7 @@
 {
   "name": "atttrack",
   "version": "1.0.0",
-  "main": "index.tsx",
+  "main": "index.jsx",
   "scripts": {
     "start": "expo start --dev-client",
     "web": "expo start --web",
@@ -29,9 +29,7 @@
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@types/react": "~19.1.10",
-    "typescript": "~5.9.2"
+    "@babel/core": "^7.20.0"
   },
   "private": true
 }
