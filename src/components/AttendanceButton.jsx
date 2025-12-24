@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native'
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
+import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
 // import { modifyAttendance } from '@/firebase/api'
 // import { useAuth } from '@/context'
 
-function AttendanceButton({ lecture, day, setLectures }) {
+export function AttendanceButton({ lecture, day, setLectures }) {
     const [status, setStatus] = useState(lecture.status)
     // const { user } = useAuth()
 
@@ -36,47 +36,25 @@ function AttendanceButton({ lecture, day, setLectures }) {
     }
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity
+        <View style={styles.actionRow}>
+            <TouchableOpacity style={[styles.actionBtn, styles.bgGreen, status === 'present' && styles.disabled]}
                 onPress={() => handleClick('present')}
                 disabled={status === 'present'}
-                style={[
-                    styles.button,
-                    styles.bgGreen,
-                    status === 'present' && styles.disabled
-                ]}
             >
-                <MaterialCommunityIcons 
-                    name="hand-back-right" 
-                    size={32} 
-                    color="black" 
-                />
+                <Ionicons name="hand-right-outline" size={24} color="black" />
             </TouchableOpacity>
 
-            <TouchableOpacity
+            <TouchableOpacity style={[styles.actionBtn, styles.bgRed, status === 'absent' && styles.disabled]}
                 onPress={() => handleClick('absent')}
                 disabled={status === 'absent'}
-                style={[
-                    styles.button,
-                    styles.bgRed,
-                    status === 'absent' && styles.disabled
-                ]}
             >
-                <MaterialIcons 
-                    name="cancel" 
-                    size={32} 
-                    color="black" 
-                />
+                <Feather name="x-circle" size={24} color="black" />
             </TouchableOpacity>
 
-            <TouchableOpacity
+            <TouchableOpacity style={[styles.actionBtn, styles.bgYellow, status === 'medical' && styles.disabled]}
                 onPress={() => handleClick('medical')}
                 disabled={status === 'medical'}
-                style={[
-                    styles.button,
-                    styles.bgYellow,
-                    status === 'medical' && styles.disabled
-                ]}
+                
             >
                 <MaterialCommunityIcons 
                     name="emoticon-sick-outline" 
@@ -89,28 +67,19 @@ function AttendanceButton({ lecture, day, setLectures }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    actionRow: {
         flexDirection: 'row',
-        gap: 24,
+        gap: 20,
     },
-    button: {
+    actionBtn: {
         padding: 8,
         borderRadius: 8,
-        justifyContent: 'center',
         alignItems: 'center',
+        justifyContent: 'center',
     },
-    disabled: {
-        opacity: 0.4,
-    },
-    bgGreen: {
-        backgroundColor: '#4ade80',
-    },
-    bgRed: {
-        backgroundColor: '#f87171',
-    },
-    bgYellow: {
-        backgroundColor: '#facc15',
-    },
+    bgGreen: { backgroundColor: '#4bc0c0' },
+    bgRed: { backgroundColor: '#ff6384' },
+    bgYellow: { backgroundColor: '#ffce56' },
+    disabled: { opacity: 0.3 },
 })
 
-export default AttendanceButton

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
-import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { AttendanceButton, CancelButton } from '../../components';
 
 export function Lectures() {
     const [selectedDay, setSelectedDay] = useState(() => {
@@ -74,23 +74,12 @@ export function Lectures() {
             </View>
 
             <View style={styles.card}>
+				<CancelButton lecture={item} day={selectedDay.day} setLectures={setLectures} />
                 <Text style={styles.courseTitle}>
                     {item.courseCode}: {item.courseName}
                 </Text>
 
-                <View style={styles.actionRow}>
-                    <TouchableOpacity style={[styles.actionBtn, styles.bgGreen, item.status === 'present' && styles.disabled]}>
-                        <Ionicons name="hand-right-outline" size={24} color="black" />
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity style={[styles.actionBtn, styles.bgRed, item.status === 'absent' && styles.disabled]}>
-                        <Feather name="x-circle" size={24} color="black" />
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity style={[styles.actionBtn, styles.bgYellow, item.status === 'medical' && styles.disabled]}>
-                        <MaterialCommunityIcons name="emoticon-sick-outline" size={24} color="black" />
-                    </TouchableOpacity>
-                </View>
+				<AttendanceButton lecture={item} day={selectedDay.day} setLectures={setLectures} />
             </View>
         </View>
     )
@@ -118,7 +107,6 @@ const styles = StyleSheet.create({
     },
     selectorContainer: {
         flexDirection: 'row',
-        // justifyContent: 'space-between',
 		gap: 5,
         paddingHorizontal: 20,
         marginBottom: 20,
