@@ -31,7 +31,8 @@ export function AttendanceButton({ lecture, day, setLectures }) {
             // setLectures(res.data)
 
         } catch (error) {
-            Alert.alert('Error', error.message)
+            // Handle error appropriately
+            
         }
     }
 
@@ -58,7 +59,7 @@ export function AttendanceButton({ lecture, day, setLectures }) {
             >
                 <MaterialCommunityIcons 
                     name="emoticon-sick-outline" 
-                    size={32} 
+                    size={24}
                     color="black" 
                 />
             </TouchableOpacity>
@@ -82,4 +83,3 @@ const styles = StyleSheet.create({
     bgYellow: { backgroundColor: '#ffce56' },
     disabled: { opacity: 0.3 },
 })
-

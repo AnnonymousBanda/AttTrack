@@ -29,7 +29,8 @@ export function CancelButton({ lecture, day, setLectures }) {
             // setDialog(false)
             // Alert.alert('Success', 'Class cancelled successfully')
         } catch (error) {
-            Alert.alert('Error', error.message)
+            // Handle error appropriately
+            
         } finally {
             setLoading(false)
         }

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { AttendanceButton, CancelButton } from '../../components';
+import { LecturesSkeleton } from '../../skeletons';
 
 export function Lectures() {
     const [selectedDay, setSelectedDay] = useState(() => {
@@ -28,15 +29,32 @@ export function Lectures() {
         })
     })
 
-    const [lectures, setLectures] = useState([
-        { id: '1', from: '09:00', to: '10:00', courseCode: 'CS101', courseName: 'Intro to CS', status: 'present' },
-        { id: '2', from: '10:00', to: '11:00', courseCode: 'MA102', courseName: 'Linear Algebra', status: 'absent' },
-        { id: '3', from: '11:00', to: '12:00', courseCode: 'PH103', courseName: 'Physics', status: 'medical' },
-		{ id: '4', from: '13:00', to: '14:00', courseCode: 'HS104', courseName: 'History', status: 'present' },
-		{ id: '5', from: '14:00', to: '15:00', courseCode: 'EC105', courseName: 'Economics', status: 'absent' },
-		{ id: '6', from: '15:00', to: '16:00', courseCode: 'BI106', courseName: 'Biology', status: 'present' },
-    ])
+    const [lectures, setLectures] = useState([])
+	const [loading, setLoading] = useState(true)
 
+	useEffect(() => {
+		// Fetch lectures for the selected day from backend or state
+		try {
+
+			setLoading(true)
+			
+			setLectures([
+				{ id: '1', from: '09:00', to: '10:00', courseCode: 'CS101', courseName: 'Intro to CS', status: 'present' },
+				{ id: '2', from: '10:00', to: '11:00', courseCode: 'MA102', courseName: 'Linear Algebra', status: 'absent' },
+				{ id: '3', from: '11:00', to: '12:00', courseCode: 'PH103', courseName: 'Physics', status: 'medical' },
+				{ id: '4', from: '13:00', to: '14:00', courseCode: 'HS104', courseName: 'History', status: 'present' },
+				{ id: '5', from: '14:00', to: '15:00', courseCode: 'EC105', courseName: 'Economics', status: 'absent' },
+				{ id: '6', from: '15:00', to: '16:00', courseCode: 'BI106', courseName: 'Biology', status: 'present' },
+			])
+			
+			setTimeout(() => {
+				setLoading(false)
+			}, 500);
+		} catch (error) {
+			// Handle error appropriately
+		}
+	}, [selectedDay])
+	
     const DaySelector = ({ daysDate }) => {
         return (
             <View style={styles.selectorContainer}>
@@ -88,13 +106,16 @@ export function Lectures() {
         <View style={styles.container}>
             <DaySelector daysDate={daysDate} />
             
-            <FlatList
-                data={lectures}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <LectureItem item={item} />}
-                contentContainerStyle={styles.listContent}
-                style={styles.list}
-            />
+			{
+				loading? <LecturesSkeleton /> :
+				<FlatList
+					data={lectures}
+					keyExtractor={(item) => item.id}
+					renderItem={({ item }) => <LectureItem item={item} />}
+					contentContainerStyle={styles.listContent}
+					style={styles.list}
+				/>
+			}
         </View>
     )
 }
