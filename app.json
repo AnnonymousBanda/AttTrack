@@ -3,25 +3,40 @@
     "name": "AttTrack",
     "slug": "AttTrack",
     "version": "1.0.0",
-    "orientation": "default",
+    "orientation": "portrait",
     "icon": "./assets/logo-1024x1024.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "atttrack",
+    
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.atttrack"
+      "bundleIdentifier": "com.atttrack",
+      "icon": "./assets/logo-1024x1024.png", 
+      "splash": {
+        "image": "./assets/logo-1024x1024.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      }
     },
+    
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo-1024x1024.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.atttrack"
+      "package": "com.atttrack",
+      "splash": {
+        "image": "./assets/logo-1024x1024.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      }
     },
+    
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    
     "plugins": [
       "expo-asset",
       [
@@ -29,7 +44,7 @@
         {
           "backgroundColor": "#ffffff",
           "image": "./assets/logo-1024x1024.png",
-          "resizeMode": "contain"
+          "imageWidth": 200 
         }
       ]
     ],
