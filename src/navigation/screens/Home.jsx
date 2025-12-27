@@ -10,9 +10,9 @@ import {
     Alert,
     Dimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { AttendanceButton, CancelButton, AddButton } from '../../components';
+import { HomeSkeleton } from '../../skeletons';
 
 const getLectures = async (id, sem, day) => {
     return new Promise(resolve => setTimeout(() => resolve({
@@ -31,7 +31,21 @@ const getLectures = async (id, sem, day) => {
                 from: '14:00',
                 to: '15:30',
                 status: null
-            }
+            },
+			{
+				courseCode: 'PH301',
+				courseName: 'Physics I',
+				from: '11:00',
+				to: '12:00',
+				status: null
+			},
+			{
+				courseCode: 'EE101',
+				courseName: 'Basic Electronics',
+				from: '16:00',
+				to: '17:00',
+				status: null
+			}
         ]
     }), 1000));
 };
@@ -186,7 +200,7 @@ export function Home() {
         });
 
         return (
-            <View style={styles.sectionContainer}>
+            <View>
                 <Text style={styles.subTitle}>PAST</Text>
                 {pastClasses.length === 0 ? (
                     <NoClasses message="No past classes to display" />
@@ -251,93 +265,84 @@ export function Home() {
     );
 
     if (loading) {
-        return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#0E2C75" />
-            </View>
-        );
+        return <HomeSkeleton />;
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.header}>
-                    <Text style={styles.greetingText}>{greeting}</Text>
-                    <Text style={styles.dateText}>{formatDate(new Date())}</Text>
-                </View>
+		<ScrollView contentContainerStyle={styles.scrollContent}>
+			<View style={styles.header}>
+				<Text style={styles.greetingText}>{greeting}</Text>
+				<Text style={styles.dateText}>{formatDate(new Date())}</Text>
+			</View>
 
-                <OngoingClasses />
+			<OngoingClasses />
 
-                <View style={styles.sectionContainer}>
-                    <View style={styles.sectionHeaderRow}>
-                        <Text style={styles.sectionTitle}>Today's Classes</Text>
-                        <TouchableOpacity onPress={() => setShowForm((prev) => !prev)}>
-                            <MaterialIcons
-                                name="add"
-                                size={30}
-                                color="#3B82F6"
-                                style={{ transform: [{ rotate: showForm ? '45deg' : '0deg' }] }}
-                            />
-                        </TouchableOpacity>
-                    </View>
+			<View style={styles.sectionContainer}>
+				<View style={styles.sectionHeaderRow}>
+					<Text style={styles.sectionTitle}>Today's Classes</Text>
+					<TouchableOpacity onPress={() => setShowForm((prev) => !prev)}>
+						<MaterialIcons
+							name="add"
+							size={30}
+							color="#3B82F6"
+							style={{ transform: [{ rotate: showForm ? '45deg' : '0deg' }] }}
+						/>
+					</TouchableOpacity>
+				</View>
 
-                    {showForm && (
-                        <View style={styles.formContainer}>
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>Select Course:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="e.g. CS101 - Intro"
-                                    value={formData.course}
-                                    onChangeText={(t) => setFormData({ ...formData, course: t })}
-                                />
-                            </View>
+				{showForm && (
+					<View style={styles.formContainer}>
+						<View style={styles.formGroup}>
+							<Text style={styles.formLabel}>Select Course:</Text>
+							<TextInput
+								style={styles.input}
+								placeholder="e.g. CS101 - Intro"
+								value={formData.course}
+								onChangeText={(t) => setFormData({ ...formData, course: t })}
+							/>
+						</View>
 
-                            <View style={styles.row}>
-                                <View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
-                                    <Text style={styles.formLabel}>From:</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="09:00"
-                                        value={formData.from}
-                                        onChangeText={(t) => setFormData({ ...formData, from: t })}
-                                    />
-                                </View>
-                                <View style={[styles.formGroup, { flex: 1 }]}>
-                                    <Text style={styles.formLabel}>To:</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="10:00"
-                                        value={formData.to}
-                                        onChangeText={(t) => setFormData({ ...formData, to: t })}
-                                    />
-                                </View>
-                            </View>
+						<View style={styles.row}>
+							<View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
+								<Text style={styles.formLabel}>From:</Text>
+								<TextInput
+									style={styles.input}
+									placeholder="09:00"
+									value={formData.from}
+									onChangeText={(t) => setFormData({ ...formData, from: t })}
+								/>
+							</View>
+							<View style={[styles.formGroup, { flex: 1 }]}>
+								<Text style={styles.formLabel}>To:</Text>
+								<TextInput
+									style={styles.input}
+									placeholder="10:00"
+									value={formData.to}
+									onChangeText={(t) => setFormData({ ...formData, to: t })}
+								/>
+							</View>
+						</View>
 
-                            <AddButton onPress={handleAddClass} />
-                        </View>
-                    )}
+						<AddButton onPress={handleAddClass} />
+					</View>
+				)}
 
-                    <UpcomingClasses />
-                    <PastClasses />
-                </View>
-            </ScrollView>
-        </SafeAreaView>
+				<UpcomingClasses />
+				<PastClasses />
+			</View>
+		</ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F3F4F6',
-    },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
     scrollContent: {
-        padding: 16,
+		minHeight: '100%',
+        padding: 10,
     },
     header: {
         marginBottom: 24,
