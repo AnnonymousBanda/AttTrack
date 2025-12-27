@@ -42,14 +42,14 @@ export function AttendanceButton({ lecture, day, setLectures }) {
                 onPress={() => handleClick('present')}
                 disabled={status === 'present'}
             >
-                <Ionicons name="hand-right-outline" size={24} color="black" />
+                <Ionicons name="hand-right-outline" size={20} color="black" />
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.actionBtn, styles.bgRed, status === 'absent' && styles.disabled]}
                 onPress={() => handleClick('absent')}
                 disabled={status === 'absent'}
             >
-                <Feather name="x-circle" size={24} color="black" />
+                <Feather name="x-circle" size={20} color="black" />
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.actionBtn, styles.bgYellow, status === 'medical' && styles.disabled]}
@@ -59,7 +59,7 @@ export function AttendanceButton({ lecture, day, setLectures }) {
             >
                 <MaterialCommunityIcons 
                     name="emoticon-sick-outline" 
-                    size={24}
+                    size={20}
                     color="black" 
                 />
             </TouchableOpacity>
