@@ -527,13 +527,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   cancelBtnSmall: {
-    backgroundColor: '#EF4444',
+    backgroundColor: '#ff6384',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
   },
   saveBtnSmall: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#4bc0c0',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   logoutBtn: {
-    backgroundColor: '#fca5a5',
+    backgroundColor: '#ff6384',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
