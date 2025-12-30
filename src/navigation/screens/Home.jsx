@@ -277,7 +277,7 @@ export function Home() {
 
 			<OngoingClasses />
 
-			<View style={styles.sectionContainer}>
+			<View>
 				<View style={styles.sectionHeaderRow}>
 					<Text style={styles.sectionTitle}>Today's Classes</Text>
 					<TouchableOpacity onPress={() => setShowForm((prev) => !prev)}>
@@ -342,7 +342,8 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
 		minHeight: '100%',
-        padding: 10,
+        paddingHorizontal: 10,
+		paddingVertical: 5,
     },
     header: {
         marginBottom: 24,
