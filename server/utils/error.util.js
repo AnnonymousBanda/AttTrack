@@ -36,6 +36,18 @@ const unhandledRejection = (server) => {
 	})
 }
 
+const gracefulShutdown = async (server) => {
+	process.on('SIGINT', async () => {
+    console.log('👋 SIGINT RECEIVED. Shutting down gracefully');
+	await disconnectDB();
+
+	server.close(() => {
+		console.log('💥 Process terminated!')
+		process.exit(0)
+		})
+	})
+};
+
 const catchAsync = (fn) => {
 	return async (req, res, next) => {
 		try {
@@ -46,4 +58,4 @@ const catchAsync = (fn) => {
 	}
 }
 
-module.exports = { AppError, unhandledRejection, uncaughtException, catchAsync }
+module.exports = { AppError, unhandledRejection, uncaughtException, gracefulShutdown, catchAsync }

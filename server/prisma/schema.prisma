@@ -1,30 +1,29 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model attendance_logs {
   log_id       Int                     @id @default(autoincrement()) @db.UnsignedInt
   uid          Int                     @db.UnsignedInt
   course_code  String                  @db.VarChar(6)
   semester     Int                     @db.UnsignedTinyInt
-  slotID       Int                     @db.UnsignedInt
+  slot_id       Int                     @db.UnsignedInt
   lecture_date DateTime                @db.Date
   status       attendance_logs_status?
-  courses      courses                 @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_course")
-  time_slots   time_slots              @relation(fields: [slotID], references: [slotID], onDelete: Cascade, onUpdate: Restrict, map: "fk_slot")
-  users        users                   @relation(fields: [uid], references: [uid], onDelete: Cascade, onUpdate: Restrict, map: "fk_uid")
+  courses      courses                 @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
+  time_slots   time_slots              @relation(fields: [slot_id], references: [slot_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_slot")
+  users        users                   @relation(fields: [uid], references: [uid], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_uid")
 
-  @@index([course_code], map: "fk_course")
-  @@index([slotID], map: "fk_slot")
-  @@index([uid], map: "fk_uid")
+  @@index([course_code], map: "fk_logs_course")
+  @@index([slot_id], map: "fk_logs_slot")
+  @@index([uid], map: "fk_logs_uid")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model course_attendance {
   uid           Int     @db.UnsignedInt
   course_code   String  @db.VarChar(6)
@@ -40,7 +39,6 @@ model course_attendance {
   @@index([course_code], map: "fk_attendance_course")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model courses {
   course_code       String              @id @db.VarChar(6)
   course_name       String              @db.VarChar(150)
@@ -51,14 +49,13 @@ model courses {
 }
 
 model time_slots {
-  slotID          Int                    @id @default(autoincrement()) @db.UnsignedInt
+  slot_id          Int                    @id @default(autoincrement()) @db.UnsignedInt
   day_of_week     time_slots_day_of_week
   start_time      DateTime               @db.Time(0)
   end_time        DateTime               @db.Time(0)
   attendance_logs attendance_logs[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
   uid               Int                 @id @default(autoincrement()) @db.UnsignedInt
   email             String              @unique(map: "email") @db.VarChar(50)

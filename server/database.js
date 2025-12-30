@@ -1,24 +1,25 @@
-const mongoose = require('mongoose')
+const { PrismaClient } = require('@prisma/client')
+
+const prisma = new PrismaClient()
 
 const connectDB = async () => {
-	const URI = process.env.DB_URI.replace(
-		'<DB_USERNAME>',
-		process.env.DB_USERNAME
-	).replace('<DB_PASSWORD>', process.env.DB_PASSWORD)
+	const URI = process.env.DATABASE_URL
 
 	try {
-		await mongoose.connect(URI)
+		await prisma.$connect()
+        console.info(`[${new Date().toISOString()}] ✅ MySQL (Prisma) Connected`)
 	} catch (error) {
 		console.error(
-			`[${new Date().toISOString()}] ❌ MongoDB Connection Error: ${error.message}`
-		)
-		process.exit(1)
+            `[${new Date().toISOString()}] ❌ MySQL Connection Error: ${error.message}`
+        )
+        process.exit(1)
 	}
 }
 
 const disconnectDB = async () => {
 	try {
-		await mongoose.disconnect()
+		await prisma.$disconnect()
+        console.warn(`[${new Date().toISOString()}] ⚠️ MySQL (Prisma) Disconnected`)
 	} catch (error) {
 		console.error(
 			`[${new Date().toISOString()}] ❌ MongoDB Disconnection Error: ${error.message}`
@@ -27,17 +28,4 @@ const disconnectDB = async () => {
 	}
 }
 
-mongoose.connection.on('connected', () => {
-	console.info(`[${new Date().toISOString()}] ✅ MongoDB Connected`)
-})
-
-mongoose.connection.on('disconnected', () => {
-	console.warn(`[${new Date().toISOString()}] ⚠️ MongoDB Disconnected`)
-})
-
-mongoose.connection.on('error', (err) => {
-	console.error(`[${new Date().toISOString()}] ❌ MongoDB Error:`, err)
-	process.exit(1)
-})
-
-module.exports = { connectDB, disconnectDB }
+module.exports = { connectDB, disconnectDB, prisma }
