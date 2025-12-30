@@ -7,35 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model users {
+  id                String              @id @default(uuid())
+  oid               String              @unique
+  email             String              @unique(map: "email") @db.VarChar(50)
+  first_name        String              @db.VarChar(50)
+  last_name         String?             @db.VarChar(50)
+  roll_number       String              @unique(map: "roll_number") @db.VarChar(10)
+  branch            String              @db.VarChar(100)
+  semester          Int                 @db.UnsignedTinyInt
+  image_url         String?             @db.VarChar(200)
+  batch             DateTime            @db.Date
+  
+  attendance_logs   attendance_logs[]
+  course_attendance course_attendance[]
+}
+
 model attendance_logs {
-  log_id       Int                     @id @default(autoincrement()) @db.UnsignedInt
-  uid          Int                     @db.UnsignedInt
-  course_code  String                  @db.VarChar(6)
-  semester     Int                     @db.UnsignedTinyInt
-  slot_id       Int                     @db.UnsignedInt
-  lecture_date DateTime                @db.Date
-  status       attendance_logs_status?
-  courses      courses                 @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
-  time_slots   time_slots              @relation(fields: [slot_id], references: [slot_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_slot")
-  users        users                   @relation(fields: [uid], references: [uid], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_uid")
+  id          Int                     @id @default(autoincrement()) @db.UnsignedInt
+  user_id     String                  
+  course_code String                  @db.VarChar(6)
+  semester    Int                     @db.UnsignedTinyInt
+  slot_id     Int                     @db.UnsignedInt
+  lecture_date DateTime               @db.Date
+  status      attendance_logs_status?
+
+  courses     courses                 @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
+  time_slots  time_slots              @relation(fields: [slot_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_slot")
+  users       users                   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_user")
 
   @@index([course_code], map: "fk_logs_course")
   @@index([slot_id], map: "fk_logs_slot")
-  @@index([uid], map: "fk_logs_uid")
+  @@index([user_id], map: "fk_logs_user")
 }
 
 model course_attendance {
-  uid           Int     @db.UnsignedInt
-  course_code   String  @db.VarChar(6)
-  semester      Int     @db.UnsignedTinyInt
-  present_total Int     @default(0) @db.UnsignedInt
-  absent_total  Int     @default(0) @db.UnsignedInt
-  medical_total Int     @default(0) @db.UnsignedInt
-  total_classes Int     @default(0) @db.UnsignedInt
-  courses       courses @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_attendance_course")
-  users         users   @relation(fields: [uid], references: [uid], onDelete: Cascade, onUpdate: Restrict, map: "fk_attendance_user")
+  user_id       String                  
+  course_code   String                  @db.VarChar(6)
+  semester      Int                     @db.UnsignedTinyInt
+  present_total Int                     @default(0) @db.UnsignedInt
+  absent_total  Int                     @default(0) @db.UnsignedInt
+  medical_total Int                     @default(0) @db.UnsignedInt
+  total_classes Int                     @default(0) @db.UnsignedInt
+  
+  courses       courses                 @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_attendance_course")
+  users         users                   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_attendance_user")
 
-  @@id([uid, course_code])
+  @@id([user_id, course_code])
   @@index([course_code], map: "fk_attendance_course")
 }
 
@@ -49,25 +67,11 @@ model courses {
 }
 
 model time_slots {
-  slot_id          Int                    @id @default(autoincrement()) @db.UnsignedInt
+  id              Int                    @id @default(autoincrement()) @db.UnsignedInt
   day_of_week     time_slots_day_of_week
   start_time      DateTime               @db.Time(0)
   end_time        DateTime               @db.Time(0)
   attendance_logs attendance_logs[]
-}
-
-model users {
-  uid               Int                 @id @default(autoincrement()) @db.UnsignedInt
-  email             String              @unique(map: "email") @db.VarChar(50)
-  first_name        String              @db.VarChar(50)
-  last_name         String?             @db.VarChar(50)
-  roll_number       String              @unique(map: "roll_number") @db.VarChar(10)
-  branch            String              @db.VarChar(100)
-  semester          Int                 @db.UnsignedTinyInt
-  image_url         String?             @db.VarChar(200)
-  batch             DateTime            @db.Date
-  attendance_logs   attendance_logs[]
-  course_attendance course_attendance[]
 }
 
 enum time_slots_day_of_week {
