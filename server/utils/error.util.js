@@ -1,10 +1,10 @@
 const { disconnectDB } = require('../database')
 
 class AppError extends Error {
-	constructor(message, status) {
+	constructor(message, status, isOperational = true) {
 		super(message)
 		this.status = status
-		this.isOperational = true
+		this.isOperational = isOperational
 
 		Error.captureStackTrace(this, this.constructor)
 	}
