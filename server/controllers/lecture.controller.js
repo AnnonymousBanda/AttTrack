@@ -11,12 +11,17 @@ const getTodaySchedule = catchAsync(async (req, res) => {
     const lectures = await prisma.attendance_logs.findMany({
         where: {
             user_id: uid,
-            semester: semester,
-            lecture_date: searchDate
+            lecture_date: searchDate,
+            status: { not: 'cancelled' },
+            courses: {
+                semester: semester
+            }
         },
         include: {
-            time_slots: true,
             courses: true
+        },
+        orderBy: {
+            start_time: 'asc'
         }
     })
 
@@ -37,7 +42,6 @@ const addExtraClass = catchAsync(async (req, res) => {
     const course = await prisma.course_attendance.findFirst({
         where: {
             course_code: course_code,
-            semester: semester,
             user_id: uid
         }
     })
@@ -54,14 +58,19 @@ const addExtraClass = catchAsync(async (req, res) => {
     const old_logs = await prisma.attendance_logs.findMany({
         where: {
             user_id: uid,
-            semester: semester,
             lecture_date: new Date(lecture_date),
+            courses: {
+                semester: semester
+            },
             start_time: {
                 lt: endDateTime
             },
             end_time: {
                 gt: startDateTime
-            }
+            },
+        },
+        include: {
+            courses: true
         }
     })
 
@@ -71,7 +80,6 @@ const addExtraClass = catchAsync(async (req, res) => {
     await prisma.attendance_logs.create({
         data: {
             user_id: uid,
-            semester: semester,
             start_time: startDateTime,
             end_time: endDateTime,
             course_code: course_code,
