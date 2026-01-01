@@ -5,12 +5,6 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     const { uid } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
-    if (!course_code || !lecture_date || !start_time || !end_time || !status)
-        throw new AppError('Please provide all required fields', 400)
-
-    if (!['present', 'absent', 'medical', 'cancelled'].includes(status))
-        throw new AppError('Invalid status value', 400)
-
     const prismaOperations = []
 
     if (status !== 'cancelled') {
@@ -153,13 +147,25 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
 const adjustAttendanceTotals = catchAsync(async (req, res) => {
 	const { uid } = req.user
-	const { course_code, present_total, absent_total, medical_total } = req.body
+	const { course_code, present_total, absent_total, medical_total, total_classes } = req.body
 
-	if(!course_code || present_total == null || absent_total == null || medical_total == null)
-        throw new AppError('Please provide all required fields', 400)
+	const existingRecord = await prisma.course_attendance.findUnique({
+		where: {
+			user_id_course_code: {
+				user_id: uid,
+				course_code: course_code
+			}
+		}
+	})
 
-	if(present_total < 0 || absent_total < 0 || medical_total < 0)
-        throw new AppError('Attendance cannot be negative', 400)
+	if (!existingRecord)
+		throw new AppError('Course attendance record not found!', 404)
+
+	const updateData = {}
+	if (present_total !== undefined) updateData.present_total = present_total
+	if (absent_total !== undefined) updateData.absent_total = absent_total
+	if (medical_total !== undefined) updateData.medical_total = medical_total
+	if (total_classes !== undefined) updateData.total_classes = total_classes
 
 	await prisma.course_attendance.update({
 		where: {
@@ -168,11 +174,7 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
                 course_code: course_code
             }
         },
-        data: {
-            present_total: present_total,
-            absent_total: absent_total,
-            medical_total: medical_total
-        }
+        data: updateData
     })
 
 	res.status(200).json({
@@ -182,90 +184,111 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
 })
 
 const getAttendanceReport = catchAsync(async (req, res) => {
-    const { uid, semester } = req.user;
+    const { uid } = req.user
+    const { course_code } = req.query
 
-    const data=await prisma.course_attendance.findMany({
+    if (!course_code) {
+        const allCourses = await prisma.course_attendance.findMany({
+            where: {
+                user_id: uid
+            },
+            include: {
+                courses: true
+            }
+        })
+
+        return res.status(200).json({
+            message: 'Attendance report fetched successfully!',
+            results: allCourses.length,
+            data: allCourses
+        })
+    }
+
+    const courseAttendance = await prisma.course_attendance.findUnique({
         where: {
-            user_id: uid,
-			courses: {
-            	semester: semester,
-			}
+            user_id_course_code: {
+                user_id: uid,
+                course_code: course_code
+            }
         },
         include: {
             courses: true,
-        },
+            attendance_logs: {
+                orderBy: {
+                    lecture_date: 'desc'
+                }
+            }
+        }
     })
 
-	res.status(200).json({
-		message: 'Attendance report retrieved successfully!',
-        status: 200,
-		data: data
-	})
+    if (!courseAttendance)
+        throw new AppError('Course attendance record not found!', 404)
+
+    res.status(200).json({
+        message: 'Attendance report fetched successfully!',
+        data: courseAttendance
+    })
 })
 
 const updateAttendanceStatus = catchAsync(async (req, res) => {
     const { uid } = req.user
-    const { attendance_log_id, new_status } = req.body
+    const { log_id, status } = req.body
 
-    if (!attendance_log_id || !new_status)
-        throw new AppError('Please provide all required fields', 400)
-
-    if (!['present', 'absent', 'medical', 'cancelled'].includes(new_status))
-        throw new AppError('Invalid status value', 400)
-
-    const oldLog = await prisma.attendance_logs.findUnique({
-        where: { id: attendance_log_id },
+    const log = await prisma.attendance_logs.findUnique({
+        where: {
+            id: log_id
+        }
     })
 
-    if (!oldLog) throw new AppError('Attendance log not found', 404)
-    
-    if (oldLog.user_id !== uid) throw new AppError('Unauthorized access', 403)
+    if (!log)
+        throw new AppError('Log not found!', 404)
 
-    if (oldLog.status === 'cancelled')
-        throw new AppError('Cannot update a lecture that has already been cancelled.', 400)
+    if (log.user_id !== uid)
+        throw new AppError('You are not authorized to update this log', 403)
 
-    if (oldLog.status === new_status)
-		return res.status(200).json({
-			message: 'Attendance already marked with the same status!',
-			status: 200,
-			data: oldLog
-		})
+    const oldStatus = log.status
+    const course_code = log.course_code
 
     const updateCounts = {}
-    if (oldLog.status === 'present') updateCounts.present_total = { decrement: 1 }
-    else if (oldLog.status === 'absent') updateCounts.absent_total = { decrement: 1 }
-    else if (oldLog.status === 'medical') updateCounts.medical_total = { decrement: 1 }
-	
-    if (new_status === 'present')
-        updateCounts.present_total = { ...updateCounts.present_total, increment: 1 }
-    else if (new_status === 'absent')
-        updateCounts.absent_total = { ...updateCounts.absent_total, increment: 1 }
-    else if (new_status === 'medical')
-        updateCounts.medical_total = { ...updateCounts.medical_total, increment: 1 }
 
-    const updatedLog = await prisma.$transaction(async (tx) => {
+    if (oldStatus && oldStatus !== 'cancelled') {
+        if (oldStatus === 'present') updateCounts.present_total = { decrement: 1 }
+        else if (oldStatus === 'absent') updateCounts.absent_total = { decrement: 1 }
+        else if (oldStatus === 'medical') updateCounts.medical_total = { decrement: 1 }
+    }
+
+    if (status !== 'cancelled') {
+        if (status === 'present') updateCounts.present_total = { increment: 1 }
+        else if (status === 'absent') updateCounts.absent_total = { increment: 1 }
+        else if (status === 'medical') updateCounts.medical_total = { increment: 1 }
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.attendance_logs.update({
+            where: {
+                id: log_id
+            },
+            data: {
+                status: status
+            }
+        })
+
         if (Object.keys(updateCounts).length > 0) {
             await tx.course_attendance.update({
                 where: {
                     user_id_course_code: {
                         user_id: uid,
-                        course_code: oldLog.course_code
+                        course_code: course_code
                     }
                 },
                 data: updateCounts
             })
         }
-		
-        return await tx.attendance_logs.update({
-            where: { id: attendance_log_id },
-            data: { status: new_status }
-        })
     })
 
     res.status(200).json({
-        message: 'Attendance updated successfully!',
-        status: 200,
-        data: updatedLog
+        message: 'Attendance status updated successfully!',
+        status: 200
     })
 })
 

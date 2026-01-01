@@ -7,13 +7,14 @@ const {
 	updateAttendanceStatus,
 } = require('../controllers/attendance.controller')
 const { protect } = require('../middlewear')
+const validate = require('../middlewear/validate')
+const { markAttendanceSchema, updateAttendanceStatusSchema, adjustAttendanceTotalsSchema } = require('../utils/validationSchemas')
 
 router.use(protect)
 
-// router.route('/mark').post(markAttendance)
-router.route('/adjust').patch(adjustAttendanceTotals)
+router.route('/adjust').patch(validate(adjustAttendanceTotalsSchema), adjustAttendanceTotals)
 router.route('/report').get(getAttendanceReport)
-router.route('/log').post(createAttendanceLog)
-router.route('/log/status').patch(updateAttendanceStatus)
+router.route('/log').post(validate(markAttendanceSchema), createAttendanceLog)
+router.route('/log/status').patch(validate(updateAttendanceStatusSchema), updateAttendanceStatus)
 
 module.exports = router

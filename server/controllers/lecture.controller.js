@@ -39,9 +39,6 @@ const addExtraClass = catchAsync(async (req, res) => {
     const { uid, semester } = req.user
     const { course_code, lecture_date, start_time, end_time } = req.body
 
-    if(!course_code || !lecture_date || !start_time || !end_time)
-        throw new AppError('Please provide all required fields', 400)
-
     const course = await prisma.course_attendance.findFirst({
         where: {
             course_code: course_code,

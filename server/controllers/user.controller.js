@@ -27,9 +27,6 @@ const getUserData = catchAsync(async (req, res) => {
 
 const registerUser = catchAsync(async (req, res) => {
     let { oid, email, first_name, last_name, branch, batch, image_url, roll_number, semester } = req.body
-
-    if(!oid || !email || !first_name || !branch || !batch || !roll_number || !semester)
-        throw new AppError('Please provide all required fields', 400)
     
     const existingUser = await prisma.users.findUnique({
         where: {
@@ -42,20 +39,12 @@ const registerUser = catchAsync(async (req, res) => {
     
     email = email.toLowerCase()
     roll_number = roll_number.toLowerCase()
-    if(email.endsWith('@iitp.ac.in') === false)
-        throw new AppError('Your are not authorised to use the platform', 400)
-    
-    if(!email.includes(roll_number))
-        throw new AppError('Roll number does not match with email', 400)
 
     if(!BRANCHES.split('_').some(b => b===branch))
         throw new AppError('Invalid branch provided', 400)
 
-    if(batch.length !== 4 || isNaN(batch))
-        throw new AppError('Invalid batch provided', 400)
-
-    if(isNaN(semester) || semester < 1 || semester > 10)
-        throw new AppError('Invalid semester provided', 400)
+    if(!email.includes(roll_number))
+        throw new AppError('Roll number does not match with email', 400)
 
     await prisma.$transaction(async (tx) => {
 
@@ -127,11 +116,7 @@ const deleteUserData = catchAsync(async (req, res) => {
 
 const modifySemester = catchAsync(async (req, res) => {
     const { uid, semester, branch } = req.user
-
     const { new_semester } = req.body
-
-    if(!new_semester || isNaN(new_semester) || new_semester < 1 || new_semester > 10)
-        throw new AppError('Please provide a valid semester', 400)
 
     if(new_semester === semester)
         throw new AppError('Semester is already set to the provided value', 400)
@@ -240,9 +225,6 @@ const resetSemester = catchAsync(async (req, res) => {
 const unenrollFromCourse = catchAsync(async (req, res) => {
     const { uid } = req.user
     const { course_code } = req.body
-
-    if(!course_code)
-        throw new AppError('Please provide course code', 400)
 
     await prisma.$transaction(async (tx) => {
 
