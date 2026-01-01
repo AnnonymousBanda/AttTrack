@@ -12,12 +12,15 @@ model users {
   oid         String   @unique
   email       String   @unique(map: "email") @db.VarChar(50)
   first_name  String   @db.VarChar(50)
-  last_name   String?  @db.VarChar(50)
+  
+  last_name   String?  @db.VarChar(50) 
+  
   roll_number String   @unique(map: "roll_number") @db.VarChar(10)
   branch      String   @db.VarChar(100)
   semester    Int      @db.UnsignedTinyInt
   image_url   String?  @db.VarChar(200)
-  batch       DateTime @db.Date
+  
+  batch       String   @db.VarChar(4) 
   
   attendance_logs   attendance_logs[]
   course_attendance course_attendance[]
@@ -32,8 +35,8 @@ model attendance_logs {
   end_time     DateTime
   status       attendance_logs_status?
 
-  courses      courses  @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
-  users        users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_user")
+  courses      courses @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
+  users        users   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_user")
 
   @@unique([user_id, course_code, start_time], map: "unique_log_entry")
   @@index([course_code], map: "fk_logs_course")
@@ -43,6 +46,7 @@ model attendance_logs {
 model course_attendance {
   user_id       String
   course_code   String   @db.VarChar(6)
+  
   present_total Int      @default(0) @db.UnsignedInt
   absent_total  Int      @default(0) @db.UnsignedInt
   medical_total Int      @default(0) @db.UnsignedInt
@@ -56,10 +60,10 @@ model course_attendance {
 }
 
 model courses {
-  course_code   String   @id @db.VarChar(6)
-  course_name   String   @db.VarChar(150)
-  semester      Int      @db.UnsignedTinyInt
-  branch        String   @db.VarChar(100)
+  course_code String @id @db.VarChar(6)
+  course_name String @db.VarChar(150)
+  semester    Int    @db.UnsignedTinyInt
+  branch      String @db.VarChar(100)
   
   attendance_logs   attendance_logs[]
   course_attendance course_attendance[]
