@@ -1,6 +1,8 @@
 const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
 
+const BRANCHES = require('./../utils/branches')
+
 const getUserData = catchAsync(async (req, res) => {
     const { uid } = req.user
 
@@ -24,8 +26,78 @@ const getUserData = catchAsync(async (req, res) => {
 })
 
 const registerUser = catchAsync(async (req, res) => {
-    res.status(200).json({
-        message: 'User registered successfully!'
+    let { oid, email, first_name, last_name, branch, batch, image_url, roll_number, semester } = req.body
+
+    if(!oid || !email || !first_name || !branch || !batch || !roll_number || !semester)
+        throw new AppError('Please provide all required fields', 400)
+    
+    const existingUser = await prisma.users.findUnique({
+        where: {
+            oid: oid
+        }
+    })
+    
+    if(existingUser)
+        throw new AppError('User already registered!', 400)
+    
+    email = email.toLowerCase()
+    roll_number = roll_number.toLowerCase()
+    if(email.endsWith('@iitp.ac.in') === false)
+        throw new AppError('Your are not authorised to use the platform', 400)
+    
+    if(!email.includes(roll_number))
+        throw new AppError('Roll number does not match with email', 400)
+
+    if(!BRANCHES.split('_').some(b => b===branch))
+        throw new AppError('Invalid branch provided', 400)
+
+    if(batch.length !== 4 || isNaN(batch))
+        throw new AppError('Invalid batch provided', 400)
+
+    if(isNaN(semester) || semester < 1 || semester > 10)
+        throw new AppError('Invalid semester provided', 400)
+
+    await prisma.$transaction(async (tx) => {
+
+        const user = await tx.users.create({
+            data: {
+                oid,
+                email,
+                first_name,
+                last_name,
+                branch,
+                batch,
+                image_url,
+                roll_number,
+                semester
+            }
+        })
+        
+        const courses = await tx.courses.findMany({
+            where: {
+                branch: branch,
+                semester: semester
+            }
+        })
+
+        if(courses.length === 0)
+            throw new AppError('No courses found for the given branch and semester', 400)
+
+        let data=[]
+        for(const course of courses)
+            data.push({
+                user_id: user.id,
+                course_code: course.course_code
+            })
+
+        await prisma.course_attendance.createMany({
+            data: data
+        })
+    })
+
+    res.status(201).json({
+        message: 'User registered successfully!',
+        status: 201,
     })
 })
 
@@ -54,9 +126,148 @@ const deleteUserData = catchAsync(async (req, res) => {
 })
 
 const modifySemester = catchAsync(async (req, res) => {
+    const { uid, semester, branch } = req.user
+
+    const { new_semester } = req.body
+
+    if(!new_semester || isNaN(new_semester) || new_semester < 1 || new_semester > 10)
+        throw new AppError('Please provide a valid semester', 400)
+
+    if(new_semester === semester)
+        throw new AppError('Semester is already set to the provided value', 400)
+
+    const coursesEnrolled = await prisma.course_attendance.findMany({
+        where: {
+            user_id: uid,
+            courses: {
+            semester: new_semester
+            }
+        },
+        include: {
+            courses: true
+        }
+    })
+
+    if(coursesEnrolled.length > 0)
+    {
+        await prisma.users.update({
+            where: {
+                id: uid
+            },
+            data: {
+                semester: new_semester
+            }
+        })
+
+        throw new AppError('Semester updated successfully', 200)
+    }
+
+    await prisma.$transaction(async (tx) => {
+        
+        const courses = await tx.courses.findMany({
+            where: {
+                branch: branch,
+                semester: new_semester
+            }
+        })
+
+        if(courses.length === 0)
+            throw new AppError('No courses found for the given branch and semester', 400)
+
+        const data=courses.map(c => ({
+            user_id: uid,
+            course_code: c.course_code
+        }))
+
+        await tx.course_attendance.createMany({
+            data: data
+        })
+
+        await tx.users.update({
+            where: {
+                id: uid
+            },
+            data: {
+                semester: new_semester
+            }
+        })
+    })
+
 	res.status(200).json({
-		message: 'Semester modified successfully!',
+		message: 'Semester updated successfully!',
+        status: 200
 	})
 })
 
-module.exports = { getUserData, registerUser, deleteUserData, modifySemester }
+const resetSemester = catchAsync(async (req, res) => {
+    const { uid, semester, branch } = req.user
+
+    await prisma.$transaction(async (tx) => {
+        
+        const courses = await tx.courses.findMany({
+            where: {
+                branch: branch,
+                semester: semester
+            }
+        })
+        
+        if(courses.length === 0)
+            throw new AppError('No courses found for the given branch and semester', 400)
+
+        await tx.course_attendance.deleteMany({
+            where: {
+                user_id: uid,
+                course_code: { in: courses.map(c => c.course_code) }
+            }
+        })
+        
+        const data=courses.map(c => ({
+            user_id: uid,
+            course_code: c.course_code
+        }))
+
+        await tx.course_attendance.createMany({
+            data: data
+        })
+    })
+
+    res.status(200).json({
+        message: 'Semester reset successfully!',
+        status: 200
+    })
+})
+
+const unenrollFromCourse = catchAsync(async (req, res) => {
+    const { uid } = req.user
+    const { course_code } = req.body
+
+    if(!course_code)
+        throw new AppError('Please provide course code', 400)
+
+    await prisma.$transaction(async (tx) => {
+
+        await tx.attendance_logs.deleteMany({
+            where: {
+                user_id: uid,
+                course_code: course_code
+            }
+        })
+
+        await tx.course_attendance.delete({
+            where: {
+                user_id_course_code: {
+                    user_id: uid,
+                    course_code: course_code
+                }
+            }
+        })
+    })
+
+
+    res.status(200).json({
+        message: 'Unenrolled from course successfully!',
+        status: 200
+    })
+})
+
+module.exports = { getUserData, registerUser, deleteUserData, modifySemester, resetSemester , unenrollFromCourse }

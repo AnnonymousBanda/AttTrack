@@ -12,10 +12,13 @@ const getTodaySchedule = catchAsync(async (req, res) => {
         where: {
             user_id: uid,
             lecture_date: searchDate,
-            status: { not: 'cancelled' },
             courses: {
                 semester: semester
-            }
+            },
+            OR: [
+                { status: null }, 
+                { status: { not: 'cancelled' } }
+            ]
         },
         include: {
             courses: true
@@ -59,9 +62,6 @@ const addExtraClass = catchAsync(async (req, res) => {
         where: {
             user_id: uid,
             lecture_date: new Date(lecture_date),
-            courses: {
-                semester: semester
-            },
             start_time: {
                 lt: endDateTime
             },

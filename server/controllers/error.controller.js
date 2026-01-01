@@ -11,6 +11,10 @@ const handleDevError = (err, res) => {
 
 const handleProdError = (err, res) => {
 	if (err.isOperational) {
+
+		if (err.code === 'P2002')
+            err.message = 'Lecture already exists for the given time range and date'
+
 		return res.status(err.status).json({
 			status: err.status,
 			message: err.message,
@@ -18,7 +22,7 @@ const handleProdError = (err, res) => {
 	} else {
 		return res.status(500).json({
 			status: 500,
-			message: 'Something went wrong! Please try again later.',
+			message: 'Something went wrong! Please try again later',
 		})
 	}
 }

@@ -1,7 +1,7 @@
 const { prisma } = require('../database')
-const { catchAsync } = require('../utils/error.util')
+const { catchAsync, AppError } = require('../utils/error.util')
 
-const markAttendance = catchAsync(async (req, res) => {
+const createAttendanceLog = catchAsync(async (req, res) => {
     const { uid } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
@@ -203,12 +203,12 @@ const getAttendanceReport = catchAsync(async (req, res) => {
 	})
 })
 
-const updateAttendanceLog = catchAsync(async (req, res) => {
+const updateAttendanceStatus = catchAsync(async (req, res) => {
     const { uid } = req.user
     const { attendance_log_id, new_status } = req.body
 
     if (!attendance_log_id || !new_status)
-        throw new AppError('Please provide log ID and new status', 400)
+        throw new AppError('Please provide all required fields', 400)
 
     if (!['present', 'absent', 'medical', 'cancelled'].includes(new_status))
         throw new AppError('Invalid status value', 400)
@@ -270,8 +270,8 @@ const updateAttendanceLog = catchAsync(async (req, res) => {
 })
 
 module.exports = {
-	markAttendance,
+	createAttendanceLog,
 	adjustAttendanceTotals,
 	getAttendanceReport,
-	updateAttendanceLog,
+	updateAttendanceStatus
 }
