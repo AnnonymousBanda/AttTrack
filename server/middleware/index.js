@@ -1,3 +1,3 @@
-const { protect } = require('./auth.middlewear');
+const { protect } = require('./auth.middleware');
 
 module.exports = { protect };

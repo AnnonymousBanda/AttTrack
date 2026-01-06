@@ -1,8 +1,8 @@
 const router = require('express').Router()
 
 const { getTodaySchedule, addExtraClass } = require('../controllers/lecture.controller')
-const { protect } = require('../middlewear')
-const validate = require('../middlewear/validate')
+const { protect } = require('../middleware')
+const validate = require('../middleware/validate')
 const { addExtraClassSchema } = require('../utils/validationSchemas')
 
 router.use(protect)

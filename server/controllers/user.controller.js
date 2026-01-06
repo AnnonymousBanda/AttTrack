@@ -121,6 +121,15 @@ const modifySemester = catchAsync(async (req, res) => {
     if(new_semester === semester)
         throw new AppError('Semester is already set to the provided value', 400)
 
+    const user = await prisma.users.findUnique({
+        where: {
+            id: uid
+        }
+    })
+
+    if(!user)
+        throw new AppError('User not found!', 404)
+
     const coursesEnrolled = await prisma.course_attendance.findMany({
         where: {
             user_id: uid,

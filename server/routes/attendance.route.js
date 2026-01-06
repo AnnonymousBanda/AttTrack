@@ -6,8 +6,8 @@ const {
 	createAttendanceLog,
 	updateAttendanceStatus,
 } = require('../controllers/attendance.controller')
-const { protect } = require('../middlewear')
-const validate = require('../middlewear/validate')
+const { protect } = require('../middleware')
+const validate = require('../middleware/validate')
 const { markAttendanceSchema, updateAttendanceStatusSchema, adjustAttendanceTotalsSchema } = require('../utils/validationSchemas')
 
 router.use(protect)

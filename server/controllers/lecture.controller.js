@@ -45,8 +45,8 @@ const addExtraClass = catchAsync(async (req, res) => {
     if(!course)
         throw new AppError('Course not found!', 404)
 
-    const startDateTime = new Date(`${lecture_date}T${start_time}`)
-    const endDateTime = new Date(`${lecture_date}T${end_time}`)
+    const startDateTime = createDateTime(lecture_date, start_time);
+    const endDateTime = createDateTime(lecture_date, end_time);
 
     if(startDateTime >= endDateTime)
         throw new AppError('Start time must be before end time', 400)
@@ -94,5 +94,14 @@ const addExtraClass = catchAsync(async (req, res) => {
         }
     })
 })
+
+const createDateTime = (dateStr, timeStr) => {
+    const date = new Date(dateStr);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    const combined = new Date(date); 
+    combined.setHours(hours, minutes, 0, 0);
+    return combined;
+};
 
 module.exports = { getTodaySchedule, addExtraClass }
