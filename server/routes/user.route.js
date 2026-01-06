@@ -1,8 +1,8 @@
 const router = require('express').Router()
 
 const { getUserData, registerUser, deleteUserData, modifySemester, resetSemester, unenrollFromCourse } = require('../controllers/user.controller')
-const { protect } = require('../middlewear')
-const validate = require('../middlewear/validate')
+const { protect } = require('../middleware')
+const validate = require('../middleware/validate')
 const { registerSchema, modifySemesterSchema, unenrollSchema } = require('../utils/validationSchemas')
 
 router.route('/me').get(protect, getUserData)
