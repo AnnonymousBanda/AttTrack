@@ -79,7 +79,7 @@ const registerUser = catchAsync(async (req, res) => {
                 course_code: course.course_code
             })
 
-        await prisma.course_attendance.createMany({
+        await tx.course_attendance.createMany({
             data: data
         })
     })
@@ -102,9 +102,9 @@ const deleteUserData = catchAsync(async (req, res) => {
     if(!user)
         throw new AppError('User not found!', 404, false)
 
-    await prisma.attendance_logs.deleteMany({
+    await prisma.users.delete({
         where: {
-            user_id: uid
+            id: uid
         }
     })
 
@@ -214,6 +214,8 @@ const resetSemester = catchAsync(async (req, res) => {
         await tx.course_attendance.createMany({
             data: data
         })
+
+        //reset attendance logs
     })
 
     res.status(200).json({

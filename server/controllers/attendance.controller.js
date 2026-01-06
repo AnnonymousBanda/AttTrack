@@ -187,6 +187,15 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     const { uid } = req.user
     const { course_code } = req.query
 
+    const user = await prisma.users.findUnique({
+        where: {
+            id: uid
+        }
+    })
+
+    if (!user)
+        throw new AppError('User not found!', 404)
+
     if (!course_code) {
         const allCourses = await prisma.course_attendance.findMany({
             where: {

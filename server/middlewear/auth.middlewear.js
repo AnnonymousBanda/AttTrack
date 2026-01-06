@@ -1,5 +1,5 @@
 const protect = (req, res, next) => {
-    req.user={ uid:"10b5a2df-e6a3-11f0-b089-1068388d1b56", semester:5 }
+    req.user={ uid:"e7033171-d1fa-4f46-b6ce-61cdf936140e", semester:5, branch:"Civil Engineering (4 Years, Bachelor of Technology)" }
     next()
 };
 

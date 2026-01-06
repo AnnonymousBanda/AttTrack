@@ -6,7 +6,9 @@ import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/
 
 export function AttendanceButton({ lecture, day, setLectures }) {
     const [status, setStatus] = useState(lecture.status)
-    // const { user } = useAuth()
+    const { user } = {
+        
+    }//useAuth()
 
     useEffect(() => {
         setStatus(lecture.status)

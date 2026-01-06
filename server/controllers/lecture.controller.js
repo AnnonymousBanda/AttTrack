@@ -15,10 +15,6 @@ const getTodaySchedule = catchAsync(async (req, res) => {
             courses: {
                 semester: semester
             },
-            OR: [
-                { status: null }, 
-                { status: { not: 'cancelled' } }
-            ]
         },
         include: {
             courses: true
