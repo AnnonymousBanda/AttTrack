@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'
 import {
     StyleSheet,
     View,
@@ -8,64 +8,87 @@ import {
     TextInput,
     ActivityIndicator,
     Alert,
-    Dimensions
-} from 'react-native';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
-import { AttendanceButton, CancelButton, AddButton } from '../../components';
-import { HomeSkeleton } from '../../skeletons';
+    Dimensions,
+} from 'react-native'
+import { Feather, MaterialIcons } from '@expo/vector-icons'
+import { AttendanceButton, CancelButton, AddButton } from '../../components'
+import { HomeSkeleton } from '../../skeletons'
 
 const getLectures = async (id, sem, day) => {
-    return new Promise(resolve => setTimeout(() => resolve({
-        status: 200,
-        data: [
-            {
-                courseCode: 'CS101',
-                courseName: 'Intro to Programming',
-                from: '09:00',
-                to: '10:00',
-                status: null
+    try {
+        const date = new Date().toISOString().split('T')[0]
+        const API_URL = process.env.EXPO_PUBLIC_API_URL
+
+        const response = await fetch(`${API_URL}/api/lectures?date=${date}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            {
-                courseCode: 'MA201',
-                courseName: 'Mathematics II',
-                from: '14:00',
-                to: '15:30',
-                status: null
-            },
-			{
-				courseCode: 'PH301',
-				courseName: 'Physics I',
-				from: '11:00',
-				to: '12:00',
-				status: null
-			},
-			{
-				courseCode: 'EE101',
-				courseName: 'Basic Electronics',
-				from: '16:00',
-				to: '17:00',
-				status: null
-			}
-        ]
-    }), 1000));
-};
+        })
+
+        const result = await response.json()
+
+        if (response.status !== 200) {
+            return {
+                status: response.status,
+                message: result.message || 'Failed to fetch',
+            }
+        }
+
+        return {
+            status: 200,
+            data: result.data.map((lec) => {
+                const startDate = new Date(lec.start_time)
+                const endDate = new Date(lec.end_time)
+
+                const formatTime = (date) =>
+                    date.toLocaleTimeString('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                    })
+
+                return {
+                    courseCode: lec.courses.course_code,
+                    courseName: lec.courses.course_name,
+                    from: formatTime(startDate),
+                    to: formatTime(endDate),
+                    status: lec.status,
+                }
+            }),
+        }
+    } catch (error) {
+        return { status: 500, message: 'Internal Server Error' }
+    }
+}
 
 const addExtraLecture = async (id, data, sem, day) => {
-    return new Promise(resolve => setTimeout(() => resolve({ status: 200, data: [] }), 1000));
-};
+    return new Promise((resolve) =>
+        setTimeout(() => resolve({ status: 200, data: [] }), 1000)
+    )
+}
+
+const formatToIST = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true, // Shows 09:00 AM instead of 09:00
+    })
+}
 
 export function Home() {
-    const [greeting, setGreeting] = useState('');
-    const [showForm, setShowForm] = useState(false);
-    const [classes, setClasses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({ course: '', from: '', to: '' });
-    
-    const { width } = Dimensions.get('window');
-    const isSmallDevice = width < 340;
+    const [greeting, setGreeting] = useState('')
+    const [showForm, setShowForm] = useState(false)
+    const [classes, setClasses] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [formData, setFormData] = useState({ course: '', from: '', to: '' })
 
-    const initialRender = useRef(true);
-    const user = { userID: 'dummy_user', semester: '4' };
+    const { width } = Dimensions.get('window')
+    const isSmallDevice = width < 340
+
+    const initialRender = useRef(true)
+    const user = { userID: 'dummy_user', semester: '4' }
 
     useEffect(() => {
         const fetch = async () => {
@@ -76,25 +99,25 @@ export function Home() {
                     new Date()
                         .toLocaleDateString('en-US', { weekday: 'short' })
                         .toLowerCase()
-                );
+                )
 
-                if (res.status !== 200) throw new Error(res.message);
+                if (res.status !== 200) throw new Error(res.message)
 
-                setClasses(res.data);
-                setLoading(false);
+                setClasses(res.data)
+                setLoading(false)
             } catch (error) {
-                Alert.alert('Error', error.message);
+                Alert.alert('Error', error.message)
             }
-        };
-        fetch();
-    }, []);
+        }
+        fetch()
+    }, [])
 
     useEffect(() => {
-        const hour = new Date().getHours();
-        if (hour < 12) setGreeting('Good Morning');
-        else if (hour < 18) setGreeting('Good Afternoon');
-        else setGreeting('Good Evening');
-    }, []);
+        const hour = new Date().getHours()
+        if (hour < 12) setGreeting('Good Morning')
+        else if (hour < 18) setGreeting('Good Afternoon')
+        else setGreeting('Good Evening')
+    }, [])
 
     const formatDate = (date) => {
         const options = {
@@ -102,14 +125,14 @@ export function Home() {
             month: 'short',
             day: '2-digit',
             year: 'numeric',
-        };
-        return date.toLocaleDateString('en-US', options).replace(',', '');
-    };
+        }
+        return date.toLocaleDateString('en-US', options).replace(',', '')
+    }
 
     const handleAddClass = async () => {
         if (!formData.course || !formData.from || !formData.to) {
-            Alert.alert('Error', 'Please fill all fields');
-            return;
+            Alert.alert('Error', 'Please fill all fields')
+            return
         }
 
         const data = {
@@ -118,7 +141,7 @@ export function Home() {
             from: formData.from,
             to: formData.to,
             status: null,
-        };
+        }
 
         try {
             const res = await addExtraLecture(
@@ -128,32 +151,32 @@ export function Home() {
                 new Date()
                     .toLocaleDateString('en-US', { weekday: 'short' })
                     .toLowerCase()
-            );
+            )
 
-            if (res.status !== 200) throw new Error(res.message);
+            if (res.status !== 200) throw new Error(res.message)
 
-            setClasses(prev => [...prev, { ...data }]);
-            setFormData({ course: '', from: '', to: '' });
-            setShowForm(false);
-            Alert.alert('Success', 'Class added successfully');
+            setClasses((prev) => [...prev, { ...data }])
+            setFormData({ course: '', from: '', to: '' })
+            setShowForm(false)
+            Alert.alert('Success', 'Class added successfully')
         } catch (error) {
-            Alert.alert('Error', error.message);
+            Alert.alert('Error', error.message)
         }
-    };
+    }
 
     const OngoingClasses = () => {
         const ongoingClasses = classes?.filter((cls) => {
-            const [from_hours, from_minutes] = cls.from.split(':').map(Number);
-            const from = new Date();
-            from.setHours(from_hours, from_minutes, 0, 0);
+            const [from_hours, from_minutes] = cls.from.split(':').map(Number)
+            const from = new Date()
+            from.setHours(from_hours, from_minutes, 0, 0)
 
-            const [to_hours, to_minutes] = cls.to.split(':').map(Number);
-            const to = new Date();
-            to.setHours(to_hours, to_minutes, 0, 0);
-            const now = new Date();
+            const [to_hours, to_minutes] = cls.to.split(':').map(Number)
+            const to = new Date()
+            to.setHours(to_hours, to_minutes, 0, 0)
+            const now = new Date()
 
-            return from <= now && to >= now;
-        });
+            return from <= now && to >= now
+        })
 
         return (
             <View style={styles.sectionContainer}>
@@ -166,16 +189,16 @@ export function Home() {
                     <NoClasses message="There are no classes scheduled at this time" />
                 )}
             </View>
-        );
-    };
+        )
+    }
 
     const UpcomingClasses = () => {
         const upcomingClasses = classes.filter((cls) => {
-            const [from_hours, from_minutes] = cls.from.split(':').map(Number);
-            const from = new Date();
-            from.setHours(from_hours, from_minutes, 0, 0);
-            return from > new Date();
-        });
+            const [from_hours, from_minutes] = cls.from.split(':').map(Number)
+            const from = new Date()
+            from.setHours(from_hours, from_minutes, 0, 0)
+            return from > new Date()
+        })
 
         return (
             <View style={styles.sectionContainer}>
@@ -188,16 +211,16 @@ export function Home() {
                     ))
                 )}
             </View>
-        );
-    };
+        )
+    }
 
     const PastClasses = () => {
         const pastClasses = classes?.filter((cls) => {
-            const [to_hours, to_minutes] = cls.to.split(':').map(Number);
-            const to = new Date();
-            to.setHours(to_hours, to_minutes, 0, 0);
-            return to < new Date();
-        });
+            const [to_hours, to_minutes] = cls.to.split(':').map(Number)
+            const to = new Date()
+            to.setHours(to_hours, to_minutes, 0, 0)
+            return to < new Date()
+        })
 
         return (
             <View>
@@ -205,24 +228,26 @@ export function Home() {
                 {pastClasses.length === 0 ? (
                     <NoClasses message="No past classes to display" />
                 ) : (
-                    pastClasses.map((cls, i) => (
-                        <ClassCard key={i} cls={cls} />
-                    ))
+                    pastClasses.map((cls, i) => <ClassCard key={i} cls={cls} />)
                 )}
             </View>
-        );
-    };
+        )
+    }
 
     const ClassCard = ({ cls, isOngoing }) => (
-        <View style={[
-            styles.card, 
-            isOngoing && styles.ongoingCard,
-            isSmallDevice && styles.cardResponsive
-        ]}>
-            <View style={[
-                styles.cardContent,
-                isSmallDevice && styles.cardContentResponsive
-            ]}>
+        <View
+            style={[
+                styles.card,
+                isOngoing && styles.ongoingCard,
+                isSmallDevice && styles.cardResponsive,
+            ]}
+        >
+            <View
+                style={[
+                    styles.cardContent,
+                    isSmallDevice && styles.cardContentResponsive,
+                ]}
+            >
                 <View>
                     <Text style={styles.cardCode}>{cls.courseCode}</Text>
                     <Text style={styles.cardName}>{cls.courseName}</Text>
@@ -234,10 +259,13 @@ export function Home() {
                 </View>
             </View>
 
-            <View style={[
-                styles.cardActions,
-                isSmallDevice && styles.cardActionsResponsive, {alignSelf: 'flex-end'}
-            ]}>
+            <View
+                style={[
+                    styles.cardActions,
+                    isSmallDevice && styles.cardActionsResponsive,
+                    { alignSelf: 'flex-end' },
+                ]}
+            >
                 <AttendanceButton
                     lecture={cls}
                     day={new Date()
@@ -246,92 +274,109 @@ export function Home() {
                     setLectures={setClasses}
                 />
             </View>
-			
-			<CancelButton
-				lecture={cls}
-				day={new Date()
-					.toLocaleDateString('en-US', { weekday: 'short' })
-					.toLowerCase()}
-				setLectures={setClasses}
-			/>
+
+            <CancelButton
+                lecture={cls}
+                day={new Date()
+                    .toLocaleDateString('en-US', { weekday: 'short' })
+                    .toLowerCase()}
+                setLectures={setClasses}
+            />
         </View>
-    );
+    )
 
     const NoClasses = ({ message }) => (
         <View style={styles.noClassesContainer}>
             <Feather name="clock" size={30} color="#9CA3AF" />
             <Text style={styles.noClassesText}>{message}</Text>
         </View>
-    );
+    )
 
     if (loading) {
-        return <HomeSkeleton />;
+        return <HomeSkeleton />
     }
 
     return (
-		<ScrollView contentContainerStyle={styles.scrollContent}>
-			<View style={styles.header}>
-				<Text style={styles.greetingText}>{greeting}</Text>
-				<Text style={styles.dateText}>{formatDate(new Date())}</Text>
-			</View>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+                <Text style={styles.greetingText}>{greeting}</Text>
+                <Text style={styles.dateText}>{formatDate(new Date())}</Text>
+            </View>
 
-			<OngoingClasses />
+            <OngoingClasses />
 
-			<View>
-				<View style={styles.sectionHeaderRow}>
-					<Text style={styles.sectionTitle}>Today's Classes</Text>
-					<TouchableOpacity onPress={() => setShowForm((prev) => !prev)}>
-						<MaterialIcons
-							name="add"
-							size={30}
-							color="#3B82F6"
-							style={{ transform: [{ rotate: showForm ? '45deg' : '0deg' }] }}
-						/>
-					</TouchableOpacity>
-				</View>
+            <View>
+                <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>Today's Classes</Text>
+                    <TouchableOpacity
+                        onPress={() => setShowForm((prev) => !prev)}
+                    >
+                        <MaterialIcons
+                            name="add"
+                            size={30}
+                            color="#3B82F6"
+                            style={{
+                                transform: [
+                                    { rotate: showForm ? '45deg' : '0deg' },
+                                ],
+                            }}
+                        />
+                    </TouchableOpacity>
+                </View>
 
-				{showForm && (
-					<View style={styles.formContainer}>
-						<View style={styles.formGroup}>
-							<Text style={styles.formLabel}>Select Course:</Text>
-							<TextInput
-								style={styles.input}
-								placeholder="e.g. CS101 - Intro"
-								value={formData.course}
-								onChangeText={(t) => setFormData({ ...formData, course: t })}
-							/>
-						</View>
+                {showForm && (
+                    <View style={styles.formContainer}>
+                        <View style={styles.formGroup}>
+                            <Text style={styles.formLabel}>Select Course:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. CS101 - Intro"
+                                value={formData.course}
+                                onChangeText={(t) =>
+                                    setFormData({ ...formData, course: t })
+                                }
+                            />
+                        </View>
 
-						<View style={styles.row}>
-							<View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
-								<Text style={styles.formLabel}>From:</Text>
-								<TextInput
-									style={styles.input}
-									placeholder="09:00"
-									value={formData.from}
-									onChangeText={(t) => setFormData({ ...formData, from: t })}
-								/>
-							</View>
-							<View style={[styles.formGroup, { flex: 1 }]}>
-								<Text style={styles.formLabel}>To:</Text>
-								<TextInput
-									style={styles.input}
-									placeholder="10:00"
-									value={formData.to}
-									onChangeText={(t) => setFormData({ ...formData, to: t })}
-								/>
-							</View>
-						</View>
+                        <View style={styles.row}>
+                            <View
+                                style={[
+                                    styles.formGroup,
+                                    { flex: 1, marginRight: 10 },
+                                ]}
+                            >
+                                <Text style={styles.formLabel}>From:</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="09:00"
+                                    value={formData.from}
+                                    onChangeText={(t) =>
+                                        setFormData({ ...formData, from: t })
+                                    }
+                                />
+                            </View>
+                            <View style={[styles.formGroup, { flex: 1 }]}>
+                                <Text style={styles.formLabel}>To:</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="10:00"
+                                    value={formData.to}
+                                    onChangeText={(t) =>
+                                        setFormData({ ...formData, to: t })
+                                    }
+                                />
+                            </View>
+                        </View>
 
-						<AddButton onPress={handleAddClass} />
-					</View>
-				)}
+                        <AddButton onPress={handleAddClass} />
+                    </View>
+                )}
 
-				<UpcomingClasses />
-				<PastClasses />
-			</View>
-		</ScrollView>
-    );
+                <UpcomingClasses />
+                <PastClasses />
+            </View>
+        </ScrollView>
+    )
 }
 
 const styles = StyleSheet.create({
@@ -341,9 +386,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     scrollContent: {
-		minHeight: '100%',
+        minHeight: '100%',
         paddingHorizontal: 10,
-		paddingVertical: 5,
+        paddingVertical: 5,
     },
     header: {
         marginBottom: 24,
@@ -491,4 +536,4 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
     },
-});
+})
