@@ -49,74 +49,67 @@ const getDBLectures = catchAsync(async (req, res, next) => {
         to: formatTime(lecture.end_time),
         status: lecture.status,
     }))
-    
+
     req['DBLectures'] = formattedLectures
     next()
 })
 
 const getSheetLectures = catchAsync(async (req, res, next) => {
-    const { semester, branch } = req.user
-
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
-    const dayNames = [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-    ]
+    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
-    const dayNamesMap = {
-        Sunday: 'sun',
-        Monday: 'mon',
-        Tuesday: 'tue',
-        Wednesday: 'wed',
-        Thursday: 'thu',
-        Friday: 'fri',
-        Saturday: 'sat',
-    }
-    const day = dayNamesMap[dayNames[dateInput.getDay()]]
+    const day = dayNames[dateInput.getDay()]
+    req.params['day'] = day
 
-    const lectures = await getLectures(semester, day, branch)
-
-    req['SheetLectures'] = lectures
+    await getLectures(req, res, next)
     next()
 })
 
-const getLectures = async (semester, day, branch) => {
-    try {
-        const id = process.env.GSHEET_ID
-        const semCellRange = cellrange[semester]
+const getLectures = catchAsync(async (req, res, next) => {
+    const { semester, branch } = req.user
+    const day = req.params['day']
 
-        const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&tq=SELECT ${semCellRange}&sheet=${branch}`
-        const response = await fetch(url)
+    const id = process.env.GSHEET_ID
 
-        if (response.status !== 200) {
-            throw new AppError('Failed to fetch lectures', 404)
-        }
+    const rawRange = cellrange[semester]
+    const safeRange = rawRange
+        .split(', ')
+        .map((col) => `\`${col}\``)
+        .join(', ')
 
-        const raw = await response.text()
-        const json = JSON.parse(raw.substr(47).slice(0, -2))
+    const query = encodeURIComponent(`SELECT ${safeRange}`)
+    const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&tq=${query}&sheet=${branch}&t=${Date.now()}`
 
-        const timetable = extractTimetable(json)
-        const lectures = timetable[day]
-        
-        const mergedlectures = mergeLectures(lectures)
+    const response = await fetch(url)
 
-        return mergedlectures
-    } catch (error) {
-        console.log('Error fetching lectures:', error)
-        throw new AppError(error.message, 500)
+    if (response.status !== 200) {
+        throw new AppError('Failed to fetch lectures', 404)
     }
-}
+
+    const raw = await response.text()
+
+    const jsonStart = raw.indexOf('{')
+    const jsonEnd = raw.lastIndexOf('}')
+    const json = JSON.parse(raw.substring(jsonStart, jsonEnd + 1))
+
+    if (json.status === 'error') {
+        throw new AppError(
+            `Google Sheet Error: ${json.errors[0].detailed_message}`,
+            400
+        )
+    }
+
+    const timetable = extractTimetable(json)
+    const lectures = timetable[day] || []
+
+    req['SheetLectures'] = mergeLectures(lectures)
+})
 
 function extractTimetable(json) {
     const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
-    const cols = json.table.cols.slice(1, 13)
-    const rows = json.table.rows
+    const cols = json.table?.cols.slice(1, 13) || []
+    const rows = json.table?.rows || []
 
     const lectures = {
         mon: [],
@@ -142,6 +135,8 @@ function extractTimetable(json) {
             if (!row) return
 
             const courseName = row.c[0]?.v
+
+            if (!courseName) return
 
             lectures[day].push({
                 courseCode: code,
