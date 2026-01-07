@@ -35,27 +35,20 @@ const getLectures = async (id, sem, day) => {
             }
         }
 
+        const lectures = result.data.map((lec) => {
+            return {
+                courseCode: lec.courseCode,
+                courseName: lec.courseName,
+                from: lec.from,
+                to: lec.to,
+                status: lec.status,
+            }
+        })
+
         return {
             status: 200,
-            data: result.data.map((lec) => {
-                const startDate = new Date(lec.start_time)
-                const endDate = new Date(lec.end_time)
-
-                const formatTime = (date) =>
-                    date.toLocaleTimeString('en-GB', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false,
-                    })
-
-                return {
-                    courseCode: lec.courses.course_code,
-                    courseName: lec.courses.course_name,
-                    from: formatTime(startDate),
-                    to: formatTime(endDate),
-                    status: lec.status,
-                }
-            }),
+            message: 'Lectures fetched successfully',
+            data: lectures,
         }
     } catch (error) {
         return { status: 500, message: 'Internal Server Error' }
@@ -66,15 +59,6 @@ const addExtraLecture = async (id, data, sem, day) => {
     return new Promise((resolve) =>
         setTimeout(() => resolve({ status: 200, data: [] }), 1000)
     )
-}
-
-const formatToIST = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true, // Shows 09:00 AM instead of 09:00
-    })
 }
 
 export function Home() {
