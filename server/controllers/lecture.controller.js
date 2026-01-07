@@ -1,35 +1,59 @@
 const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
 
-const getTodaySchedule = catchAsync(async (req, res) => {
-    const { uid, semester } = req.user
+const getTodaySchedule = catchAsync(async (req, res, next) => {
+    const DBLectures = req['DBLectures'] || [];
+    const SheetLectures = req['SheetLectures'] || [];
 
-    let dateInput = req.query.date ? new Date(req.query.date) : new Date()
-    const dateString = dateInput.toISOString().split('T')[0]
-    const searchDate = new Date(dateString)
+    let combinedLectures = [];
 
-    const lectures = await prisma.attendance_logs.findMany({
-        where: {
-            user_id: uid,
-            lecture_date: searchDate,
-            courses: {
-                semester: semester
-            },
-        },
-        include: {
-            courses: true
-        },
-        orderBy: {
-            start_time: 'asc'
+    for (const sheetLecture of SheetLectures) {
+        const matchingDBLecture = DBLectures.find(
+            (dbL) =>
+                dbL.courseCode === sheetLecture.courseCode &&
+                dbL.from === sheetLecture.from && 
+                dbL.to === sheetLecture.to
+        );
+
+        if (matchingDBLecture) {
+            if (matchingDBLecture.status !== 'cancelled') {
+                combinedLectures.push({
+                    ...sheetLecture,
+                    status: matchingDBLecture.status,
+                });
+            }
+        } else {
+            combinedLectures.push({ ...sheetLecture });
         }
-    })
+    }
+
+    for (const dbL of DBLectures) {
+        const existsInSheets = SheetLectures.some(
+            (sL) =>
+                sL.courseCode === dbL.courseCode &&
+                sL.from === dbL.start_time &&
+                sL.to === dbL.end_time
+        );
+
+        if (!existsInSheets && dbL.status !== 'cancelled') {
+            combinedLectures.push({
+                courseCode: dbL.courseCode,
+                courseName: dbL.courseName,
+                from: dbL.from,
+                to: dbL.to,
+                status: dbL.status,
+            });
+        }
+    }
+
+    combinedLectures.sort((a, b) => a.from.localeCompare(b.from));
 
     res.status(200).json({
-        message: "Lectures fetched successfully!",
-        results: lectures.length,
-        data: lectures
-    })
-})
+        message: 'Lectures fetched successfully!',
+        status: 200,
+        data: combinedLectures,
+    });
+});
 
 const addExtraClass = catchAsync(async (req, res) => {
     const { uid, semester } = req.user
@@ -38,17 +62,16 @@ const addExtraClass = catchAsync(async (req, res) => {
     const course = await prisma.course_attendance.findFirst({
         where: {
             course_code: course_code,
-            user_id: uid
-        }
+            user_id: uid,
+        },
     })
 
-    if(!course)
-        throw new AppError('Course not found!', 404)
+    if (!course) throw new AppError('Course not found!', 404)
 
-    const startDateTime = createDateTime(lecture_date, start_time);
-    const endDateTime = createDateTime(lecture_date, end_time);
+    const startDateTime = createDateTime(lecture_date, start_time)
+    const endDateTime = createDateTime(lecture_date, end_time)
 
-    if(startDateTime >= endDateTime)
+    if (startDateTime >= endDateTime)
         throw new AppError('Start time must be before end time', 400)
 
     const old_logs = await prisma.attendance_logs.findMany({
@@ -56,19 +79,22 @@ const addExtraClass = catchAsync(async (req, res) => {
             user_id: uid,
             lecture_date: new Date(lecture_date),
             start_time: {
-                lt: endDateTime
+                lt: endDateTime,
             },
             end_time: {
-                gt: startDateTime
+                gt: startDateTime,
             },
         },
         include: {
-            courses: true
-        }
+            courses: true,
+        },
     })
 
-    if(old_logs.length > 0)
-        throw new AppError('Lecture already exists for the given time range and date', 400)
+    if (old_logs.length > 0)
+        throw new AppError(
+            'Lecture already exists for the given time range and date',
+            400
+        )
 
     await prisma.attendance_logs.create({
         data: {
@@ -76,8 +102,8 @@ const addExtraClass = catchAsync(async (req, res) => {
             start_time: startDateTime,
             end_time: endDateTime,
             course_code: course_code,
-            lecture_date: new Date(lecture_date)
-        }
+            lecture_date: new Date(lecture_date),
+        },
     })
 
     res.status(201).json({
@@ -90,18 +116,18 @@ const addExtraClass = catchAsync(async (req, res) => {
             lecture_date: new Date(lecture_date),
             start_time: startDateTime,
             end_time: endDateTime,
-            status: null
-        }
+            status: null,
+        },
     })
 })
 
 const createDateTime = (dateStr, timeStr) => {
-    const date = new Date(dateStr);
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    
-    const combined = new Date(date); 
-    combined.setHours(hours, minutes, 0, 0);
-    return combined;
-};
+    const date = new Date(dateStr)
+    const [hours, minutes] = timeStr.split(':').map(Number)
+
+    const combined = new Date(date)
+    combined.setHours(hours, minutes, 0, 0)
+    return combined
+}
 
 module.exports = { getTodaySchedule, addExtraClass }
