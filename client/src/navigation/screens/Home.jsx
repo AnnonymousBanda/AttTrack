@@ -373,9 +373,11 @@ const styles = StyleSheet.create({
         minHeight: '100%',
         paddingHorizontal: 10,
         paddingVertical: 5,
+        backgroundColor: '#fafafaff',
     },
     header: {
         marginBottom: 24,
+        marginTop: 10,
     },
     greetingText: {
         fontSize: 28,
