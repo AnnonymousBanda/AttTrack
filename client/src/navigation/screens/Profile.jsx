@@ -216,387 +216,428 @@ export function Profile() {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-            <View style={styles.header}>
-                <View style={styles.headerTitleContainer}>
-                    <FontAwesome5 name="user-circle" size={22} color="#333" />
-                    <Text style={styles.headerTitle}>Profile</Text>
-                </View>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.closeButton}
-                >
-                    <Ionicons name="close" size={28} color="#333" />
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.profileSection}>
-                    <Image
-                        source={{ uri: user.profilePicture }}
-                        style={styles.avatar}
-                    />
-                    <View style={styles.userInfo}>
-                        <Text style={styles.userName}>{user.name}</Text>
-                        <Text style={styles.userDetail}>{user.roll}</Text>
-                        <Text style={styles.userDetail}>{user.email}</Text>
+        <GestureHandlerRootView>
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+                <View style={styles.header}>
+                    <View style={styles.headerTitleContainer}>
+                        <FontAwesome5
+                            name="user-circle"
+                            size={22}
+                            color="#333"
+                        />
+                        <Text style={styles.headerTitle}>Profile</Text>
                     </View>
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        style={styles.closeButton}
+                    >
+                        <Ionicons name="close" size={28} color="#333" />
+                    </TouchableOpacity>
                 </View>
 
-                <View style={styles.detailsContainer}>
-                    <View style={styles.infoCard}>
-                        <MaterialIcons name="class" size={32} color="#555" />
-                        <View style={styles.infoTextContainer}>
-                            <Text style={styles.infoLabel}>Branch</Text>
-                            <Text style={styles.infoValue}>{user.branch}</Text>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    <View style={styles.profileSection}>
+                        <Image
+                            source={{ uri: user.profilePicture }}
+                            style={styles.avatar}
+                        />
+                        <View style={styles.userInfo}>
+                            <Text style={styles.userName}>{user.name}</Text>
+                            <Text style={styles.userDetail}>{user.roll}</Text>
+                            <Text style={styles.userDetail}>{user.email}</Text>
                         </View>
                     </View>
 
-                    <View style={styles.infoCard}>
-                        <Ionicons name="school" size={32} color="#555" />
-                        <View style={styles.infoTextContainer}>
-                            <Text style={styles.infoLabel}>Batch</Text>
-                            <Text style={styles.infoValue}>{user.batch}</Text>
+                    <View style={styles.detailsContainer}>
+                        <View style={styles.infoCard}>
+                            <MaterialIcons
+                                name="class"
+                                size={32}
+                                color="#555"
+                            />
+                            <View style={styles.infoTextContainer}>
+                                <Text style={styles.infoLabel}>Branch</Text>
+                                <Text style={styles.infoValue}>
+                                    {user.branch}
+                                </Text>
+                            </View>
                         </View>
-                    </View>
 
-                    <View style={styles.infoCard}>
-                        <Ionicons name="calendar" size={32} color="#555" />
-                        <View style={styles.infoTextContainer}>
-                            <Text style={styles.infoLabel}>Semester</Text>
-                            {isEditingSem ? (
-                                <TextInput
-                                    style={styles.semInput}
-                                    value={tempSemester}
-                                    onChangeText={setTempSemester}
-                                    keyboardType="numeric"
-                                    maxLength={1}
+                        <View style={styles.infoCard}>
+                            <Ionicons name="school" size={32} color="#555" />
+                            <View style={styles.infoTextContainer}>
+                                <Text style={styles.infoLabel}>Batch</Text>
+                                <Text style={styles.infoValue}>
+                                    {user.batch}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.infoCard}>
+                            <Ionicons name="calendar" size={32} color="#555" />
+                            <View style={styles.infoTextContainer}>
+                                <Text style={styles.infoLabel}>Semester</Text>
+                                {isEditingSem ? (
+                                    <TextInput
+                                        style={styles.semInput}
+                                        value={tempSemester}
+                                        onChangeText={setTempSemester}
+                                        keyboardType="numeric"
+                                        maxLength={1}
+                                    />
+                                ) : (
+                                    <Text style={styles.infoValue}>
+                                        {user.semester}
+                                    </Text>
+                                )}
+                            </View>
+
+                            <View style={styles.actionButtons}>
+                                {isEditingSem ? (
+                                    <>
+                                        <TouchableOpacity
+                                            onPress={() =>
+                                                setIsEditingSem(false)
+                                            }
+                                            style={styles.cancelBtnSmall}
+                                        >
+                                            <Text style={styles.btnTextSmall}>
+                                                Cancel
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={handleUpdateSemester}
+                                            style={styles.saveBtnSmall}
+                                        >
+                                            <Text style={styles.btnTextSmall}>
+                                                Save
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setTempSemester(user.semester)
+                                            setIsEditingSem(true)
+                                        }}
+                                        style={styles.editBtn}
+                                    >
+                                        <MaterialIcons
+                                            name="edit"
+                                            size={22}
+                                            color="#333"
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </View>
+
+                        <View style={styles.coursesContainer}>
+                            <View style={styles.courseHeader}>
+                                <Feather
+                                    name="book-open"
+                                    size={24}
+                                    color="#333"
+                                />
+                                <Text style={styles.courseHeaderTitle}>
+                                    Courses
+                                </Text>
+                            </View>
+
+                            {loading ? (
+                                <ActivityIndicator
+                                    size="large"
+                                    color="#4BC0C0"
+                                    style={{ marginVertical: 20 }}
                                 />
                             ) : (
-                                <Text style={styles.infoValue}>
-                                    {user.semester}
-                                </Text>
-                            )}
-                        </View>
+                                <View style={styles.courseList}>
+                                    {courses.map((item, index) => {
+                                        const isEditing =
+                                            editingCourseCode ===
+                                            item.courseCode
 
-                        <View style={styles.actionButtons}>
-                            {isEditingSem ? (
-                                <>
-                                    <TouchableOpacity
-                                        onPress={() => setIsEditingSem(false)}
-                                        style={styles.cancelBtnSmall}
-                                    >
-                                        <Text style={styles.btnTextSmall}>
-                                            Cancel
-                                        </Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={handleUpdateSemester}
-                                        style={styles.saveBtnSmall}
-                                    >
-                                        <Text style={styles.btnTextSmall}>
-                                            Save
-                                        </Text>
-                                    </TouchableOpacity>
-                                </>
-                            ) : (
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setTempSemester(user.semester)
-                                        setIsEditingSem(true)
-                                    }}
-                                    style={styles.editBtn}
-                                >
-                                    <MaterialIcons
-                                        name="edit"
-                                        size={22}
-                                        color="#333"
-                                    />
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </View>
-
-                    <View style={styles.coursesContainer}>
-                        <View style={styles.courseHeader}>
-                            <Feather name="book-open" size={24} color="#333" />
-                            <Text style={styles.courseHeaderTitle}>
-                                Courses
-                            </Text>
-                        </View>
-
-                        {loading ? (
-                            <ActivityIndicator
-                                size="large"
-                                color="#4BC0C0"
-                                style={{ marginVertical: 20 }}
-                            />
-                        ) : (
-                            <View style={styles.courseList}>
-                                {courses.map((item, index) => {
-                                    const isEditing =
-                                        editingCourseCode === item.courseCode
-
-                                    return (
-                                        <Swipeable
-                                            key={item.courseCode}
-                                            renderLeftActions={() =>
-                                                renderLeftActions(
-                                                    item.courseCode
-                                                )
-                                            } // New Left Action
-                                            renderRightActions={() =>
-                                                renderRightActions(
-                                                    item.courseCode
-                                                )
-                                            } // Existing Right Action
-                                            friction={2}
-                                            leftThreshold={40}
-                                            rightThreshold={40}
-                                        >
-                                            <View style={styles.courseCard}>
-                                                {/* UI Tip: You can now REMOVE the pencil icon from the top row to make it super clean */}
-                                                <View
-                                                    style={styles.courseTopRow}
-                                                >
-                                                    <View
-                                                        style={{
-                                                            flex: 1,
-                                                            marginLeft: 5,
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.courseCode
-                                                            }
-                                                        >
-                                                            {item.courseCode}
-                                                        </Text>
-                                                        <Text
-                                                            style={
-                                                                styles.courseName
-                                                            }
-                                                        >
-                                                            {item.courseName}
-                                                        </Text>
-                                                    </View>
-                                                </View>
-
-                                                <View style={styles.statsRow}>
-                                                    <View
-                                                        style={styles.statCol}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.statLabel
-                                                            }
-                                                        >
-                                                            P
-                                                        </Text>
-                                                        {isEditing ? (
-                                                            <TextInput
-                                                                style={
-                                                                    styles.statInput
-                                                                }
-                                                                value={String(
-                                                                    item.present
-                                                                )}
-                                                                onChangeText={(
-                                                                    v
-                                                                ) =>
-                                                                    handleCourseInputChange(
-                                                                        index,
-                                                                        'present',
-                                                                        v
-                                                                    )
-                                                                }
-                                                                keyboardType="numeric"
-                                                            />
-                                                        ) : (
-                                                            <Text
-                                                                style={
-                                                                    styles.statValue
-                                                                }
-                                                            >
-                                                                {item.present}
-                                                            </Text>
-                                                        )}
-                                                    </View>
-
-                                                    <View
-                                                        style={styles.statCol}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.statLabel
-                                                            }
-                                                        >
-                                                            A
-                                                        </Text>
-                                                        {isEditing ? (
-                                                            <TextInput
-                                                                style={
-                                                                    styles.statInput
-                                                                }
-                                                                value={String(
-                                                                    item.absent
-                                                                )}
-                                                                onChangeText={(
-                                                                    v
-                                                                ) =>
-                                                                    handleCourseInputChange(
-                                                                        index,
-                                                                        'absent',
-                                                                        v
-                                                                    )
-                                                                }
-                                                                keyboardType="numeric"
-                                                            />
-                                                        ) : (
-                                                            <Text
-                                                                style={
-                                                                    styles.statValue
-                                                                }
-                                                            >
-                                                                {item.absent}
-                                                            </Text>
-                                                        )}
-                                                    </View>
-
-                                                    <View
-                                                        style={styles.statCol}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.statLabel
-                                                            }
-                                                        >
-                                                            M
-                                                        </Text>
-                                                        {isEditing ? (
-                                                            <TextInput
-                                                                style={
-                                                                    styles.statInput
-                                                                }
-                                                                value={String(
-                                                                    item.medical
-                                                                )}
-                                                                onChangeText={(
-                                                                    v
-                                                                ) =>
-                                                                    handleCourseInputChange(
-                                                                        index,
-                                                                        'medical',
-                                                                        v
-                                                                    )
-                                                                }
-                                                                keyboardType="numeric"
-                                                            />
-                                                        ) : (
-                                                            <Text
-                                                                style={
-                                                                    styles.statValue
-                                                                }
-                                                            >
-                                                                {item.medical}
-                                                            </Text>
-                                                        )}
-                                                    </View>
-                                                </View>
-
-                                                {isEditing && (
+                                        return (
+                                            <Swipeable
+                                                key={item.courseCode}
+                                                renderLeftActions={() =>
+                                                    renderLeftActions(
+                                                        item.courseCode
+                                                    )
+                                                } // New Left Action
+                                                renderRightActions={() =>
+                                                    renderRightActions(
+                                                        item.courseCode
+                                                    )
+                                                } // Existing Right Action
+                                                friction={2}
+                                                leftThreshold={40}
+                                                rightThreshold={40}
+                                            >
+                                                <View style={styles.courseCard}>
+                                                    {/* UI Tip: You can now REMOVE the pencil icon from the top row to make it super clean */}
                                                     <View
                                                         style={
-                                                            styles.courseActions
+                                                            styles.courseTopRow
                                                         }
                                                     >
-                                                        <TouchableOpacity
-                                                            onPress={() =>
-                                                                cancelEditCourse(
-                                                                    item.courseCode
-                                                                )
-                                                            }
-                                                            style={
-                                                                styles.cancelBtnSmall
-                                                            }
+                                                        <View
+                                                            style={{
+                                                                flex: 1,
+                                                                marginLeft: 5,
+                                                            }}
                                                         >
                                                             <Text
                                                                 style={
-                                                                    styles.btnTextSmall
+                                                                    styles.courseCode
                                                                 }
                                                             >
-                                                                Cancel
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            onPress={() =>
-                                                                handleUpdateAttendance(
+                                                                {
                                                                     item.courseCode
-                                                                )
-                                                            }
-                                                            style={
-                                                                styles.saveBtnSmall
-                                                            }
-                                                        >
+                                                                }
+                                                            </Text>
                                                             <Text
                                                                 style={
-                                                                    styles.btnTextSmall
+                                                                    styles.courseName
                                                                 }
                                                             >
-                                                                Save
+                                                                {
+                                                                    item.courseName
+                                                                }
                                                             </Text>
-                                                        </TouchableOpacity>
+                                                        </View>
                                                     </View>
-                                                )}
-                                            </View>
-                                        </Swipeable>
+
+                                                    <View
+                                                        style={styles.statsRow}
+                                                    >
+                                                        <View
+                                                            style={
+                                                                styles.statCol
+                                                            }
+                                                        >
+                                                            <Text
+                                                                style={
+                                                                    styles.statLabel
+                                                                }
+                                                            >
+                                                                P
+                                                            </Text>
+                                                            {isEditing ? (
+                                                                <TextInput
+                                                                    style={
+                                                                        styles.statInput
+                                                                    }
+                                                                    value={String(
+                                                                        item.present
+                                                                    )}
+                                                                    onChangeText={(
+                                                                        v
+                                                                    ) =>
+                                                                        handleCourseInputChange(
+                                                                            index,
+                                                                            'present',
+                                                                            v
+                                                                        )
+                                                                    }
+                                                                    keyboardType="numeric"
+                                                                />
+                                                            ) : (
+                                                                <Text
+                                                                    style={
+                                                                        styles.statValue
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        item.present
+                                                                    }
+                                                                </Text>
+                                                            )}
+                                                        </View>
+
+                                                        <View
+                                                            style={
+                                                                styles.statCol
+                                                            }
+                                                        >
+                                                            <Text
+                                                                style={
+                                                                    styles.statLabel
+                                                                }
+                                                            >
+                                                                A
+                                                            </Text>
+                                                            {isEditing ? (
+                                                                <TextInput
+                                                                    style={
+                                                                        styles.statInput
+                                                                    }
+                                                                    value={String(
+                                                                        item.absent
+                                                                    )}
+                                                                    onChangeText={(
+                                                                        v
+                                                                    ) =>
+                                                                        handleCourseInputChange(
+                                                                            index,
+                                                                            'absent',
+                                                                            v
+                                                                        )
+                                                                    }
+                                                                    keyboardType="numeric"
+                                                                />
+                                                            ) : (
+                                                                <Text
+                                                                    style={
+                                                                        styles.statValue
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        item.absent
+                                                                    }
+                                                                </Text>
+                                                            )}
+                                                        </View>
+
+                                                        <View
+                                                            style={
+                                                                styles.statCol
+                                                            }
+                                                        >
+                                                            <Text
+                                                                style={
+                                                                    styles.statLabel
+                                                                }
+                                                            >
+                                                                M
+                                                            </Text>
+                                                            {isEditing ? (
+                                                                <TextInput
+                                                                    style={
+                                                                        styles.statInput
+                                                                    }
+                                                                    value={String(
+                                                                        item.medical
+                                                                    )}
+                                                                    onChangeText={(
+                                                                        v
+                                                                    ) =>
+                                                                        handleCourseInputChange(
+                                                                            index,
+                                                                            'medical',
+                                                                            v
+                                                                        )
+                                                                    }
+                                                                    keyboardType="numeric"
+                                                                />
+                                                            ) : (
+                                                                <Text
+                                                                    style={
+                                                                        styles.statValue
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        item.medical
+                                                                    }
+                                                                </Text>
+                                                            )}
+                                                        </View>
+                                                    </View>
+
+                                                    {isEditing && (
+                                                        <View
+                                                            style={
+                                                                styles.courseActions
+                                                            }
+                                                        >
+                                                            <TouchableOpacity
+                                                                onPress={() =>
+                                                                    cancelEditCourse(
+                                                                        item.courseCode
+                                                                    )
+                                                                }
+                                                                style={
+                                                                    styles.cancelBtnSmall
+                                                                }
+                                                            >
+                                                                <Text
+                                                                    style={
+                                                                        styles.btnTextSmall
+                                                                    }
+                                                                >
+                                                                    Cancel
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                            <TouchableOpacity
+                                                                onPress={() =>
+                                                                    handleUpdateAttendance(
+                                                                        item.courseCode
+                                                                    )
+                                                                }
+                                                                style={
+                                                                    styles.saveBtnSmall
+                                                                }
+                                                            >
+                                                                <Text
+                                                                    style={
+                                                                        styles.btnTextSmall
+                                                                    }
+                                                                >
+                                                                    Save
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            </Swipeable>
+                                        )
+                                    })}
+                                </View>
+                            )}
+                        </View>
+
+                        <View style={styles.footer}>
+                            <TouchableOpacity
+                                style={styles.bugReportBtn}
+                                onPress={() =>
+                                    Linking.openURL(
+                                        'https://forms.gle/DjoRKfTt6NNjepzU9'
                                     )
-                                })}
-                            </View>
-                        )}
-                    </View>
-
-                    <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={styles.bugReportBtn}
-                            onPress={() =>
-                                Linking.openURL(
-                                    'https://forms.gle/DjoRKfTt6NNjepzU9'
-                                )
-                            }
-                        >
-                            <MaterialIcons
-                                name="bug-report"
-                                size={24}
-                                color="#3a90dcff"
-                            />
-                            <Text style={styles.footerBtnText}>
-                                Report a bug
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.logoutBtn}
-                            onPress={handleLogout}
-                        >
-                            <MaterialIcons
-                                name="logout"
-                                size={24}
-                                color="#7f1d1d"
-                            />
-                            <Text
-                                style={[
-                                    styles.footerBtnText,
-                                    { color: '#7f1d1d' },
-                                ]}
+                                }
                             >
-                                Logout
-                            </Text>
-                        </TouchableOpacity>
+                                <MaterialIcons
+                                    name="bug-report"
+                                    size={24}
+                                    color="#3a90dcff"
+                                />
+                                <Text style={styles.footerBtnText}>
+                                    Report a bug
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.logoutBtn}
+                                onPress={handleLogout}
+                            >
+                                <MaterialIcons
+                                    name="logout"
+                                    size={24}
+                                    color="#7f1d1d"
+                                />
+                                <Text
+                                    style={[
+                                        styles.footerBtnText,
+                                        { color: '#7f1d1d' },
+                                    ]}
+                                >
+                                    Logout
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
-            </ScrollView>
-        </SafeAreaView>
+                </ScrollView>
+            </SafeAreaView>
+        </GestureHandlerRootView>
     )
 }
 
