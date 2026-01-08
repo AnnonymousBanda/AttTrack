@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
-import { AttendanceButton, CancelButton } from '../../components';
-import { LecturesSkeleton } from '../../skeletons';
+import { useEffect, useState } from 'react'
+import {
+    StyleSheet,
+    View,
+    Text,
+    TouchableOpacity,
+    FlatList,
+} from 'react-native'
+import { AttendanceButton, CancelButton } from '../../components'
+import { LecturesSkeleton } from '../../skeletons'
 
 export function Lectures() {
     const [selectedDay, setSelectedDay] = useState(() => {
@@ -10,6 +16,7 @@ export function Lectures() {
         return {
             day: days[today.getDay()],
             date: today,
+            dateString: today.toISOString(),
         }
     })
 
@@ -30,31 +37,45 @@ export function Lectures() {
     })
 
     const [lectures, setLectures] = useState([])
-	const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		// Fetch lectures for the selected day from backend or state
-		try {
+    useEffect(() => {
+        const getLectures = async () => {
+            try {
+                setLoading(true)
 
-			setLoading(true)
-			
-			setLectures([
-				{ id: '1', from: '09:00', to: '10:00', courseCode: 'CS101', courseName: 'Intro to CS', status: 'present' },
-				{ id: '2', from: '10:00', to: '11:00', courseCode: 'MA102', courseName: 'Linear Algebra', status: 'absent' },
-				{ id: '3', from: '11:00', to: '12:00', courseCode: 'PH103', courseName: 'Physics', status: 'medical' },
-				{ id: '4', from: '13:00', to: '14:00', courseCode: 'HS104', courseName: 'History', status: 'present' },
-				{ id: '5', from: '14:00', to: '15:00', courseCode: 'EC105', courseName: 'Economics', status: 'absent' },
-				{ id: '6', from: '15:00', to: '16:00', courseCode: 'BI106', courseName: 'Biology', status: 'present' },
-			])
-			
-			setTimeout(() => {
-				setLoading(false)
-			}, 500);
-		} catch (error) {
-			// Handle error appropriately
-		}
-	}, [selectedDay])
-	
+                const date = selectedDay.dateString
+                const API_URL = process.env.EXPO_PUBLIC_API_URL
+
+                const response = await fetch(
+                    `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                )
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Error fetching lectures for ${date.split('T')[0]}`
+                    )
+                }
+
+                const result = await response.json()
+
+                setLectures(result.data || [])
+            } catch (error) {
+                throw new Error('Failed to fetch lectures')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        getLectures()
+    }, [selectedDay])
+
     const DaySelector = ({ daysDate }) => {
         return (
             <View style={styles.selectorContainer}>
@@ -65,17 +86,35 @@ export function Lectures() {
                             key={index}
                             style={[
                                 styles.dayItem,
-                                isSelected ? styles.dayItemActive : styles.dayItemInactive,
+                                isSelected
+                                    ? styles.dayItemActive
+                                    : styles.dayItemInactive,
                                 index === 0 && styles.firstItem,
                                 index === 6 && styles.lastItem,
                             ]}
-                            onPress={() => setSelectedDay({ day, date })}
+                            onPress={() =>
+                                setSelectedDay({
+                                    day,
+                                    date,
+                                    dateString: date.toISOString(),
+                                })
+                            }
                         >
-                            <Text style={[styles.dayText, isSelected && styles.textWhite]}>
+                            <Text
+                                style={[
+                                    styles.dayText,
+                                    isSelected && styles.textWhite,
+                                ]}
+                            >
                                 {day}
                             </Text>
-                            <Text style={[styles.dateText, !isSelected && styles.textWhite]}>
-                                {date.getDate()}
+                            <Text
+                                style={[
+                                    styles.dateText,
+                                    !isSelected && styles.textWhite,
+                                ]}
+                            >
+                                {date.getDate().toString().padStart(2, '0')}
                             </Text>
                         </TouchableOpacity>
                     )
@@ -87,17 +126,29 @@ export function Lectures() {
     const LectureItem = ({ item }) => (
         <View style={styles.lectureContainer}>
             <View style={styles.timeColumn}>
-                <Text style={styles.timeTextFrom}>{item.from}</Text>
-                <Text style={styles.timeTextTo}>{item.to}</Text>
+                <Text style={styles.timeTextFrom}>
+                    {item.from.padStart(5, '0')}
+                </Text>
+                <Text style={styles.timeTextTo}>
+                    {item.to.padStart(5, '0')}
+                </Text>
             </View>
 
             <View style={styles.card}>
-				<CancelButton lecture={item} day={selectedDay.day} setLectures={setLectures} />
+                <CancelButton
+                    lecture={item}
+                    day={selectedDay.day}
+                    setLectures={setLectures}
+                />
                 <Text style={styles.courseTitle}>
                     {item.courseCode}: {item.courseName}
                 </Text>
 
-				<AttendanceButton lecture={item} day={selectedDay.day} setLectures={setLectures} />
+                <AttendanceButton
+                    lecture={item}
+                    day={selectedDay.day}
+                    setLectures={setLectures}
+                />
             </View>
         </View>
     )
@@ -105,17 +156,20 @@ export function Lectures() {
     return (
         <View style={styles.container}>
             <DaySelector daysDate={daysDate} />
-            
-			{
-				loading? <LecturesSkeleton /> :
-				<FlatList
-					data={lectures}
-					keyExtractor={(item) => item.id}
-					renderItem={({ item }) => <LectureItem item={item} />}
-					contentContainerStyle={styles.listContent}
-					style={styles.list}
-				/>
-			}
+
+            {loading ? (
+                <LecturesSkeleton />
+            ) : (
+                <FlatList
+                    data={lectures}
+                    keyExtractor={(item) =>
+                        new String(item.courseCode + item.from + item.to)
+                    }
+                    renderItem={({ item }) => <LectureItem item={item} />}
+                    contentContainerStyle={styles.listContent}
+                    style={styles.list}
+                />
+            )}
         </View>
     )
 }
@@ -128,7 +182,7 @@ const styles = StyleSheet.create({
     },
     selectorContainer: {
         flexDirection: 'row',
-		gap: 5,
+        gap: 5,
         paddingHorizontal: 20,
         marginBottom: 20,
     },
@@ -136,7 +190,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
         height: 80,
-		flex: 1,
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         gap: 5,
@@ -186,16 +240,16 @@ const styles = StyleSheet.create({
         width: 50,
         gap: 5,
     },
-	timeTextFrom: {
-		fontWeight: '400',
-		fontSize: 16,
-		color: '#101828',
-	},
-	timeTextTo: {
-		fontWeight: '400',
-		fontSize: 16,
-		color: '#4a5565',
-	},
+    timeTextFrom: {
+        fontWeight: '400',
+        fontSize: 16,
+        color: '#101828',
+    },
+    timeTextTo: {
+        fontWeight: '400',
+        fontSize: 16,
+        color: '#4a5565',
+    },
     card: {
         flex: 1,
         borderWidth: 2,
