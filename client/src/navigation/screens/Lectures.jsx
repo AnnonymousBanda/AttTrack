@@ -105,6 +105,7 @@ export function Lectures() {
                                     styles.dayText,
                                     isSelected && styles.textWhite,
                                 ]}
+                                numberOfLines={1}
                             >
                                 {day}
                             </Text>
@@ -183,13 +184,13 @@ const styles = StyleSheet.create({
     selectorContainer: {
         flexDirection: 'row',
         gap: 5,
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         marginBottom: 20,
     },
     dayItem: {
-        padding: 10,
+        padding: 8,
         borderRadius: 10,
-        height: 80,
+        height: 75,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -210,12 +211,12 @@ const styles = StyleSheet.create({
     dayText: {
         fontWeight: '600',
         textTransform: 'capitalize',
-        fontSize: 14,
+        fontSize: 13,
         color: '#000',
     },
     dateText: {
         fontWeight: '600',
-        fontSize: 14,
+        fontSize: 13,
         color: '#000',
     },
     textWhite: {
