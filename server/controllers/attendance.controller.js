@@ -10,18 +10,20 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     if (status !== 'cancelled') {
         const updateCounts = {}
         if (status === 'present') updateCounts.present_total = { increment: 1 }
-        else if (status === 'absent') updateCounts.absent_total = { increment: 1 }
-        else if (status === 'medical') updateCounts.medical_total = { increment: 1 }
+        else if (status === 'absent')
+            updateCounts.absent_total = { increment: 1 }
+        else if (status === 'medical')
+            updateCounts.medical_total = { increment: 1 }
 
         prismaOperations.push(
             prisma.course_attendance.update({
                 where: {
                     user_id_course_code: {
                         user_id: uid,
-                        course_code: course_code
-                    }
+                        course_code: course_code,
+                    },
                 },
-                data: updateCounts
+                data: updateCounts,
             })
         )
     }
@@ -35,7 +37,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
                 start_time: new Date(`${lecture_date}T${start_time}`),
                 end_time: new Date(`${lecture_date}T${end_time}`),
                 status: status,
-            }
+            },
         })
     )
 
@@ -45,14 +47,14 @@ const createAttendanceLog = catchAsync(async (req, res) => {
         where: {
             user_id: uid,
             course_code: course_code,
-            lecture_date: new Date(lecture_date)
-        }
+            lecture_date: new Date(lecture_date),
+        },
     })
 
     res.status(201).json({
         message: 'Daily attendance marked successfully!',
         status: 201,
-        data: all_logs
+        data: all_logs,
     })
 })
 
@@ -69,7 +71,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
 //     // --- The Interactive Transaction ---
 //     const result = await prisma.$transaction(async (tx) => {
-        
+
 //         // 1. READ: Get current stats inside the transaction
 //         // We use 'findUnique' on the composite unique key for better performance
 //         const course_attendance = await tx.course_attendance.findUnique({
@@ -146,41 +148,40 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 // })
 
 const adjustAttendanceTotals = catchAsync(async (req, res) => {
-	const { uid } = req.user
-	const { course_code, present_total, absent_total, medical_total, total_classes } = req.body
+    const { uid } = req.user
+    const { course_code, present_total, absent_total, medical_total } = req.body
 
-	const existingRecord = await prisma.course_attendance.findUnique({
-		where: {
-			user_id_course_code: {
-				user_id: uid,
-				course_code: course_code
-			}
-		}
-	})
-
-	if (!existingRecord)
-		throw new AppError('Course attendance record not found!', 404)
-
-	const updateData = {}
-	if (present_total !== undefined) updateData.present_total = present_total
-	if (absent_total !== undefined) updateData.absent_total = absent_total
-	if (medical_total !== undefined) updateData.medical_total = medical_total
-	if (total_classes !== undefined) updateData.total_classes = total_classes
-
-	await prisma.course_attendance.update({
-		where: {
+    const existingRecord = await prisma.course_attendance.findUnique({
+        where: {
             user_id_course_code: {
                 user_id: uid,
-                course_code: course_code
-            }
+                course_code: course_code,
+            },
         },
-        data: updateData
     })
 
-	res.status(200).json({
-		message: 'Attendance totals adjusted successfully!',
-		status: 200,
-	})
+    if (!existingRecord)
+        throw new AppError('Course attendance record not found!', 404)
+
+    const updateData = {}
+    if (present_total !== undefined) updateData.present_total = present_total
+    if (absent_total !== undefined) updateData.absent_total = absent_total
+    if (medical_total !== undefined) updateData.medical_total = medical_total
+
+    await prisma.course_attendance.update({
+        where: {
+            user_id_course_code: {
+                user_id: uid,
+                course_code: course_code,
+            },
+        },
+        data: updateData,
+    })
+
+    res.status(200).json({
+        message: 'Attendance totals adjusted successfully!',
+        status: 200,
+    })
 })
 
 const getAttendanceReport = catchAsync(async (req, res) => {
@@ -189,27 +190,26 @@ const getAttendanceReport = catchAsync(async (req, res) => {
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid
-        }
+            id: uid,
+        },
     })
 
-    if (!user)
-        throw new AppError('User not found!', 404)
+    if (!user) throw new AppError('User not found!', 404)
 
     if (!course_code) {
         const allCourses = await prisma.course_attendance.findMany({
             where: {
-                user_id: uid
+                user_id: uid,
             },
             include: {
-                courses: true
-            }
+                courses: true,
+            },
         })
 
         return res.status(200).json({
             message: 'Attendance report fetched successfully!',
             results: allCourses.length,
-            data: allCourses
+            data: allCourses,
         })
     }
 
@@ -217,25 +217,26 @@ const getAttendanceReport = catchAsync(async (req, res) => {
         where: {
             user_id_course_code: {
                 user_id: uid,
-                course_code: course_code
-            }
+                course_code: course_code,
+            },
         },
         include: {
             courses: true,
             attendance_logs: {
                 orderBy: {
-                    lecture_date: 'desc'
-                }
-            }
-        }
+                    lecture_date: 'desc',
+                },
+            },
+        },
     })
 
     if (!courseAttendance)
         throw new AppError('Course attendance record not found!', 404)
 
     res.status(200).json({
+        status: 200,
         message: 'Attendance report fetched successfully!',
-        data: courseAttendance
+        data: courseAttendance,
     })
 })
 
@@ -245,12 +246,11 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
 
     const log = await prisma.attendance_logs.findUnique({
         where: {
-            id: log_id
-        }
+            id: log_id,
+        },
     })
 
-    if (!log)
-        throw new AppError('Log not found!', 404)
+    if (!log) throw new AppError('Log not found!', 404)
 
     if (log.user_id !== uid)
         throw new AppError('You are not authorized to update this log', 403)
@@ -261,25 +261,30 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
     const updateCounts = {}
 
     if (oldStatus && oldStatus !== 'cancelled') {
-        if (oldStatus === 'present') updateCounts.present_total = { decrement: 1 }
-        else if (oldStatus === 'absent') updateCounts.absent_total = { decrement: 1 }
-        else if (oldStatus === 'medical') updateCounts.medical_total = { decrement: 1 }
+        if (oldStatus === 'present')
+            updateCounts.present_total = { decrement: 1 }
+        else if (oldStatus === 'absent')
+            updateCounts.absent_total = { decrement: 1 }
+        else if (oldStatus === 'medical')
+            updateCounts.medical_total = { decrement: 1 }
     }
 
     if (status !== 'cancelled') {
         if (status === 'present') updateCounts.present_total = { increment: 1 }
-        else if (status === 'absent') updateCounts.absent_total = { increment: 1 }
-        else if (status === 'medical') updateCounts.medical_total = { increment: 1 }
+        else if (status === 'absent')
+            updateCounts.absent_total = { increment: 1 }
+        else if (status === 'medical')
+            updateCounts.medical_total = { increment: 1 }
     }
 
     await prisma.$transaction(async (tx) => {
         await tx.attendance_logs.update({
             where: {
-                id: log_id
+                id: log_id,
             },
             data: {
-                status: status
-            }
+                status: status,
+            },
         })
 
         if (Object.keys(updateCounts).length > 0) {
@@ -287,23 +292,23 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
                 where: {
                     user_id_course_code: {
                         user_id: uid,
-                        course_code: course_code
-                    }
+                        course_code: course_code,
+                    },
                 },
-                data: updateCounts
+                data: updateCounts,
             })
         }
     })
 
     res.status(200).json({
         message: 'Attendance status updated successfully!',
-        status: 200
+        status: 200,
     })
 })
 
 module.exports = {
-	createAttendanceLog,
-	adjustAttendanceTotals,
-	getAttendanceReport,
-	updateAttendanceStatus
+    createAttendanceLog,
+    adjustAttendanceTotals,
+    getAttendanceReport,
+    updateAttendanceStatus,
 }
