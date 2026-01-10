@@ -16,10 +16,10 @@ import { HomeSkeleton } from '../../skeletons'
 
 const getLectures = async (id, sem, day) => {
     try {
-        const date = new Date().toISOString().split('T')[0]
+        const date = new Date().toISOString()
         const API_URL = process.env.EXPO_PUBLIC_API_URL
 
-        const response = await fetch(`${API_URL}/api/lectures?date=${date}`, {
+        const response = await fetch(`${API_URL}/api/lectures?date=${date.split('T')[0]}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -39,6 +39,7 @@ const getLectures = async (id, sem, day) => {
             return {
                 courseCode: lec.courseCode,
                 courseName: lec.courseName,
+                lecture_date: date,
                 from: lec.from,
                 to: lec.to,
                 status: lec.status,
