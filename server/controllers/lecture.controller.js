@@ -2,28 +2,29 @@ const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
-    const DBLectures = req['DBLectures'] || [];
-    const SheetLectures = req['SheetLectures'] || [];
+    const { uid, semester } = req.user
+    const DBLectures = req['DBLectures'] || []
+    const SheetLectures = req['SheetLectures'] || []
 
-    let combinedLectures = [];
+    let combinedLectures = []
 
     for (const sheetLecture of SheetLectures) {
         const matchingDBLecture = DBLectures.find(
             (dbL) =>
                 dbL.courseCode === sheetLecture.courseCode &&
-                dbL.from === sheetLecture.from && 
+                dbL.from === sheetLecture.from &&
                 dbL.to === sheetLecture.to
-        );
+        )
 
         if (matchingDBLecture) {
             if (matchingDBLecture.status !== 'cancelled') {
                 combinedLectures.push({
                     ...sheetLecture,
                     status: matchingDBLecture.status,
-                });
+                })
             }
         } else {
-            combinedLectures.push({ ...sheetLecture });
+            combinedLectures.push({ ...sheetLecture })
         }
     }
 
@@ -33,7 +34,7 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
                 sL.courseCode === dbL.courseCode &&
                 sL.from === dbL.start_time &&
                 sL.to === dbL.end_time
-        );
+        )
 
         if (!existsInSheets && dbL.status !== 'cancelled') {
             combinedLectures.push({
@@ -42,18 +43,21 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
                 from: dbL.from,
                 to: dbL.to,
                 status: dbL.status,
-            });
+            })
         }
     }
 
-    combinedLectures.sort((a, b) => a.from.localeCompare(b.from));
+    combinedLectures.sort((a, b) => {
+        const padTime = (timeStr) => timeStr.padStart(5, '0')
+        return padTime(a.from).localeCompare(padTime(b.from))
+    })
 
     res.status(200).json({
         message: 'Lectures fetched successfully!',
         status: 200,
         data: combinedLectures,
-    });
-});
+    })
+})
 
 const addExtraClass = catchAsync(async (req, res) => {
     const { uid, semester } = req.user
