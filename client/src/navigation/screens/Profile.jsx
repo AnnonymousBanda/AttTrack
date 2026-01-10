@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler'
+import React, { useState, useEffect, useRef } from 'react'
+import { BlurView } from 'expo-blur'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import Swipeable from 'react-native-gesture-handler/Swipeable'
+import { LinearGradient } from 'expo-linear-gradient'
 import {
     StyleSheet,
     View,
@@ -11,6 +14,13 @@ import {
     Alert,
     ActivityIndicator,
     Linking,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    Animated,
+    Dimensions,
+    Easing,
+    Keyboard,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -21,6 +31,9 @@ import {
     Feather,
 } from '@expo/vector-icons'
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
+
 const DUMMY_USER = {
     userID: 'user_123',
     name: 'Ankit Bhagat',
@@ -28,93 +41,135 @@ const DUMMY_USER = {
     email: 'ankit_2301ce03@iitp.ac.in',
     branch: 'Civil Engineering',
     batch: '2023-2027',
-    semester: '4',
+    semester: 6,
     profilePicture: 'https://avatar.iran.liara.run/public/boy',
 }
-
-const DUMMY_COURSES = [
-    {
-        courseCode: 'CS101',
-        courseName: 'Intro to Programming',
-        present: 17,
-        absent: 2,
-        medical: 1,
-    },
-    {
-        courseCode: 'MA201',
-        courseName: 'Mathematics II',
-        present: 13,
-        absent: 7,
-        medical: 0,
-    },
-    {
-        courseCode: 'PH102',
-        courseName: 'Physics',
-        present: 19,
-        absent: 1,
-        medical: 0,
-    },
-]
 
 export function Profile() {
     const navigation = useNavigation()
 
     const [loading, setLoading] = useState(false)
     const [user, setUser] = useState(DUMMY_USER)
+    const [courses, setCourses] = useState([])
 
-    const [courses, setCourses] = useState(DUMMY_COURSES)
-    const [originalCourses, setOriginalCourses] = useState(
-        JSON.parse(JSON.stringify(DUMMY_COURSES))
-    )
-
-    const [isEditingSem, setIsEditingSem] = useState(false)
     const [tempSemester, setTempSemester] = useState(user.semester)
-    const [editingCourseCode, setEditingCourseCode] = useState(null)
 
-    const updateSemesterAPI = async (userID, newSemester) => {
-        return new Promise((resolve) =>
-            setTimeout(() => resolve({ status: 200 }), 1000)
-        )
+    // Modal & Animation States
+    const [isModalVisible, setIsModalVisible] = useState(false)
+    const [modalType, setModalType] = useState(null)
+    const [selectedCourse, setSelectedCourse] = useState(null)
+    const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
+
+    const pickerScrollRef = useRef(null)
+
+    useEffect(() => {
+        if (isModalVisible && modalType === 'semester') {
+            setTimeout(() => {
+                const itemWidth = 60
+                const index = Number(tempSemester) - 1
+                const offset = index * itemWidth
+
+                pickerScrollRef.current?.scrollTo({
+                    x: offset,
+                    animated: true,
+                })
+            }, 100)
+        }
+    }, [isModalVisible, modalType])
+
+    const handleLogout = () => {
+        Alert.alert('Confirm Logout', 'Are you sure you want to logout?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Logout',
+                style: 'destructive',
+                onPress: () => {
+                    Alert.alert('Logged Out', 'You have been logged out.')
+                },
+            },
+        ])
     }
 
-    const updateAttendanceAPI = async (userID, semester, courseCode, data) => {
-        return new Promise((resolve) =>
-            setTimeout(() => resolve({ status: 200 }), 1000)
-        )
+    const openModal = (type, data = null) => {
+        setModalType(type)
+        if (type === 'attendance') {
+            setSelectedCourse({ ...data })
+        } else {
+            setTempSemester(user.semester)
+        }
+
+        setIsModalVisible(true)
+        Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 400,
+            easing: Easing.out(Easing.back(1)),
+            useNativeDriver: true,
+        }).start()
     }
 
-    const renderRightActions = (courseCode) => {
-        return (
-            <TouchableOpacity
-                style={styles.deleteAction}
-                onPress={() => unenrollCourse(courseCode)}
-            >
-                <MaterialIcons name="delete-outline" size={28} color="#fff" />
-                <Text style={styles.deleteActionText}>Unenroll</Text>
-            </TouchableOpacity>
-        )
+    const closeModal = () => {
+        Keyboard.dismiss()
+        Animated.timing(slideAnim, {
+            toValue: SCREEN_HEIGHT,
+            duration: 300,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+        }).start(() => {
+            setIsModalVisible(false)
+            setModalType(null)
+            setSelectedCourse(null)
+        })
     }
 
-    const renderLeftActions = (courseCode) => {
-        return (
-            <TouchableOpacity
-                style={styles.editAction}
-                onPress={() => setEditingCourseCode(courseCode)}
-            >
-                <MaterialIcons name="edit" size={28} color="#fff" />
-                <Text style={styles.editActionText}>Edit</Text>
-            </TouchableOpacity>
-        )
-    }
+    const backdropOpacity = slideAnim.interpolate({
+        inputRange: [0, SCREEN_HEIGHT],
+        outputRange: [1, 0],
+    })
+
+    useEffect(() => {
+        const fetchCourses = async () => {
+            setLoading(true)
+            try {
+                const API_URL = process.env.EXPO_PUBLIC_API_URL
+                const res = await fetch(`${API_URL}/api/attendance/report`)
+                const result = await res.json()
+                if (res.ok) {
+                    const data = result.data || []
+                    const filteredCourses = data.filter(
+                        (item) =>
+                            Number(item.courses.semester) ===
+                            Number(user.semester)
+                    )
+                    const coursesList = filteredCourses.map((course) => ({
+                        courseCode: course.courses.course_code,
+                        courseName: course.courses.course_name,
+                        present: course.present_total,
+                        absent: course.absent_total,
+                        medical: course.medical_total,
+                    }))
+                    setCourses(coursesList)
+                }
+            } catch (error) {
+                Alert.alert('Error', 'Failed to fetch courses')
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchCourses()
+    }, [user.semester])
 
     const handleUpdateSemester = async () => {
         setLoading(true)
         try {
-            const res = await updateSemesterAPI(user.userID, tempSemester)
-
-            if (res.status === 200) {
+            const API_URL = process.env.EXPO_PUBLIC_API_URL
+            const res = await fetch(`${API_URL}/api/user/semester`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ new_semester: tempSemester }),
+            })
+            if (res.ok) {
                 setUser((prev) => ({ ...prev, semester: tempSemester }))
-                setIsEditingSem(false)
+                closeModal()
                 Alert.alert('Success', 'Semester updated')
             }
         } catch (error) {
@@ -124,99 +179,97 @@ export function Profile() {
         }
     }
 
-    const handleUpdateAttendance = async (courseCode) => {
-        const course = courses.find((c) => c.courseCode === courseCode)
-        if (!course) return
-
+    const handleSaveAttendance = async () => {
+        if (!selectedCourse) return
+        setLoading(true)
         try {
-            const payload = {
-                present: Number(course.present),
-                absent: Number(course.absent),
-                medical: Number(course.medical),
-            }
+            const API_URL = process.env.EXPO_PUBLIC_API_URL
+            const res = await fetch(`${API_URL}/api/attendance/adjust`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_code: selectedCourse.courseCode,
+                    present_total: selectedCourse.present,
+                    absent_total: selectedCourse.absent,
+                    medical_total: selectedCourse.medical,
+                }),
+            })
 
-            const res = await updateAttendanceAPI(
-                user.userID,
-                user.semester,
-                courseCode,
-                payload
-            )
-
-            if (res.status === 200) {
-                const updatedOriginals = originalCourses.map((c) =>
-                    c.courseCode === courseCode ? { ...course } : c
+            if (res.ok) {
+                setCourses((prev) =>
+                    prev.map((c) =>
+                        c.courseCode === selectedCourse.courseCode
+                            ? selectedCourse
+                            : c
+                    )
                 )
-                setOriginalCourses(updatedOriginals)
-                setEditingCourseCode(null)
-                Alert.alert('Success', 'Course attendance saved')
+                closeModal()
+                Alert.alert('Success', 'Attendance updated')
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to save')
+            Alert.alert('Error', 'Failed to update attendance.')
+        } finally {
+            setLoading(false)
         }
     }
 
-    const handleCourseInputChange = (index, field, value) => {
-        const num = value.replace(/[^0-9]/g, '')
-        setCourses((prev) => {
-            const copy = [...prev]
-            copy[index] = { ...copy[index], [field]: num }
-            return copy
-        })
-    }
-
-    const cancelEditCourse = (courseCode) => {
-        const original = originalCourses.find(
-            (c) => c.courseCode === courseCode
-        )
-        if (original) {
-            setCourses((prev) =>
-                prev.map((c) =>
-                    c.courseCode === courseCode ? { ...original } : c
-                )
-            )
-        }
-        setEditingCourseCode(null)
-    }
-
-    const handleLogout = async () => {
-        Alert.alert('Logout', 'Are you sure you want to logout?', [
+    const unenrollCourse = (courseCode) => {
+        Alert.alert('CAUTION', `Unenroll from ${courseCode}?`, [
             { text: 'Cancel', style: 'cancel' },
             {
-                text: 'Logout',
+                text: 'Unenroll',
                 style: 'destructive',
-                onPress: () => console.log('Logging out...'),
+                onPress: async () => {
+                    setLoading(true)
+                    try {
+                        const API_URL = process.env.EXPO_PUBLIC_API_URL
+                        const res = await fetch(
+                            `${API_URL}/api/user/course/unenroll`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    course_code: courseCode,
+                                }),
+                            }
+                        )
+                        if (res.ok) {
+                            setCourses((prev) =>
+                                prev.filter((c) => c.courseCode !== courseCode)
+                            )
+                        }
+                    } catch (error) {
+                        Alert.alert('Error', 'Failed to unenroll')
+                    } finally {
+                        setLoading(false)
+                    }
+                },
             },
         ])
     }
 
-    const unenrollCourse = (courseCode) => {
-        Alert.alert(
-            'Unenroll',
-            `Are you sure you want to unenroll from ${courseCode}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Unenroll',
-                    style: 'destructive',
-                    onPress: () => {
-                        setCourses((prev) =>
-                            prev.filter((c) => c.courseCode !== courseCode)
-                        )
-                        setOriginalCourses((prev) =>
-                            prev.filter((c) => c.courseCode !== courseCode)
-                        )
-                        Alert.alert(
-                            'Unenrolled',
-                            `You have been unenrolled from ${courseCode}`
-                        )
-                    },
-                },
-            ]
-        )
-    }
+    const renderLeftActions = (course) => (
+        <TouchableOpacity
+            style={styles.editAction}
+            onPress={() => openModal('attendance', course)}
+        >
+            <MaterialIcons name="edit" size={28} color="#fff" />
+            <Text style={styles.editActionText}>Edit</Text>
+        </TouchableOpacity>
+    )
+
+    const renderRightActions = (courseCode) => (
+        <TouchableOpacity
+            style={styles.deleteAction}
+            onPress={() => unenrollCourse(courseCode)}
+        >
+            <MaterialIcons name="delete-outline" size={28} color="#fff" />
+            <Text style={styles.deleteActionText}>Unenroll</Text>
+        </TouchableOpacity>
+    )
 
     return (
-        <GestureHandlerRootView>
+        <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
                 <View style={styles.header}>
                     <View style={styles.headerTitleContainer}>
@@ -277,59 +330,20 @@ export function Profile() {
                             <Ionicons name="calendar" size={32} color="#555" />
                             <View style={styles.infoTextContainer}>
                                 <Text style={styles.infoLabel}>Semester</Text>
-                                {isEditingSem ? (
-                                    <TextInput
-                                        style={styles.semInput}
-                                        value={tempSemester}
-                                        onChangeText={setTempSemester}
-                                        keyboardType="numeric"
-                                        maxLength={1}
-                                    />
-                                ) : (
-                                    <Text style={styles.infoValue}>
-                                        {user.semester}
-                                    </Text>
-                                )}
+                                <Text style={styles.infoValue}>
+                                    {user.semester}
+                                </Text>
                             </View>
-
-                            <View style={styles.actionButtons}>
-                                {isEditingSem ? (
-                                    <>
-                                        <TouchableOpacity
-                                            onPress={() =>
-                                                setIsEditingSem(false)
-                                            }
-                                            style={styles.cancelBtnSmall}
-                                        >
-                                            <Text style={styles.btnTextSmall}>
-                                                Cancel
-                                            </Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={handleUpdateSemester}
-                                            style={styles.saveBtnSmall}
-                                        >
-                                            <Text style={styles.btnTextSmall}>
-                                                Save
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </>
-                                ) : (
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setTempSemester(user.semester)
-                                            setIsEditingSem(true)
-                                        }}
-                                        style={styles.editBtn}
-                                    >
-                                        <MaterialIcons
-                                            name="edit"
-                                            size={22}
-                                            color="#333"
-                                        />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
+                            <TouchableOpacity
+                                onPress={() => openModal('semester')}
+                                style={styles.editBtn}
+                            >
+                                <MaterialIcons
+                                    name="edit"
+                                    size={22}
+                                    color="#333"
+                                />
+                            </TouchableOpacity>
                         </View>
 
                         <View style={styles.coursesContainer}>
@@ -343,255 +357,89 @@ export function Profile() {
                                     Courses
                                 </Text>
                             </View>
-
                             {loading ? (
-                                <ActivityIndicator
-                                    size="large"
-                                    color="#4BC0C0"
-                                    style={{ marginVertical: 20 }}
-                                />
+                                <CoursesSkeleton />
                             ) : (
                                 <View style={styles.courseList}>
-                                    {courses.map((item, index) => {
-                                        const isEditing =
-                                            editingCourseCode ===
-                                            item.courseCode
-
-                                        return (
-                                            <Swipeable
-                                                key={item.courseCode}
-                                                renderLeftActions={() =>
-                                                    renderLeftActions(
-                                                        item.courseCode
-                                                    )
-                                                } // New Left Action
-                                                renderRightActions={() =>
-                                                    renderRightActions(
-                                                        item.courseCode
-                                                    )
-                                                } // Existing Right Action
-                                                friction={2}
-                                                leftThreshold={40}
-                                                rightThreshold={40}
-                                            >
-                                                <View style={styles.courseCard}>
-                                                    {/* UI Tip: You can now REMOVE the pencil icon from the top row to make it super clean */}
+                                    {courses.map((item) => (
+                                        <Swipeable
+                                            key={item.courseCode}
+                                            renderLeftActions={() =>
+                                                renderLeftActions(item)
+                                            }
+                                            renderRightActions={() =>
+                                                renderRightActions(
+                                                    item.courseCode
+                                                )
+                                            }
+                                            friction={2}
+                                        >
+                                            <View style={styles.courseCard}>
+                                                <Text style={styles.courseCode}>
+                                                    {item.courseCode}
+                                                </Text>
+                                                <Text style={styles.courseName}>
+                                                    {item.courseName}
+                                                </Text>
+                                                <View style={styles.statsRow}>
                                                     <View
-                                                        style={
-                                                            styles.courseTopRow
-                                                        }
+                                                        style={styles.statCol}
                                                     >
-                                                        <View
-                                                            style={{
-                                                                flex: 1,
-                                                                marginLeft: 5,
-                                                            }}
+                                                        <Text
+                                                            style={
+                                                                styles.statLabel
+                                                            }
                                                         >
-                                                            <Text
-                                                                style={
-                                                                    styles.courseCode
-                                                                }
-                                                            >
-                                                                {
-                                                                    item.courseCode
-                                                                }
-                                                            </Text>
-                                                            <Text
-                                                                style={
-                                                                    styles.courseName
-                                                                }
-                                                            >
-                                                                {
-                                                                    item.courseName
-                                                                }
-                                                            </Text>
-                                                        </View>
+                                                            P
+                                                        </Text>
+                                                        <Text
+                                                            style={
+                                                                styles.statValue
+                                                            }
+                                                        >
+                                                            {item.present}
+                                                        </Text>
                                                     </View>
-
                                                     <View
-                                                        style={styles.statsRow}
+                                                        style={styles.statCol}
                                                     >
-                                                        <View
+                                                        <Text
                                                             style={
-                                                                styles.statCol
+                                                                styles.statLabel
                                                             }
                                                         >
-                                                            <Text
-                                                                style={
-                                                                    styles.statLabel
-                                                                }
-                                                            >
-                                                                P
-                                                            </Text>
-                                                            {isEditing ? (
-                                                                <TextInput
-                                                                    style={
-                                                                        styles.statInput
-                                                                    }
-                                                                    value={String(
-                                                                        item.present
-                                                                    )}
-                                                                    onChangeText={(
-                                                                        v
-                                                                    ) =>
-                                                                        handleCourseInputChange(
-                                                                            index,
-                                                                            'present',
-                                                                            v
-                                                                        )
-                                                                    }
-                                                                    keyboardType="numeric"
-                                                                />
-                                                            ) : (
-                                                                <Text
-                                                                    style={
-                                                                        styles.statValue
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        item.present
-                                                                    }
-                                                                </Text>
-                                                            )}
-                                                        </View>
-
-                                                        <View
+                                                            A
+                                                        </Text>
+                                                        <Text
                                                             style={
-                                                                styles.statCol
+                                                                styles.statValue
                                                             }
                                                         >
-                                                            <Text
-                                                                style={
-                                                                    styles.statLabel
-                                                                }
-                                                            >
-                                                                A
-                                                            </Text>
-                                                            {isEditing ? (
-                                                                <TextInput
-                                                                    style={
-                                                                        styles.statInput
-                                                                    }
-                                                                    value={String(
-                                                                        item.absent
-                                                                    )}
-                                                                    onChangeText={(
-                                                                        v
-                                                                    ) =>
-                                                                        handleCourseInputChange(
-                                                                            index,
-                                                                            'absent',
-                                                                            v
-                                                                        )
-                                                                    }
-                                                                    keyboardType="numeric"
-                                                                />
-                                                            ) : (
-                                                                <Text
-                                                                    style={
-                                                                        styles.statValue
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        item.absent
-                                                                    }
-                                                                </Text>
-                                                            )}
-                                                        </View>
-
-                                                        <View
-                                                            style={
-                                                                styles.statCol
-                                                            }
-                                                        >
-                                                            <Text
-                                                                style={
-                                                                    styles.statLabel
-                                                                }
-                                                            >
-                                                                M
-                                                            </Text>
-                                                            {isEditing ? (
-                                                                <TextInput
-                                                                    style={
-                                                                        styles.statInput
-                                                                    }
-                                                                    value={String(
-                                                                        item.medical
-                                                                    )}
-                                                                    onChangeText={(
-                                                                        v
-                                                                    ) =>
-                                                                        handleCourseInputChange(
-                                                                            index,
-                                                                            'medical',
-                                                                            v
-                                                                        )
-                                                                    }
-                                                                    keyboardType="numeric"
-                                                                />
-                                                            ) : (
-                                                                <Text
-                                                                    style={
-                                                                        styles.statValue
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        item.medical
-                                                                    }
-                                                                </Text>
-                                                            )}
-                                                        </View>
+                                                            {item.absent}
+                                                        </Text>
                                                     </View>
-
-                                                    {isEditing && (
-                                                        <View
+                                                    <View
+                                                        style={styles.statCol}
+                                                    >
+                                                        <Text
                                                             style={
-                                                                styles.courseActions
+                                                                styles.statLabel
                                                             }
                                                         >
-                                                            <TouchableOpacity
-                                                                onPress={() =>
-                                                                    cancelEditCourse(
-                                                                        item.courseCode
-                                                                    )
-                                                                }
-                                                                style={
-                                                                    styles.cancelBtnSmall
-                                                                }
-                                                            >
-                                                                <Text
-                                                                    style={
-                                                                        styles.btnTextSmall
-                                                                    }
-                                                                >
-                                                                    Cancel
-                                                                </Text>
-                                                            </TouchableOpacity>
-                                                            <TouchableOpacity
-                                                                onPress={() =>
-                                                                    handleUpdateAttendance(
-                                                                        item.courseCode
-                                                                    )
-                                                                }
-                                                                style={
-                                                                    styles.saveBtnSmall
-                                                                }
-                                                            >
-                                                                <Text
-                                                                    style={
-                                                                        styles.btnTextSmall
-                                                                    }
-                                                                >
-                                                                    Save
-                                                                </Text>
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                    )}
+                                                            M
+                                                        </Text>
+                                                        <Text
+                                                            style={
+                                                                styles.statValue
+                                                            }
+                                                        >
+                                                            {item.medical}
+                                                        </Text>
+                                                    </View>
                                                 </View>
-                                            </Swipeable>
-                                        )
-                                    })}
+                                            </View>
+                                        </Swipeable>
+                                    ))}
                                 </View>
                             )}
                         </View>
@@ -614,10 +462,10 @@ export function Profile() {
                                     Report a bug
                                 </Text>
                             </TouchableOpacity>
-
                             <TouchableOpacity
                                 style={styles.logoutBtn}
                                 onPress={handleLogout}
+                                disabled={loading}
                             >
                                 <MaterialIcons
                                     name="logout"
@@ -636,12 +484,457 @@ export function Profile() {
                         </View>
                     </View>
                 </ScrollView>
+
+                {isModalVisible && (
+                    <View style={StyleSheet.absoluteFill}>
+                        <Animated.View
+                            style={[
+                                StyleSheet.absoluteFill,
+                                {
+                                    opacity: backdropOpacity,
+                                    backgroundColor: 'rgba(0,0,0,0.3)',
+                                },
+                            ]}
+                        >
+                            <BlurView
+                                intensity={40}
+                                tint="light"
+                                style={StyleSheet.absoluteFill}
+                            />
+                            <Pressable
+                                style={StyleSheet.absoluteFill}
+                                onPress={closeModal}
+                            />
+                        </Animated.View>
+
+                        <KeyboardAvoidingView
+                            behavior={
+                                Platform.OS === 'ios' ? 'padding' : 'height'
+                            }
+                            style={{ flex: 1 }}
+                            pointerEvents="box-none"
+                        >
+                            <Animated.View
+                                style={[
+                                    styles.modalContainerPosition,
+                                    { transform: [{ translateY: slideAnim }] },
+                                ]}
+                                pointerEvents="box-none"
+                            >
+                                <Pressable
+                                    style={styles.glassModalContent}
+                                    onPress={(e) => e.stopPropagation()}
+                                >
+                                    <View style={styles.modalHandle} />
+                                    <View style={styles.modalHeaderRow}>
+                                        <Text style={styles.modalTitle}>
+                                            {modalType === 'semester'
+                                                ? 'Update Semester'
+                                                : 'Update Attendance'}
+                                        </Text>
+                                        <TouchableOpacity onPress={closeModal}>
+                                            <Ionicons
+                                                name="close-circle"
+                                                size={28}
+                                                color="#999"
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {modalType === 'attendance' ? (
+                                        <>
+                                            <Text
+                                                style={styles.modalCourseName}
+                                            >
+                                                {selectedCourse?.courseName} (
+                                                {selectedCourse?.courseCode})
+                                            </Text>
+                                            <View style={styles.modalInputRow}>
+                                                {[
+                                                    'present',
+                                                    'absent',
+                                                    'medical',
+                                                ].map((field) => (
+                                                    <View
+                                                        key={field}
+                                                        style={
+                                                            styles.modalInputGroup
+                                                        }
+                                                    >
+                                                        <Text
+                                                            style={
+                                                                styles.modalInputLabel
+                                                            }
+                                                        >
+                                                            {field
+                                                                .charAt(0)
+                                                                .toUpperCase() +
+                                                                field.slice(1)}
+                                                        </Text>
+                                                        <TextInput
+                                                            style={
+                                                                styles.modalTextInput
+                                                            }
+                                                            placeholder="0"
+                                                            value={
+                                                                selectedCourse
+                                                                    ? String(
+                                                                          selectedCourse[
+                                                                              field
+                                                                          ] ??
+                                                                              ''
+                                                                      )
+                                                                    : ''
+                                                            }
+                                                            onChangeText={(v) =>
+                                                                setSelectedCourse(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [field]:
+                                                                            v.replace(
+                                                                                /[^0-9]/g,
+                                                                                ''
+                                                                            ),
+                                                                    })
+                                                                )
+                                                            }
+                                                            keyboardType="numeric"
+                                                        />
+                                                    </View>
+                                                ))}
+                                            </View>
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.modalSaveButton,
+                                                    {
+                                                        opacity: loading
+                                                            ? 0.6
+                                                            : 1,
+                                                    },
+                                                ]}
+                                                onPress={handleSaveAttendance}
+                                                disabled={loading}
+                                            >
+                                                <Text
+                                                    style={
+                                                        styles.modalSaveButtonText
+                                                    }
+                                                >
+                                                    {loading ? 'Saving...' : 'Save Changes'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Text
+                                                style={styles.modalCourseName}
+                                            >
+                                                Change your current academic
+                                                semester
+                                            </Text>
+                                            <View style={styles.modalInputRow}>
+                                                <View
+                                                    style={[
+                                                        styles.modalInputGroup,
+                                                        { width: '100%' },
+                                                    ]}
+                                                >
+                                                    <View
+                                                        style={
+                                                            styles.scrollPickerContainer
+                                                        }
+                                                    >
+                                                        <ScrollView
+                                                            ref={
+                                                                pickerScrollRef
+                                                            }
+                                                            horizontal
+                                                            showsHorizontalScrollIndicator={
+                                                                false
+                                                            }
+                                                            snapToInterval={60}
+                                                            decelerationRate="fast"
+                                                            contentContainerStyle={
+                                                                styles.pickerScrollContent
+                                                            }
+                                                            scrollEventThrottle={
+                                                                16
+                                                            }
+                                                        >
+                                                            {[
+                                                                1, 2, 3, 4, 5,
+                                                                6, 7, 8, 9,
+                                                            ].map((num) => {
+                                                                const isSelected =
+                                                                    Number(
+                                                                        tempSemester
+                                                                    ) === num
+                                                                return (
+                                                                    <TouchableOpacity
+                                                                        key={
+                                                                            num
+                                                                        }
+                                                                        onPress={() =>
+                                                                            setTempSemester(
+                                                                                num
+                                                                            )
+                                                                        }
+                                                                        style={[
+                                                                            styles.pickerItem,
+                                                                            isSelected &&
+                                                                                styles.pickerItemSelected,
+                                                                        ]}
+                                                                    >
+                                                                        <Text
+                                                                            style={[
+                                                                                styles.pickerItemText,
+                                                                                isSelected &&
+                                                                                    styles.pickerItemTextSelected,
+                                                                            ]}
+                                                                        >
+                                                                            {
+                                                                                num
+                                                                            }
+                                                                        </Text>
+                                                                    </TouchableOpacity>
+                                                                )
+                                                            })}
+                                                        </ScrollView>
+                                                    </View>
+                                                    <Text
+                                                        style={
+                                                            styles.helperText
+                                                        }
+                                                    >
+                                                        Swipe to select semester
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.modalSaveButton,
+                                                    {
+                                                        width: '85%',
+                                                        alignSelf: 'center',
+                                                        opacity: loading
+                                                            ? 0.6
+                                                            : 1,
+                                                    },
+                                                ]}
+                                                onPress={handleUpdateSemester}
+                                                disabled={loading}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.modalSaveButtonText,
+                                                    ]}
+                                                >
+                                                    {loading ? 'Updating...' : 'Update Semester'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </>
+                                    )}
+                                </Pressable>
+                            </Animated.View>
+                        </KeyboardAvoidingView>
+                    </View>
+                )}
             </SafeAreaView>
         </GestureHandlerRootView>
     )
 }
 
+const CourseSkeleton = () => {
+    const SCREEN_WIDTH = Dimensions.get('window').width
+    const translateX = useRef(new Animated.Value(-SCREEN_WIDTH)).current
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(translateX, {
+                toValue: SCREEN_WIDTH,
+                duration: 1500,
+                easing: Easing.bezier(0.4, 0, 0.6, 1),
+                useNativeDriver: true,
+            })
+        ).start()
+    }, [])
+
+    const Shimmer = () => (
+        <Animated.View
+            style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}
+        >
+            <LinearGradient
+                colors={[
+                    'rgba(255, 255, 255, 0)',
+                    'rgba(255, 255, 255, 1)',
+                    'rgba(255, 255, 255, 1)',
+                    'rgba(255, 255, 255, 1)',
+                    'rgba(255, 255, 255, 0)',
+                ]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFill}
+            />
+        </Animated.View>
+    )
+
+    return (
+        <View
+            style={[
+                styles.courseCard,
+                {
+                    overflow: 'hidden',
+                    backgroundColor: '#F3F4F6',
+                    borderWidth: 1,
+                    borderColor: '#E5E7EB',
+                },
+            ]}
+        >
+            <Shimmer />
+
+            <View
+                style={[
+                    styles.skeletonLine,
+                    {
+                        width: '35%',
+                        height: 20,
+                        marginBottom: 12,
+                        backgroundColor: '#E5E7EB',
+                    },
+                ]}
+            />
+            <View
+                style={[
+                    styles.skeletonLine,
+                    {
+                        width: '65%',
+                        height: 14,
+                        marginBottom: 24,
+                        backgroundColor: '#E5E7EB',
+                    },
+                ]}
+            />
+
+            <View style={styles.statsRow}>
+                {[1, 2, 3].map((i) => (
+                    <View key={i} style={styles.statCol}>
+                        {/* Small Label Placeholder */}
+                        <View
+                            style={[
+                                styles.skeletonLine,
+                                {
+                                    width: 40,
+                                    height: 18,
+                                    marginBottom: 6,
+                                    backgroundColor: '#E5E7EB',
+                                },
+                            ]}
+                        />
+                        {/* Large Value Placeholder */}
+                        <View
+                            style={[
+                                styles.skeletonLine,
+                                {
+                                    width: 40,
+                                    height: 18,
+                                    backgroundColor: '#E5E7EB',
+                                },
+                            ]}
+                        />
+                    </View>
+                ))}
+            </View>
+        </View>
+    )
+}
+const CoursesSkeleton = () => {
+    return (
+        <View style={styles.CoursesSkeletoncontainer}>
+            {[1, 2, 3, 4, 5].map((i) => (
+                <CourseSkeleton key={i} />
+            ))}
+        </View>
+    )
+}
+
 const styles = StyleSheet.create({
+    pickerScrollContent: {
+        // This padding allows the numbers at the ends (1 and 9) to be centered
+        paddingHorizontal: SCREEN_WIDTH / 2 - 30, // 30 is half of the 60 total item width
+        alignItems: 'center',
+    },
+    pickerItem: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 5, // Total margin is 10 (5 left + 5 right)
+        backgroundColor: '#f3f4f6',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+    },
+    scrollPickerContainer: {
+        height: 80,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 10,
+    },
+    pickerScrollContent: {
+        paddingHorizontal: Dimensions.get('window').width / 2 - 50, // Centers the initial items
+        alignItems: 'center',
+    },
+    pickerItem: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 5,
+        backgroundColor: '#f3f4f6', // Light gray for unselected
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+    },
+    pickerItemSelected: {
+        backgroundColor: '#4bc0c0', // Your theme color
+        borderColor: '#4bc0c0',
+        transform: [{ scale: 1.1 }],
+        elevation: 5,
+        shadowColor: '#4bc0c0',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+    },
+    pickerItemText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#6b7280',
+    },
+    pickerItemTextSelected: {
+        color: '#fff',
+        fontSize: 22,
+        fontWeight: 'bold',
+    },
+    helperText: {
+        fontSize: 12,
+        color: '#9ca3af',
+        marginBottom: 20,
+        textAlign: 'center',
+        fontStyle: 'italic',
+    },
+    CoursesSkeletoncontainer: {
+        gap: 12,
+    },
+    skeletonLine: {
+        backgroundColor: '#E1E9EE',
+        borderRadius: 4,
+    },
+    noCoursesText: {
+        textAlign: 'center',
+        color: '#6b7280',
+        paddingVertical: 20,
+        fontSize: 14,
+    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -654,19 +947,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 10,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        textTransform: 'capitalize',
-        letterSpacing: 0.5,
-    },
-    closeButton: {
-        padding: 5,
-    },
-    scrollContent: {
-        paddingBottom: 40,
-        alignItems: 'center',
-    },
+    headerTitle: { fontSize: 18, fontWeight: '600' },
+    closeButton: { padding: 5 },
+    scrollContent: { paddingBottom: 40, alignItems: 'center' },
     profileSection: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -675,29 +958,11 @@ const styles = StyleSheet.create({
         gap: 20,
         justifyContent: 'center',
     },
-    avatar: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-    },
-    userInfo: {
-        justifyContent: 'center',
-    },
-    userName: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#1f2937',
-    },
-    userDetail: {
-        fontSize: 14,
-        color: '#4b5563',
-        fontWeight: '400',
-        marginTop: 2,
-    },
-    detailsContainer: {
-        width: '90%',
-        gap: 15,
-    },
+    avatar: { width: 90, height: 90, borderRadius: 45 },
+    userInfo: { justifyContent: 'center' },
+    userName: { fontSize: 20, fontWeight: '600', color: '#1f2937' },
+    userDetail: { fontSize: 14, color: '#4b5563', marginTop: 2 },
+    detailsContainer: { width: '90%', gap: 15 },
     infoCard: {
         flexDirection: 'row',
         backgroundColor: '#d7e4ee',
@@ -706,40 +971,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 15,
     },
-    infoTextContainer: {
-        flex: 1,
-    },
-    infoLabel: {
-        fontWeight: '600',
-        fontSize: 15,
-        color: '#1f2937',
-        marginBottom: 2,
-    },
-    infoValue: {
-        fontSize: 16,
-        color: '#374151',
-        fontWeight: '400',
-    },
-    semInput: {
-        backgroundColor: 'white',
-        borderRadius: 8,
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        fontSize: 16,
-        width: 60,
-        textAlign: 'center',
-        marginTop: 2,
-    },
-    actionButtons: {
-        flexDirection: 'row',
-        gap: 10,
-        alignItems: 'center',
-    },
-    editBtn: {
-        backgroundColor: '#f3f4f6',
-        padding: 8,
-        borderRadius: 8,
-    },
+    infoTextContainer: { flex: 1 },
+    infoLabel: { fontWeight: '600', fontSize: 15, color: '#1f2937' },
+    infoValue: { fontSize: 16, color: '#374151' },
+    editBtn: { backgroundColor: '#f3f4f6', padding: 8, borderRadius: 8 },
     coursesContainer: {
         backgroundColor: '#d7e4ee',
         padding: 16,
@@ -751,108 +986,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 15,
     },
-    courseHeaderTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-    },
-    courseList: {
-        gap: 12,
-    },
+    courseHeaderTitle: { fontSize: 16, fontWeight: '600' },
+    courseList: { gap: 12 },
     courseCard: {
         backgroundColor: '#fff',
         borderRadius: 8,
         padding: 14,
         gap: 10,
     },
-    courseTopRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 10,
-    },
-    editIconBtn: {
-        backgroundColor: '#1f2937',
-        padding: 6,
-        borderRadius: 6,
-        marginTop: 2,
-    },
-    courseCode: {
-        fontWeight: '600',
-        fontSize: 16,
-        color: '#1f2937',
-    },
-    courseName: {
-        fontSize: 14,
-        color: '#6b7280',
-        fontWeight: '400',
-    },
+    courseCode: { fontWeight: '600', fontSize: 16, color: '#1f2937' },
+    courseName: { fontSize: 14, color: '#6b7280' },
     statsRow: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         marginTop: 8,
-        paddingHorizontal: 10,
     },
-    statCol: {
-        alignItems: 'center',
-        gap: 4,
-    },
-    statLabel: {
-        fontWeight: '600',
-        fontSize: 14,
-        color: '#374151',
-    },
-    statValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#111',
-    },
-    statInput: {
-        backgroundColor: '#f3f4f6',
-        width: 45,
-        textAlign: 'center',
-        paddingVertical: 4,
-        borderRadius: 6,
-        fontSize: 15,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-    },
-    courseActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 10,
-        marginTop: 10,
-    },
-    cancelBtnSmall: {
-        backgroundColor: '#ff6384',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-    },
-    saveBtnSmall: {
-        backgroundColor: '#4bc0c0',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-    },
-    btnTextSmall: {
-        color: 'white',
-        fontSize: 13,
-        fontWeight: '600',
-        textTransform: 'capitalize',
-    },
-    saveAllBtn: {
-        backgroundColor: '#1f2937',
-        padding: 14,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    saveAllText: {
-        color: 'white',
-        fontWeight: '600',
-        fontSize: 15,
-        textTransform: 'capitalize',
-    },
+    statCol: { alignItems: 'center', gap: 4 },
+    statLabel: { fontWeight: '600', fontSize: 14, color: '#374151' },
+    statValue: { fontSize: 16, fontWeight: '600', color: '#111' },
     footer: {
         backgroundColor: '#d7e4ee',
         padding: 16,
@@ -878,55 +1029,13 @@ const styles = StyleSheet.create({
         gap: 12,
         justifyContent: 'center',
     },
-    footerBtnText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 15,
-        textTransform: 'capitalize',
-    },
-    unenrollFlex: {
-        flexDirection: 'row',
-        justifyContent: 'right',
-        alignItems: 'center',
-        gap: 10,
-    },
-    unenrollBtn: {
-        backgroundColor: '#e61643ff',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        marginTop: 10,
-    },
-    deleteIconButton: {
-        padding: 8,
-        borderRadius: 8,
-        backgroundColor: '#e61643ff', // Light red background
-    },
-    unenrollBtnMinimal: {
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        borderWidth: 1,
-        borderColor: '#e61643ff',
-        backgroundColor: 'transparent',
-    },
-    unenrollFlex: {
-        flexDirection: 'row',
-        justifyContent: 'space-between', // Separates Unenroll from Save/Cancel
-        alignItems: 'center',
-        marginTop: 12,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#f3f4f6', // Subtle separator line
-    },
+    footerBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
     deleteAction: {
         backgroundColor: '#ef4444',
         justifyContent: 'center',
         alignItems: 'center',
         width: 90,
-        height: '100%', // Matches card height minus margin
         borderRadius: 12,
-        marginTop: 0,
         marginLeft: 10,
     },
     deleteActionText: {
@@ -936,13 +1045,12 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     editAction: {
-        backgroundColor: '#3b82f6', // Professional Blue
+        backgroundColor: '#3b82f6',
         justifyContent: 'center',
         alignItems: 'center',
         width: 90,
-        height: '100%',
         borderRadius: 12,
-        marginRight: 10, // Margin on the right because it's coming from the left
+        marginRight: 10,
     },
     editActionText: {
         color: '#fff',
@@ -950,4 +1058,83 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 4,
     },
+    cancelBtnSmall: {
+        backgroundColor: '#ff6384',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+    },
+    saveBtnSmall: {
+        backgroundColor: '#4bc0c0',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+    },
+    btnTextSmall: { color: 'white', fontSize: 13, fontWeight: '600' },
+
+    // Reusable Glass Modal Styles
+    modalContainerPosition: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        width: '100%',
+    },
+    glassModalContent: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderTopLeftRadius: 35,
+        borderTopRightRadius: 35,
+        padding: 24,
+        paddingBottom: Platform.OS === 'ios' ? 45 : 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 20,
+    },
+    modalHandle: {
+        width: 40,
+        height: 5,
+        backgroundColor: '#e5e7eb',
+        borderRadius: 3,
+        alignSelf: 'center',
+        marginBottom: 15,
+    },
+    modalHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#1f2937' },
+    modalCourseName: { fontSize: 15, color: '#6b7280', marginBottom: 25 },
+    modalInputRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 30,
+    },
+    modalInputGroup: { width: '30%', alignItems: 'center' },
+    modalInputLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 8,
+    },
+    modalTextInput: {
+        width: '100%',
+        backgroundColor: '#f3f4f6',
+        borderRadius: 12,
+        padding: 15,
+        textAlign: 'center',
+        fontSize: 18,
+        fontWeight: 'bold',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+    },
+    modalSaveButton: {
+        backgroundColor: '#4bc0c0',
+        padding: 18,
+        borderRadius: 15,
+        alignItems: 'center',
+        width: '100%',
+    },
+    modalSaveButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
 })
