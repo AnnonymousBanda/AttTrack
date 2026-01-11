@@ -4,7 +4,7 @@ import { createStaticNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Image, TouchableOpacity } from 'react-native';
 
-import { Home, Lectures, Stats, Profile, NotFound } from './screens';
+import { Home, Lectures, Stats, Profile, NotFound, Login } from './screens';
 import { Home as HomeIcon, Lectures as LecturesIcon, Stats as StatsIcon, profilePic } from '../assets';
 
 const HomeTabs = createBottomTabNavigator({
@@ -129,6 +129,10 @@ const RootStack = createNativeStackNavigator({
       linking: {
         path: '*',
       },
+    },
+    Login: {
+      screen: Login,
+      options: { headerShown: false },
     },
   },
 });
