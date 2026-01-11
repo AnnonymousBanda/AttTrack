@@ -8,46 +8,53 @@ const getUserData = catchAsync(async (req, res) => {
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid
-        }
+            id: uid,
+        },
     })
 
-    if(!user)
-        throw new AppError('User not found!', 404, false)
+    if (!user) throw new AppError('User not found!', 404, false)
 
     res.status(200).json({
         message: 'Data fetched successfully!',
         status: 200,
         data: {
             name: `${user.first_name} ${user.last_name ?? ''}`.trim(),
-            ...user
-        }
+            ...user,
+        },
     })
 })
 
 const registerUser = catchAsync(async (req, res) => {
-    let { oid, email, first_name, last_name, branch, batch, image_url, roll_number, semester } = req.body
-    
+    let {
+        oid,
+        email,
+        first_name,
+        last_name,
+        branch,
+        batch,
+        image_url,
+        roll_number,
+        semester,
+    } = req.body
+
     const existingUser = await prisma.users.findUnique({
         where: {
-            oid: oid
-        }
+            oid: oid,
+        },
     })
-    
-    if(existingUser)
-        throw new AppError('User already registered!', 400)
-    
+
+    if (existingUser) throw new AppError('User already registered!', 400)
+
     email = email.toLowerCase()
     roll_number = roll_number.toLowerCase()
 
-    if(!BRANCHES.split('_').some(b => b===branch))
+    if (!BRANCHES.split('_').some((b) => b === branch))
         throw new AppError('Invalid branch provided', 400)
 
-    if(!email.includes(roll_number))
+    if (!email.includes(roll_number))
         throw new AppError('Roll number does not match with email', 400)
 
     await prisma.$transaction(async (tx) => {
-
         const user = await tx.users.create({
             data: {
                 oid,
@@ -58,29 +65,32 @@ const registerUser = catchAsync(async (req, res) => {
                 batch,
                 image_url,
                 roll_number,
-                semester
-            }
+                semester,
+            },
         })
-        
+
         const courses = await tx.courses.findMany({
             where: {
                 branch: branch,
-                semester: semester
-            }
+                semester: semester,
+            },
         })
 
-        if(courses.length === 0)
-            throw new AppError('No courses found for the given branch and semester', 400)
+        if (courses.length === 0)
+            throw new AppError(
+                'No courses found for the given branch and semester',
+                400
+            )
 
-        let data=[]
-        for(const course of courses)
+        let data = []
+        for (const course of courses)
             data.push({
                 user_id: user.id,
-                course_code: course.course_code
+                course_code: course.course_code,
             })
 
         await tx.course_attendance.createMany({
-            data: data
+            data: data,
         })
     })
 
@@ -95,22 +105,21 @@ const deleteUserData = catchAsync(async (req, res) => {
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid
-        }
+            id: uid,
+        },
     })
 
-    if(!user)
-        throw new AppError('User not found!', 404, false)
+    if (!user) throw new AppError('User not found!', 404, false)
 
     await prisma.users.delete({
         where: {
-            id: uid
-        }
+            id: uid,
+        },
     })
 
     res.status(200).json({
         message: 'Data deleted successfully!',
-        status: 200
+        status: 200,
     })
 })
 
@@ -118,118 +127,125 @@ const modifySemester = catchAsync(async (req, res) => {
     const { uid, semester, branch } = req.user
     const { new_semester } = req.body
 
-    if(new_semester === semester)
+    if (new_semester === semester)
         throw new AppError('Semester is already set to the provided value', 400)
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid
-        }
+            id: uid,
+        },
     })
 
-    if(!user)
-        throw new AppError('User not found!', 404)
+    if (!user) throw new AppError('User not found!', 404)
 
     const coursesEnrolled = await prisma.course_attendance.findMany({
         where: {
             user_id: uid,
             courses: {
-            semester: new_semester
-            }
+                semester: new_semester,
+            },
         },
         include: {
-            courses: true
-        }
+            courses: true,
+        },
     })
 
-    if(coursesEnrolled.length > 0)
-    {
+    if (coursesEnrolled.length > 0) {
         await prisma.users.update({
             where: {
-                id: uid
+                id: uid,
             },
             data: {
-                semester: new_semester
-            }
+                semester: new_semester,
+            },
         })
 
         throw new AppError('Semester updated successfully', 200)
     }
 
     await prisma.$transaction(async (tx) => {
-        
         const courses = await tx.courses.findMany({
             where: {
                 branch: branch,
-                semester: new_semester
-            }
+                semester: new_semester,
+            },
         })
 
-        if(courses.length === 0)
-            throw new AppError('No courses found for the given branch and semester', 400)
+        if (courses.length === 0)
+            throw new AppError(
+                'No courses found for the given branch and semester',
+                400
+            )
 
-        const data=courses.map(c => ({
+        const data = courses.map((c) => ({
             user_id: uid,
-            course_code: c.course_code
+            course_code: c.course_code,
         }))
 
         await tx.course_attendance.createMany({
-            data: data
+            data: data,
         })
 
         await tx.users.update({
             where: {
-                id: uid
+                id: uid,
             },
             data: {
-                semester: new_semester
-            }
+                semester: new_semester,
+            },
         })
     })
 
-	res.status(200).json({
-		message: 'Semester updated successfully!',
-        status: 200
-	})
+    res.status(200).json({
+        message: 'Semester updated successfully!',
+        status: 200,
+    })
 })
 
 const resetSemester = catchAsync(async (req, res) => {
     const { uid, semester, branch } = req.user
 
     await prisma.$transaction(async (tx) => {
-        
         const courses = await tx.courses.findMany({
             where: {
                 branch: branch,
-                semester: semester
-            }
+                semester: semester,
+            },
         })
-        
-        if(courses.length === 0)
-            throw new AppError('No courses found for the given branch and semester', 400)
+
+        if (courses.length === 0)
+            throw new AppError(
+                'No courses found for the given branch and semester',
+                400
+            )
 
         await tx.course_attendance.deleteMany({
             where: {
                 user_id: uid,
-                course_code: { in: courses.map(c => c.course_code) }
-            }
+                course_code: { in: courses.map((c) => c.course_code) },
+            },
         })
-        
-        const data=courses.map(c => ({
+
+        const data = courses.map((c) => ({
             user_id: uid,
-            course_code: c.course_code
+            course_code: c.course_code,
         }))
 
         await tx.course_attendance.createMany({
-            data: data
+            data: data,
         })
 
-        //reset attendance logs
+        await tx.attendance_logs.deleteMany({
+            where: {
+                user_id: uid,
+                course_code: course_code,
+            },
+        })
     })
 
     res.status(200).json({
         message: 'Semester reset successfully!',
-        status: 200
+        status: 200,
     })
 })
 
@@ -238,29 +254,34 @@ const unenrollFromCourse = catchAsync(async (req, res) => {
     const { course_code } = req.body
 
     await prisma.$transaction(async (tx) => {
-
         await tx.attendance_logs.deleteMany({
             where: {
                 user_id: uid,
-                course_code: course_code
-            }
+                course_code: course_code,
+            },
         })
 
         await tx.course_attendance.delete({
             where: {
                 user_id_course_code: {
                     user_id: uid,
-                    course_code: course_code
-                }
-            }
+                    course_code: course_code,
+                },
+            },
         })
     })
 
-
     res.status(200).json({
         message: 'Unenrolled from course successfully!',
-        status: 200
+        status: 200,
     })
 })
 
-module.exports = { getUserData, registerUser, deleteUserData, modifySemester, resetSemester , unenrollFromCourse }
+module.exports = {
+    getUserData,
+    registerUser,
+    deleteUserData,
+    modifySemester,
+    resetSemester,
+    unenrollFromCourse,
+}
