@@ -4,7 +4,7 @@ const { prisma } = require('../database')
 const BRANCHES = require('./../utils/branches')
 
 const getUserData = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id: uid } = req.user
 
     const user = await prisma.users.findUnique({
         where: {
@@ -27,6 +27,7 @@ const getUserData = catchAsync(async (req, res) => {
 const verifyUser = catchAsync(async (req, res) => {
     await getMicrosoftUserData(req, res)
     const data = req.microsoftUserData
+    console.log('Microsoft User Data:', data)
     const oid = data.id
 
     const user = await prisma.users.findUnique({
@@ -40,6 +41,7 @@ const verifyUser = catchAsync(async (req, res) => {
             message: 'User not registered!',
             status: 404,
             data: {
+                oid: oid,
                 displayName: data.displayName,
                 mail: data.mail,
                 jobTitle: data.jobTitle,
@@ -108,8 +110,10 @@ const registerUser = catchAsync(async (req, res) => {
     if (!email.includes(roll_number))
         throw new AppError('Roll number does not match with email', 400)
 
+    let user = null
+
     await prisma.$transaction(async (tx) => {
-        const user = await tx.users.create({
+        user = await tx.users.create({
             data: {
                 oid,
                 email,
@@ -149,13 +153,16 @@ const registerUser = catchAsync(async (req, res) => {
     })
 
     res.status(201).json({
-        message: 'User registered successfully!',
         status: 201,
+        message: 'User registered successfully!',
+        data: {
+            user: user,
+        },
     })
 })
 
 const deleteUserData = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id: uid } = req.user
 
     const user = await prisma.users.findUnique({
         where: {
@@ -178,7 +185,7 @@ const deleteUserData = catchAsync(async (req, res) => {
 })
 
 const modifySemester = catchAsync(async (req, res) => {
-    const { uid, semester, branch } = req.user
+    const { id: uid, semester, branch } = req.user
     const { new_semester } = req.body
 
     if (new_semester === semester)
@@ -257,7 +264,7 @@ const modifySemester = catchAsync(async (req, res) => {
 })
 
 const resetSemester = catchAsync(async (req, res) => {
-    const { uid, semester, branch } = req.user
+    const { id: uid, semester, branch } = req.user
 
     await prisma.$transaction(async (tx) => {
         const courses = await tx.courses.findMany({
@@ -304,7 +311,7 @@ const resetSemester = catchAsync(async (req, res) => {
 })
 
 const unenrollFromCourse = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id: uid } = req.user
     const { course_code } = req.body
 
     await prisma.$transaction(async (tx) => {

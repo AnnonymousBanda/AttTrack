@@ -2,7 +2,7 @@ const { prisma } = require('../database')
 const { catchAsync, AppError } = require('../utils/error.util')
 
 const createAttendanceLog = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id : uid } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
     const prismaOperations = []
@@ -155,7 +155,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 // })
 
 const adjustAttendanceTotals = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id: uid } = req.user
     const { course_code, present_total, absent_total, medical_total } = req.body
 
     const existingRecord = await prisma.course_attendance.findUnique({
@@ -192,7 +192,7 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
 })
 
 const getAttendanceReport = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id: uid } = req.user
     const { course_code } = req.query
 
     const user = await prisma.users.findUnique({
@@ -248,7 +248,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
 })
 
 const updateAttendanceStatus = catchAsync(async (req, res) => {
-    const { uid } = req.user
+    const { id: uid } = req.user
     const { log_id, status } = req.body
 
     const log = await prisma.attendance_logs.findUnique({
