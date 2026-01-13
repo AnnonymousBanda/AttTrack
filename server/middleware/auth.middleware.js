@@ -7,11 +7,11 @@ const protect = catchAsync(async (req, res, next) => {
     if(!uid)
         throw new AppError("Unauthorized Access", 401);
 
-    const user = await prisma.users.findUnique({ where: { id: uid }, select: { id: true, branch: true, semester: true } });
+    const user = await prisma.users.findUnique({ where: { id: uid }, select: { branch: true, semester: true } });
     if (!user)
         throw new AppError("User Not Found", 401);
 
-    req.user={ ...user };
+    req.user={ uid, ...user };
     next()
 });
 

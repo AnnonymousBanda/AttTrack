@@ -12,7 +12,7 @@ unhandledRejection(server)
 
 gracefulShutdown(server)
 
-server.listen(process.env.PORT, async () => {
+server.listen(process.env.PORT, '0.0.0.0', async () => {
 	await connectDB()
 
 	console.log(`Server is running at http://localhost:${process.env.PORT}`)

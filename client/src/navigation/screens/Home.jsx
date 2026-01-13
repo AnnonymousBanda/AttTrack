@@ -13,18 +13,23 @@ import {
 import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { AttendanceButton, CancelButton, AddButton } from '../../components'
 import { HomeSkeleton } from '../../skeletons'
+import { useAuth } from '../../context'
 
-const getLectures = async (id, sem, day) => {
+const getLectures = async (id) => {
     try {
         const date = new Date().toISOString()
         const API_URL = process.env.EXPO_PUBLIC_API_URL
 
-        const response = await fetch(`${API_URL}/api/lectures?date=${date.split('T')[0]}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
+        const response = await fetch(
+            `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': id,
+                },
+            }
+        )
 
         const result = await response.json()
 
@@ -72,30 +77,25 @@ export function Home() {
     const { width } = Dimensions.get('window')
     const isSmallDevice = width < 340
 
-    const initialRender = useRef(true)
-    const user = { userID: 'dummy_user', semester: '4' }
+    const { user } = useAuth()
 
     useEffect(() => {
         const fetch = async () => {
-            try {
-                let res = await getLectures(
-                    user.userID,
-                    user.semester,
-                    new Date()
-                        .toLocaleDateString('en-US', { weekday: 'short' })
-                        .toLowerCase()
-                )
+            if (user) {
+                try {
+                    let res = await getLectures(user?.id)
 
-                if (res.status !== 200) throw new Error(res.message)
+                    if (res.status !== 200) throw new Error(res.message)
 
-                setClasses(res.data)
-                setLoading(false)
-            } catch (error) {
-                Alert.alert('Error', error.message)
+                    setClasses(res.data)
+                    setLoading(false)
+                } catch (error) {
+                    Alert.alert('Error', error.message)
+                }
             }
         }
         fetch()
-    }, [])
+    }, [user])
 
     useEffect(() => {
         const hour = new Date().getHours()

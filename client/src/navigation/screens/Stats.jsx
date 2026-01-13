@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react'
 import {
     StyleSheet,
     View,
@@ -7,10 +7,10 @@ import {
     Dimensions,
     FlatList,
     Animated,
-    Alert
-} from 'react-native';
-import { BarChart, PieChart } from 'react-native-gifted-charts';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+    Alert,
+} from 'react-native'
+import { BarChart, PieChart } from 'react-native-gifted-charts'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 const getMockAttendanceData = () => {
     return new Promise((resolve) => {
@@ -26,7 +26,7 @@ const getMockAttendanceData = () => {
                         absent: 2,
                         medical: 1,
                         minimumLecturesToAttend: 0,
-                        maximumAchievableAttendance: 92
+                        maximumAchievableAttendance: 92,
                     },
                     {
                         courseCode: 'MA201',
@@ -36,7 +36,7 @@ const getMockAttendanceData = () => {
                         absent: 7,
                         medical: 0,
                         minimumLecturesToAttend: 5,
-                        maximumAchievableAttendance: 88
+                        maximumAchievableAttendance: 88,
                     },
                     {
                         courseCode: 'PH102',
@@ -46,7 +46,7 @@ const getMockAttendanceData = () => {
                         absent: 1,
                         medical: 0,
                         minimumLecturesToAttend: 0,
-                        maximumAchievableAttendance: 98
+                        maximumAchievableAttendance: 98,
                     },
                     {
                         courseCode: 'ME101',
@@ -56,72 +56,122 @@ const getMockAttendanceData = () => {
                         absent: 5,
                         medical: 1,
                         minimumLecturesToAttend: 2,
-                        maximumAchievableAttendance: 85
-                    }
-                ]
-            });
-        }, 1500);
-    });
-};
+                        maximumAchievableAttendance: 85,
+                    },
+                ],
+            })
+        }, 1500)
+    })
+}
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_WIDTH = Dimensions.get('window').width
 
 const SkeletonBox = ({ style }) => {
-    const opacity = useRef(new Animated.Value(0.3)).current;
+    const opacity = useRef(new Animated.Value(0.3)).current
 
     useEffect(() => {
         const animation = Animated.loop(
             Animated.sequence([
-                Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
-                Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+                Animated.timing(opacity, {
+                    toValue: 0.7,
+                    duration: 800,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(opacity, {
+                    toValue: 0.3,
+                    duration: 800,
+                    useNativeDriver: true,
+                }),
             ])
-        );
-        animation.start();
-        return () => animation.stop();
-    }, []);
+        )
+        animation.start()
+        return () => animation.stop()
+    }, [])
 
-    return <Animated.View style={[{ backgroundColor: '#d1d5db', borderRadius: 8 }, { opacity }, style]} />;
-};
+    return (
+        <Animated.View
+            style={[
+                { backgroundColor: '#d1d5db', borderRadius: 8 },
+                { opacity },
+                style,
+            ]}
+        />
+    )
+}
 
 const StatsSkeleton = () => (
     <View style={styles.skeletonContainer}>
-        <SkeletonBox style={{ width: 200, height: 32, alignSelf: 'center', marginBottom: 20 }} />
+        <SkeletonBox
+            style={{
+                width: 200,
+                height: 32,
+                alignSelf: 'center',
+                marginBottom: 20,
+            }}
+        />
 
         <View style={styles.card}>
-            <SkeletonBox style={{ width: 150, height: 24, alignSelf: 'center', marginBottom: 20 }} />
+            <SkeletonBox
+                style={{
+                    width: 150,
+                    height: 24,
+                    alignSelf: 'center',
+                    marginBottom: 20,
+                }}
+            />
             <SkeletonBox style={{ width: '100%', height: 200 }} />
         </View>
 
         <View style={styles.card}>
-            <SkeletonBox style={{ width: 120, height: 24, alignSelf: 'center', marginBottom: 20 }} />
+            <SkeletonBox
+                style={{
+                    width: 120,
+                    height: 24,
+                    alignSelf: 'center',
+                    marginBottom: 20,
+                }}
+            />
             <SkeletonBox style={{ width: '100%', height: 250 }} />
         </View>
     </View>
-);
+)
 
 const NoPie = () => (
     <View style={styles.noPieContainer}>
-        <MaterialCommunityIcons name="chart-box-outline" size={60} color="#6b7280" />
-        <Text style={styles.noPieText}>Start marking your attendance to see the stats</Text>
+        <MaterialCommunityIcons
+            name="chart-box-outline"
+            size={60}
+            color="#6b7280"
+        />
+        <Text style={styles.noPieText}>
+            Start marking your attendance to see the stats
+        </Text>
     </View>
-);
+)
 
 const AnalysisCard = ({ item }) => {
     const pieData = [
         { value: item.present, color: '#4BC0C0', text: 'Present' },
         { value: item.medical, color: '#FFCE56', text: 'Medical' },
         { value: item.absent, color: '#FF6384', text: 'Absent' },
-    ].filter(d => d.value > 0);
+    ].filter((d) => d.value > 0)
 
-    const hasData = item.present > 0 || item.absent > 0 || item.medical > 0;
+    const hasData = item.present > 0 || item.absent > 0 || item.medical > 0
 
-    let statusColor = '#FF6384';
-    if (item.presentPercentage >= 90) statusColor = '#4BC0C0';
-    else if (item.presentPercentage >= 75) statusColor = '#FFCE56';
+    let statusColor = '#FF6384'
+    if (item.presentPercentage >= 90) statusColor = '#4BC0C0'
+    else if (item.presentPercentage >= 75) statusColor = '#FFCE56'
 
     return (
-        <View style={[styles.card, { width: SCREEN_WIDTH - 40, marginHorizontal: 0 }]}>
-            <Text style={styles.courseTitle}>{item.courseCode} - {item.courseName}</Text>
+        <View
+            style={[
+                styles.card,
+                { width: SCREEN_WIDTH - 40, marginHorizontal: 0 },
+            ]}
+        >
+            <Text style={styles.courseTitle}>
+                {item.courseCode} - {item.courseName}
+            </Text>
 
             <View style={styles.pieContainer}>
                 {!hasData ? (
@@ -140,22 +190,42 @@ const AnalysisCard = ({ item }) => {
 
                         <View style={styles.legendContainer}>
                             <View style={styles.legendRow}>
-                                <View style={[styles.dot, { backgroundColor: '#4BC0C0' }]} />
+                                <View
+                                    style={[
+                                        styles.dot,
+                                        { backgroundColor: '#4BC0C0' },
+                                    ]}
+                                />
                                 <Text>Present: {item.present}</Text>
                             </View>
                             <View style={styles.legendRow}>
-                                <View style={[styles.dot, { backgroundColor: '#FFCE56' }]} />
+                                <View
+                                    style={[
+                                        styles.dot,
+                                        { backgroundColor: '#FFCE56' },
+                                    ]}
+                                />
                                 <Text>Medical: {item.medical}</Text>
                             </View>
                             <View style={styles.legendRow}>
-                                <View style={[styles.dot, { backgroundColor: '#FF6384' }]} />
+                                <View
+                                    style={[
+                                        styles.dot,
+                                        { backgroundColor: '#FF6384' },
+                                    ]}
+                                />
                                 <Text>Absent: {item.absent}</Text>
                             </View>
                         </View>
 
                         <Text style={styles.currentText}>
                             Current:
-                            <Text style={[styles.percentageBadge, { backgroundColor: statusColor }]}>
+                            <Text
+                                style={[
+                                    styles.percentageBadge,
+                                    { backgroundColor: statusColor },
+                                ]}
+                            >
                                 {` ${Math.floor(item.presentPercentage)}% `}
                             </Text>
                         </Text>
@@ -163,66 +233,78 @@ const AnalysisCard = ({ item }) => {
                 )}
             </View>
         </View>
-    );
-};
+    )
+}
 
 export function Stats() {
-    const [courseData, setCourseData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [courseData, setCourseData] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await getMockAttendanceData();
-                setCourseData(res.data);
-                setLoading(false);
+                const res = await getMockAttendanceData()
+                setCourseData(res.data)
+                setLoading(false)
             } catch (error) {
-                Alert.alert('Error', error.message);
-                setLoading(false);
+                Alert.alert('Error', error.message)
+                setLoading(false)
             }
-        };
-        fetchData();
-    }, []);
+        }
+        fetchData()
+    }, [])
 
     const getOrdinalSuffix = (n) => {
-        const s = ["th", "st", "nd", "rd"];
-        const v = n % 100;
-        return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    };
-    const date = new Date();
-    const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${getOrdinalSuffix(date.getDate())}`;
+        const s = ['th', 'st', 'nd', 'rd']
+        const v = n % 100
+        return n + (s[(v - 20) % 10] || s[v] || s[0])
+    }
+    const date = new Date()
+    const formattedDate = `${date.toLocaleString('default', {
+        month: 'long',
+    })} ${getOrdinalSuffix(date.getDate())}`
 
-    const mainBarData = courseData.map(item => ({
+    const mainBarData = courseData.map((item) => ({
         value: item.presentPercentage,
         label: item.courseCode,
         frontColor: item.presentPercentage >= 75 ? '#4BC0C0' : '#FF6384',
         topLabelComponent: () => (
-            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>{item.presentPercentage}%</Text>
-        )
-    }));
+            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>
+                {item.presentPercentage}%
+            </Text>
+        ),
+    }))
 
-    const minClassesData = courseData.map(item => ({
+    const minClassesData = courseData.map((item) => ({
         value: item.minimumLecturesToAttend,
         label: item.courseCode,
         frontColor: '#36A2EB',
         topLabelComponent: () => (
-            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>{item.minimumLecturesToAttend}</Text>
-        )
-    }));
+            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>
+                {item.minimumLecturesToAttend}
+            </Text>
+        ),
+    }))
 
-    const maxAchievableData = courseData.map(item => ({
+    const maxAchievableData = courseData.map((item) => ({
         value: item.maximumAchievableAttendance,
         label: item.courseCode,
-        frontColor: item.maximumAchievableAttendance >= 75 ? '#4BC0C0' : '#FF6384',
+        frontColor:
+            item.maximumAchievableAttendance >= 75 ? '#4BC0C0' : '#FF6384',
         topLabelComponent: () => (
-            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>{item.maximumAchievableAttendance}%</Text>
-        )
-    }));
+            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>
+                {item.maximumAchievableAttendance}%
+            </Text>
+        ),
+    }))
 
-    if (loading) return <StatsSkeleton />;
+    if (loading) return <StatsSkeleton />
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={{ paddingBottom: 40 }}
+        >
             <View style={styles.header}>
                 <Text style={styles.dateText}>Today, {formattedDate}</Text>
             </View>
@@ -247,19 +329,35 @@ export function Stats() {
                         initialSpacing={10}
                         showReferenceLine1
                         referenceLine1Position={75}
-                        referenceLine1Config={{ color: 'red', dashWidth: 2, dashGap: 3 }}
+                        referenceLine1Config={{
+                            color: 'red',
+                            dashWidth: 2,
+                            dashGap: 3,
+                        }}
                     />
                 </View>
-                <Text style={{ textAlign: 'center', color: 'red', fontSize: 10, marginTop: 5 }}>
+                <Text
+                    style={{
+                        textAlign: 'center',
+                        color: 'red',
+                        fontSize: 10,
+                        marginTop: 5,
+                    }}
+                >
                     --- 75% Threshold ---
                 </Text>
             </View>
 
-            <View style={[styles.card, { padding: 0, paddingVertical: 20, overflow: 'hidden' }]}>
+            <View
+                style={[
+                    styles.card,
+                    { padding: 0, paddingVertical: 20, overflow: 'hidden' },
+                ]}
+            >
                 <Text style={styles.sectionTitle}>Analysis</Text>
                 <FlatList
                     data={courseData}
-                    keyExtractor={item => item.courseCode}
+                    keyExtractor={(item) => item.courseCode}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
@@ -272,7 +370,9 @@ export function Stats() {
             <View style={styles.card}>
                 <Text style={styles.sectionTitle}>Predictions</Text>
 
-                <Text style={styles.subTitle}>Minimum classes to maintain 75%</Text>
+                <Text style={styles.subTitle}>
+                    Minimum classes to maintain 75%
+                </Text>
                 <View style={{ marginBottom: 30 }}>
                     <BarChart
                         data={minClassesData}
@@ -290,7 +390,9 @@ export function Stats() {
                     />
                 </View>
 
-                <Text style={styles.subTitle}>Maximum achievable attendance</Text>
+                <Text style={styles.subTitle}>
+                    Maximum achievable attendance
+                </Text>
                 <View>
                     <BarChart
                         data={maxAchievableData}
@@ -311,7 +413,7 @@ export function Stats() {
                 </View>
             </View>
         </ScrollView>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
@@ -410,5 +512,5 @@ const styles = StyleSheet.create({
     },
     skeletonContainer: {
         padding: 20,
-    }
-});
+    },
+})

@@ -8,8 +8,11 @@ import {
 } from 'react-native'
 import { AttendanceButton, CancelButton } from '../../components'
 import { LecturesSkeleton } from '../../skeletons'
+import { useAuth } from '../../context/auth.context'
 
 export function Lectures() {
+    const { user } = useAuth()
+
     const [selectedDay, setSelectedDay] = useState(() => {
         const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
         const today = new Date()
@@ -41,35 +44,38 @@ export function Lectures() {
 
     useEffect(() => {
         const getLectures = async () => {
-            try {
-                setLoading(true)
+            if (user) {
+                try {
+                    setLoading(true)
 
-                const date = selectedDay.dateString
-                const API_URL = process.env.EXPO_PUBLIC_API_URL
+                    const date = selectedDay.dateString
+                    const API_URL = process.env.EXPO_PUBLIC_API_URL
 
-                const response = await fetch(
-                    `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
-                    {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                )
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Error fetching lectures for ${date.split('T')[0]}`
+                    const response = await fetch(
+                        `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-user-id': user.id,
+                            },
+                        }
                     )
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Error fetching lectures for ${date.split('T')[0]}`
+                        )
+                    }
+
+                    const result = await response.json()
+
+                    setLectures(result.data || [])
+                } catch (error) {
+                    throw new Error('Failed to fetch lectures')
+                } finally {
+                    setLoading(false)
                 }
-
-                const result = await response.json()
-
-                setLectures(result.data || [])
-            } catch (error) {
-                throw new Error('Failed to fetch lectures')
-            } finally {
-                setLoading(false)
             }
         }
 

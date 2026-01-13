@@ -10,18 +10,17 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { logo, ms_logo } from '../../assets/index'
+import { useAuth } from '../../context/index'
 
 const LoginScreen = () => {
-    const [loading, setLoading] = useState(false)
     const [buttonClicked, setButtonClicked] = useState(false)
+    const { signInWithMicrosoft, login, isLoading } = useAuth()
 
     const handleLogin = async () => {
-        setLoading(true)
         setButtonClicked(true)
-        setTimeout(() => {
-            setButtonClicked(false)
-            setLoading(false)
-        }, 2000)
+
+        const authData = await signInWithMicrosoft()
+        await login({ ...authData })
     }
 
     return (
@@ -47,13 +46,13 @@ const LoginScreen = () => {
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={handleLogin}
-                        disabled={loading}
+                        disabled={isLoading}
                         style={[
                             styles.msButton,
-                            (buttonClicked || loading) && styles.opacity50,
+                            (buttonClicked || isLoading) && styles.opacity50,
                         ]}
                     >
-                        {loading ? (
+                        {isLoading ? (
                             <ActivityIndicator color="#ffffff" />
                         ) : (
                             <View style={styles.buttonContent}>
