@@ -7,6 +7,10 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
     const prismaOperations = []
 
+    const lectureDate = new Date(lecture_date).toISOString().split('T')[0]
+
+    // console.log(`${lectureDate} ${start_time}.000`)
+
     if (status !== 'cancelled') {
         const updateCounts = {}
         if (status === 'present') updateCounts.present_total = { increment: 1 }
@@ -31,11 +35,14 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     prismaOperations.push(
         prisma.attendance_logs.create({
             data: {
-                user_id: uid,
-                course_code: course_code,
+                id: '23',
+                user_id_course_code: {
+                    user_id: uid,
+                    course_code: course_code,
+                },
                 lecture_date: new Date(lecture_date),
-                start_time: new Date(`${lecture_date}T${start_time}`),
-                end_time: new Date(`${lecture_date}T${end_time}`),
+                start_time: `${lectureDate} ${start_time}`, // shift to time datatype
+                end_time: `${lectureDate} ${end_time}`, // shift to time datatype
                 status: status,
             },
         })
