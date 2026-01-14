@@ -7,10 +7,6 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
     const prismaOperations = []
 
-    const lectureDate = new Date(lecture_date).toISOString().split('T')[0]
-
-    // console.log(`${lectureDate} ${start_time}.000`)
-
     if (status !== 'cancelled') {
         const updateCounts = {}
         if (status === 'present') updateCounts.present_total = { increment: 1 }
@@ -35,14 +31,13 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     prismaOperations.push(
         prisma.attendance_logs.create({
             data: {
-                id: '23',
                 user_id_course_code: {
                     user_id: uid,
                     course_code: course_code,
                 },
-                lecture_date: new Date(lecture_date),
-                start_time: `${lectureDate} ${start_time}`, // shift to time datatype
-                end_time: `${lectureDate} ${end_time}`, // shift to time datatype
+                lecture_date: lecture_date,
+                start_time: start_time,
+                end_time: end_time,
                 status: status,
             },
         })
@@ -54,7 +49,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
         where: {
             user_id: uid,
             course_code: course_code,
-            lecture_date: new Date(lecture_date),
+            lecture_date: lecture_date,
         },
     })
 
@@ -64,95 +59,6 @@ const createAttendanceLog = catchAsync(async (req, res) => {
         data: all_logs,
     })
 })
-
-// const markAttendance = catchAsync(async (req, res) => {
-//     const { uid, semester } = req.user
-//     const { course_code, lecture_date, start_time, end_time, status } = req.body
-
-//     // --- Validation ---
-//     if (!course_code || !lecture_date || !start_time || !end_time || !status)
-//         throw new AppError('Please provide all required fields', 400)
-
-//     if (!['present', 'absent', 'medical', 'cancelled'].includes(status))
-//         throw new AppError('Invalid status value', 400)
-
-//     // --- The Interactive Transaction ---
-//     const result = await prisma.$transaction(async (tx) => {
-
-//         // 1. READ: Get current stats inside the transaction
-//         // We use 'findUnique' on the composite unique key for better performance
-//         const course_attendance = await tx.course_attendance.findUnique({
-//             where: {
-//                 user_id_course_code: {
-//                     user_id: uid,
-//                     course_code: course_code
-//                 }
-//             }
-//         })
-
-//         if (!course_attendance) {
-//             throw new AppError('Course not found!', 404)
-//         }
-
-//         // 2. LOGIC: Calculate new values (Read-Modify-Write)
-//         // We do NOT touch 'total_classes' as per your instruction
-//         let newPresent = course_attendance.present_total
-//         let newAbsent = course_attendance.absent_total
-//         let newMedical = course_attendance.medical_total
-
-//         if (status === 'present') newPresent += 1
-//         else if (status === 'absent') newAbsent += 1
-//         else if (status === 'medical') newMedical += 1
-//         // If 'cancelled', we just log it but don't change any totals
-
-//         // 3. WRITE: Update the course summary
-//         await tx.course_attendance.update({
-//             where: {
-//                 user_id_course_code: {
-//                     user_id: uid,
-//                     course_code: course_code
-//                 }
-//             },
-//             data: {
-//                 present_total: newPresent,
-//                 absent_total: newAbsent,
-//                 medical_total: newMedical
-//             }
-//         })
-
-//         // 4. WRITE: Create the daily log
-//         const newLog = await tx.attendance_logs.create({
-//             data: {
-//                 user_id: uid,
-//                 course_code: course_code,
-//                 semester: semester,
-//                 lecture_date: new Date(lecture_date),
-//                 start_time: new Date(`${lecture_date}T${start_time}`),
-//                 end_time: new Date(`${lecture_date}T${end_time}`),
-//                 status: status
-//             }
-//         })
-
-//         // 5. READ: Fetch updated logs list to return to user
-//         // Doing this inside the transaction guarantees we see the data exactly as currently written
-//         const all_logs_today = await tx.attendance_logs.findMany({
-//             where: {
-//                 user_id: uid,
-//                 semester: semester,
-//                 lecture_date: new Date(lecture_date)
-//             }
-//         })
-
-//         return all_logs_today
-//     })
-
-//     // --- Response ---
-//     res.status(201).json({
-//         message: 'Daily attendance marked successfully!',
-//         status: 201,
-//         data: result // 'result' is whatever we returned from the transaction block
-//     })
-// })
 
 const adjustAttendanceTotals = catchAsync(async (req, res) => {
     const { id: uid } = req.user
