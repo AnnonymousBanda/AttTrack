@@ -1,52 +1,84 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Animated, Easing } from 'react-native'
+import { View, StyleSheet, Animated, Text, Image, Easing } from 'react-native'
+import { logo } from '../assets'
 
-const Bar = ({ delay }) => {
-    const scaleY = useRef(new Animated.Value(1)).current
+export const BrandLoader = () => {
+    const fadeAnim = useRef(new Animated.Value(0)).current
+
+    // Create an array of 3 animated values for the dots
+    const dotAnims = useRef([
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+    ]).current
 
     useEffect(() => {
-        Animated.loop(
-            Animated.sequence([
-                // 1. Wait for the wave to reach this bar
-                Animated.delay(delay),
-                // 2. Quick rise
-                Animated.timing(scaleY, {
-                    toValue: 2.8,
-                    duration: 350,
-                    easing: Easing.bezier(0.4, 0, 0.2, 1),
-                    useNativeDriver: true,
-                }),
-                // 3. Smooth fall back to base
-                Animated.timing(scaleY, {
-                    toValue: 1,
-                    duration: 500,
-                    easing: Easing.bezier(0.4, 0, 0.2, 1),
-                    useNativeDriver: true,
-                }),
-                // 4. Brief pause before the next wave cycle starts
-                Animated.delay(300),
-            ])
+        // 1. Fade in the logo and text
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+        }).start()
+
+        // 2. Start dot animations with stagger effect
+        Animated.stagger(
+            200, // 200ms delay between each dot
+            dotAnims.map((anim) =>
+                Animated.loop(
+                    Animated.sequence([
+                        Animated.timing(anim, {
+                            toValue: 1,
+                            duration: 500,
+                            easing: Easing.inOut(Easing.quad),
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(anim, {
+                            toValue: 0,
+                            duration: 500,
+                            easing: Easing.inOut(Easing.quad),
+                            useNativeDriver: true,
+                        }),
+                    ])
+                )
+            )
         ).start()
     }, [])
 
     return (
-        <View style={styles.barWrapper}>
-            <Animated.View style={[styles.bar, { transform: [{ scaleY }] }]} />
-        </View>
-    )
-}
-
-export const BrandLoader = () => {
-    return (
         <View style={styles.container}>
-            <View style={styles.barContainer}>
-                {/* Each bar has a 100ms increment to create the left-to-right wave */}
-                <Bar delay={0} />
-                <Bar delay={100} />
-                <Bar delay={200} />
-                <Bar delay={300} />
-                <Bar delay={400} />
-            </View>
+            <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+                {/* 1. App Logo */}
+                <Image source={logo} style={styles.logo} resizeMode="contain" />
+
+                {/* 2. Brand Name */}
+                <Text style={styles.h1}>AttTrack</Text>
+
+                {/* 3. Three Dot Loader */}
+                <View style={styles.dotContainer}>
+                    {dotAnims.map((anim, index) => (
+                        <Animated.View
+                            key={index}
+                            style={[
+                                styles.dot,
+                                {
+                                    opacity: anim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.3, 1],
+                                    }),
+                                    transform: [
+                                        {
+                                            translateY: anim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [0, -2.5], // Moves dot up by 2.5 units
+                                            }),
+                                        },
+                                    ],
+                                },
+                            ]}
+                        />
+                    ))}
+                </View>
+            </Animated.View>
         </View>
     )
 }
@@ -58,20 +90,32 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    barContainer: {
+    content: {
+        alignItems: 'center',
+        width: '100%',
+    },
+    logo: {
+        width: 80,
+        height: 80,
+        marginBottom: 10,
+    },
+    h1: {
+        fontSize: 36,
+        fontWeight: '800',
+        color: '#1A1A1A',
+        letterSpacing: -1,
+    },
+    dotContainer: {
         flexDirection: 'row',
-        alignItems: 'flex-end', // Aligns bars to the bottom of the line
-        height: 40,
+        marginTop: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    barWrapper: {
-        height: 12, // The base height
-        justifyContent: 'flex-end',
-        marginHorizontal: 3,
-    },
-    bar: {
-        width: 4,
-        height: 12,
+    dot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
         backgroundColor: '#3a3a3a',
-        borderRadius: 2,
+        marginHorizontal: 4,
     },
 })

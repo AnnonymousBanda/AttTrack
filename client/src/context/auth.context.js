@@ -91,9 +91,6 @@ const AuthProvider = ({ children }) => {
     }
 
     const login = async ({ accessToken, refreshToken }) => {
-        await SecureStore.setItemAsync('accessToken', accessToken)
-        await SecureStore.setItemAsync('refreshToken', refreshToken)
-
         await fetchAndSetUser(accessToken)
     }
 
@@ -123,8 +120,6 @@ const AuthProvider = ({ children }) => {
 
             setUid(userData.id)
             setUser(userData)
-            await SecureStore.deleteItemAsync('accessToken')
-            await SecureStore.deleteItemAsync('refreshToken')
         } catch (error) {
             Alert.alert('Error', error.message)
         } finally {
@@ -134,6 +129,14 @@ const AuthProvider = ({ children }) => {
 
     const isAuthenticated = () => {
         return !!uid
+    }
+
+    const loadUid = async () => {
+        const storedUid = await SecureStore.getItemAsync('uid')
+
+        if (storedUid) {
+            setUid(storedUid)
+        }
     }
 
     return (
@@ -147,6 +150,7 @@ const AuthProvider = ({ children }) => {
                 login,
                 setUid,
                 isLoading,
+                loadUid,
             }}
         >
             {children}
