@@ -88,9 +88,10 @@ export function Home() {
                     if (res.status !== 200) throw new Error(res.message)
 
                     setClasses(res.data)
-                    setLoading(false)
                 } catch (error) {
                     Alert.alert('Error', error.message)
+                } finally {
+                    setLoading(false)
                 }
             }
         }
@@ -219,7 +220,7 @@ export function Home() {
         )
     }
 
-    const ClassCard = ({ cls, isOngoing }) => (
+    const ClassCard = ({ cls, isOngoing, lectures, setLectures }) => (
         <View
             style={[
                 styles.card,
@@ -257,6 +258,7 @@ export function Home() {
                         .toLocaleDateString('en-US', { weekday: 'short' })
                         .toLowerCase()}
                     setLectures={setClasses}
+                    lectures={lectures}
                 />
             </View>
 
