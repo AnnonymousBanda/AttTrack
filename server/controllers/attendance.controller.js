@@ -2,7 +2,7 @@ const { prisma } = require('../database')
 const { catchAsync, AppError } = require('../utils/error.util')
 
 const createAttendanceLog = catchAsync(async (req, res) => {
-    const { id : uid } = req.user
+    const { id: uid } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
     const prismaOperations = []
@@ -31,10 +31,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     prismaOperations.push(
         prisma.attendance_logs.create({
             data: {
-                user_id_course_code: {
-                    user_id: uid,
-                    course_code: course_code,
-                },
+                user_id: uid,
+                course_code: course_code,
                 lecture_date: lecture_date,
                 start_time: start_time,
                 end_time: end_time,
