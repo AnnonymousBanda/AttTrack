@@ -10,8 +10,9 @@ import { useAuth } from '../context/auth.context'
 // import { modifyAttendance } from '@/firebase/api'
 // import { useAuth } from '@/context'
 
-export function AttendanceButton({ lecture, day, setLectures }) {
+export function AttendanceButton({ lecture, day, lectures, setLectures }) {
     const [status, setStatus] = useState(lecture.status)
+    const [loading, setLoading] = useState(false)
     const { user } = useAuth()
 
     const formatToTimeString = (timeStr) => {
@@ -23,7 +24,7 @@ export function AttendanceButton({ lecture, day, setLectures }) {
         const mm = minutes.padStart(2, '0')
         const ss = '00' // Seconds are usually required by databases
 
-        return `${hh}:${mm}:${ss}` // Results in "09:00:00"
+        return `${hh}:${mm}:${ss}.000+05:30` // Results in "09:00:00"
     }
 
     useEffect(() => {
@@ -32,7 +33,18 @@ export function AttendanceButton({ lecture, day, setLectures }) {
 
     const handleClick = async (newStatus) => {
         try {
-            Alert.alert(String(lecture.from))
+            const formattedLecture = {
+                course_code: lecture.courseCode,
+                lecture_date: lecture.lecture_date,
+                start_time: `${
+                    lecture.lecture_date.split('T')[0]
+                } ${formatToTimeString(lecture.from)}`,
+                end_time: `${
+                    lecture.lecture_date.split('T')[0]
+                } ${formatToTimeString(lecture.to)}`,
+                status: newStatus,
+            }
+
             const API_URL = process.env.EXPO_PUBLIC_API_URL
             const response = await fetch(`${API_URL}/api/attendance/log`, {
                 method: 'POST',
@@ -40,26 +52,26 @@ export function AttendanceButton({ lecture, day, setLectures }) {
                     'Content-Type': 'application/json',
                     'x-user-id': user.id,
                 },
-                body: JSON.stringify({
-                    course_code: lecture.courseCode,
-                    lecture_date: lecture.lecture_date,
-                    start_time: formatToTimeString(lecture.from),
-                    end_time: formatToTimeString(lecture.to),
-                    status: newStatus,
-                }),
+                body: JSON.stringify({ ...formattedLecture }),
             })
+
+            const result = await response.json()
+
+            console.log('Attendance update response:', result)
             if (!response.ok) {
                 throw new Error('Failed to update attendance status')
             }
 
-            Alert.alert(response.status)
+            setStatus(newStatus)
         } catch (error) {
-            // Handle error appropriately
+            Alert.alert('Error', error.message)
+        } finally {
+            setLoading(false)
         }
     }
 
     return (
-        <View style={styles.actionRow}>
+        <View style={styles.actionRow} disabled={loading}>
             <TouchableOpacity
                 style={[
                     styles.actionBtn,
@@ -67,7 +79,7 @@ export function AttendanceButton({ lecture, day, setLectures }) {
                     status === 'present' && styles.disabled,
                 ]}
                 onPress={() => handleClick('present')}
-                disabled={status === 'present'}
+                disabled={status === 'present' || loading}
             >
                 <Ionicons name="hand-right-outline" size={20} color="black" />
             </TouchableOpacity>
@@ -79,7 +91,7 @@ export function AttendanceButton({ lecture, day, setLectures }) {
                     status === 'absent' && styles.disabled,
                 ]}
                 onPress={() => handleClick('absent')}
-                disabled={status === 'absent'}
+                disabled={status === 'absent' || loading}
             >
                 <Feather name="x-circle" size={20} color="black" />
             </TouchableOpacity>
@@ -91,7 +103,7 @@ export function AttendanceButton({ lecture, day, setLectures }) {
                     status === 'medical' && styles.disabled,
                 ]}
                 onPress={() => handleClick('medical')}
-                disabled={status === 'medical'}
+                disabled={status === 'medical' || loading}
             >
                 <MaterialCommunityIcons
                     name="emoticon-sick-outline"
