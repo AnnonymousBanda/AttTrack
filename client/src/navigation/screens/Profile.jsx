@@ -303,7 +303,12 @@ export function Profile() {
                             <Text style={styles.userName}>
                                 {user?.first_name} {user?.last_name}
                             </Text>
-                            <Text style={styles.userDetail}>
+                            <Text
+                                style={[
+                                    styles.userDetail,
+                                    { textTransform: 'uppercase' },
+                                ]}
+                            >
                                 {user?.roll_number}
                             </Text>
                             <Text style={styles.userDetail}>{user?.email}</Text>
