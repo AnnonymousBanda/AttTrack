@@ -31,7 +31,7 @@ import {
     Feather,
 } from '@expo/vector-icons'
 import { useAuth } from '../../context/auth.context'
-import { profilepic2 as ProfilePic } from '../../assets/index'
+import { profilePic2 as ProfilePic } from '../../assets/index'
 import { navigate } from '../rootnavigation'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -43,6 +43,7 @@ export function Profile() {
 
     const [loading, setLoading] = useState(false)
     const [courses, setCourses] = useState([])
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
 
     const [tempSemester, setTempSemester] = useState(user?.semester)
 
@@ -70,7 +71,11 @@ export function Profile() {
     }, [isModalVisible, modalType])
 
     const handleLogout = () => {
-        logout()
+        setIsLoggingOut(true)
+        setTimeout(() => {
+            logout()
+            setIsLoggingOut(false)
+        }, 1000)
     }
 
     const openModal = (type, data = null) => {
@@ -291,12 +296,11 @@ export function Profile() {
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     <View style={styles.profileSection}>
                         <Image
-                            source={{
-                                uri:
-                                    user?.image_url === ''
-                                        ? ProfilePic
-                                        : user?.image_url,
-                            }}
+                            source={
+                                user?.profile_picture
+                                    ? { uri: user.profile_picture }
+                                    : ProfilePic
+                            }
                             style={styles.avatar}
                         />
                         <View style={styles.userInfo}>
@@ -479,21 +483,25 @@ export function Profile() {
                             <TouchableOpacity
                                 style={styles.logoutBtn}
                                 onPress={handleLogout}
-                                disabled={loading}
+                                disabled={isLoggingOut} // Also disable if courses are loading
                             >
-                                <MaterialIcons
-                                    name="logout"
-                                    size={24}
-                                    color="#7f1d1d"
-                                />
-                                <Text
-                                    style={[
-                                        styles.footerBtnText,
-                                        { color: '#7f1d1d' },
-                                    ]}
-                                >
-                                    Logout
-                                </Text>
+                                {isLoggingOut ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color="#7f1d1d"
+                                    />
+                                ) : (
+                                    <>
+                                        <MaterialIcons
+                                            name="logout"
+                                            size={24}
+                                            color="#fff"
+                                        />
+                                        <Text style={styles.footerBtnText}>
+                                            Logout
+                                        </Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
