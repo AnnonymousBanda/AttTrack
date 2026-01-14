@@ -8,18 +8,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "atttrack",
-    
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.atttrack",
-      "icon": "./assets/logo-1024x1024.png", 
+      "icon": "./assets/logo-1024x1024.png",
       "splash": {
         "image": "./assets/logo-1024x1024.png",
         "resizeMode": "contain",
         "backgroundColor": "#ffffff"
       }
     },
-    
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo-1024x1024.png",
@@ -32,11 +30,9 @@
         "backgroundColor": "#ffffff"
       }
     },
-    
     "web": {
       "favicon": "./assets/favicon.ico"
     },
-    
     "plugins": [
       "expo-asset",
       [
@@ -44,9 +40,10 @@
         {
           "backgroundColor": "#ffffff",
           "image": "./assets/logo-1024x1024.png",
-          "imageWidth": 200 
+          "imageWidth": 200
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

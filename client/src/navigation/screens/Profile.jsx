@@ -30,29 +30,21 @@ import {
     FontAwesome5,
     Feather,
 } from '@expo/vector-icons'
+import { useAuth } from '../../context/auth.context'
+import { profilepic2 as ProfilePic } from '../../assets/index'
+import { navigate } from '../rootnavigation'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
-const DUMMY_USER = {
-    userID: 'user_123',
-    name: 'Ankit Bhagat',
-    roll: '2301CE03',
-    email: 'ankit_2301ce03@iitp.ac.in',
-    branch: 'Civil Engineering',
-    batch: '2023-2027',
-    semester: 6,
-    profilePicture: 'https://avatar.iran.liara.run/public/boy',
-}
-
 export function Profile() {
+    const { user, setUser, logout } = useAuth()
     const navigation = useNavigation()
 
     const [loading, setLoading] = useState(false)
-    const [user, setUser] = useState(DUMMY_USER)
     const [courses, setCourses] = useState([])
 
-    const [tempSemester, setTempSemester] = useState(user.semester)
+    const [tempSemester, setTempSemester] = useState(user?.semester)
 
     // Modal & Animation States
     const [isModalVisible, setIsModalVisible] = useState(false)
@@ -78,16 +70,7 @@ export function Profile() {
     }, [isModalVisible, modalType])
 
     const handleLogout = () => {
-        Alert.alert('Confirm Logout', 'Are you sure you want to logout?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Logout',
-                style: 'destructive',
-                onPress: () => {
-                    Alert.alert('Logged Out', 'You have been logged out.')
-                },
-            },
-        ])
+        logout()
     }
 
     const openModal = (type, data = null) => {
@@ -95,7 +78,7 @@ export function Profile() {
         if (type === 'attendance') {
             setSelectedCourse({ ...data })
         } else {
-            setTempSemester(user.semester)
+            setTempSemester(user?.semester)
         }
 
         setIsModalVisible(true)
@@ -131,14 +114,20 @@ export function Profile() {
             setLoading(true)
             try {
                 const API_URL = process.env.EXPO_PUBLIC_API_URL
-                const res = await fetch(`${API_URL}/api/attendance/report`)
+                const res = await fetch(`${API_URL}/api/attendance/report`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': user?.id,
+                    },
+                })
                 const result = await res.json()
                 if (res.ok) {
                     const data = result.data || []
                     const filteredCourses = data.filter(
                         (item) =>
                             Number(item.courses.semester) ===
-                            Number(user.semester)
+                            Number(user?.semester)
                     )
                     const coursesList = filteredCourses.map((course) => ({
                         courseCode: course.courses.course_code,
@@ -156,7 +145,7 @@ export function Profile() {
             }
         }
         fetchCourses()
-    }, [user.semester])
+    }, [user?.semester])
 
     const handleUpdateSemester = async () => {
         setLoading(true)
@@ -164,16 +153,21 @@ export function Profile() {
             const API_URL = process.env.EXPO_PUBLIC_API_URL
             const res = await fetch(`${API_URL}/api/user/semester`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id,
+                },
                 body: JSON.stringify({ new_semester: tempSemester }),
             })
+
+            console.log('Update Semester Response Status:', res.ok)
             if (res.ok) {
                 setUser((prev) => ({ ...prev, semester: tempSemester }))
                 closeModal()
                 Alert.alert('Success', 'Semester updated')
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to update semester')
+            Alert.alert('Error', error.message)
         } finally {
             setLoading(false)
         }
@@ -186,7 +180,10 @@ export function Profile() {
             const API_URL = process.env.EXPO_PUBLIC_API_URL
             const res = await fetch(`${API_URL}/api/attendance/adjust`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id,
+                },
                 body: JSON.stringify({
                     course_code: selectedCourse.courseCode,
                     present_total: selectedCourse.present,
@@ -227,7 +224,10 @@ export function Profile() {
                             `${API_URL}/api/user/course/unenroll`,
                             {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'x-user-id': user?.id,
+                                },
                                 body: JSON.stringify({
                                     course_code: courseCode,
                                 }),
@@ -291,13 +291,22 @@ export function Profile() {
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     <View style={styles.profileSection}>
                         <Image
-                            source={{ uri: user.profilePicture }}
+                            source={{
+                                uri:
+                                    user?.image_url === ''
+                                        ? ProfilePic
+                                        : user?.image_url,
+                            }}
                             style={styles.avatar}
                         />
                         <View style={styles.userInfo}>
-                            <Text style={styles.userName}>{user.name}</Text>
-                            <Text style={styles.userDetail}>{user.roll}</Text>
-                            <Text style={styles.userDetail}>{user.email}</Text>
+                            <Text style={styles.userName}>
+                                {user?.first_name} {user?.last_name}
+                            </Text>
+                            <Text style={styles.userDetail}>
+                                {user?.roll_number}
+                            </Text>
+                            <Text style={styles.userDetail}>{user?.email}</Text>
                         </View>
                     </View>
 
@@ -311,7 +320,7 @@ export function Profile() {
                             <View style={styles.infoTextContainer}>
                                 <Text style={styles.infoLabel}>Branch</Text>
                                 <Text style={styles.infoValue}>
-                                    {user.branch}
+                                    {user?.branch}
                                 </Text>
                             </View>
                         </View>
@@ -321,7 +330,7 @@ export function Profile() {
                             <View style={styles.infoTextContainer}>
                                 <Text style={styles.infoLabel}>Batch</Text>
                                 <Text style={styles.infoValue}>
-                                    {user.batch}
+                                    {user?.batch}
                                 </Text>
                             </View>
                         </View>
@@ -331,7 +340,7 @@ export function Profile() {
                             <View style={styles.infoTextContainer}>
                                 <Text style={styles.infoLabel}>Semester</Text>
                                 <Text style={styles.infoValue}>
-                                    {user.semester}
+                                    {user?.semester}
                                 </Text>
                             </View>
                             <TouchableOpacity
@@ -620,7 +629,9 @@ export function Profile() {
                                                         styles.modalSaveButtonText
                                                     }
                                                 >
-                                                    {loading ? 'Saving...' : 'Save Changes'}
+                                                    {loading
+                                                        ? 'Saving...'
+                                                        : 'Save Changes'}
                                                 </Text>
                                             </TouchableOpacity>
                                         </>
@@ -729,7 +740,9 @@ export function Profile() {
                                                         styles.modalSaveButtonText,
                                                     ]}
                                                 >
-                                                    {loading ? 'Updating...' : 'Update Semester'}
+                                                    {loading
+                                                        ? 'Updating...'
+                                                        : 'Update Semester'}
                                                 </Text>
                                             </TouchableOpacity>
                                         </>

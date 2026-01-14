@@ -12,19 +12,43 @@ import {
     Easing,
     Pressable,
     Keyboard,
+    ActivityIndicator,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'
 import { BRANCHES } from '../../utils/branches'
 import { KeyboardAvoidingView } from 'react-native'
+import { useAuth } from '../../context'
+import * as SecureStore from 'expo-secure-store'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
-const Register = () => {
+const Register = ({ route }) => {
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [selectedBranch, setSelectedBranch] = useState('SELECT BRANCH')
     const [semester, setSemester] = useState(1)
+    const [loading, setLoading] = useState(false)
+
+    const { setUser } = useAuth()
+
+    const { oid, displayName, mail, jobTitle } = route.params
+    const rollNumber = mail.split('_')[1]?.split('@')[0]
+
+    const batchYear = parseInt(rollNumber.substring(0, 2)) + 2000
+
+    const yearSemMap = {
+        1: '1st',
+        2: '1st',
+        3: '2nd',
+        4: '2nd',
+        5: '3rd',
+        6: '3rd',
+        7: '4th',
+        8: '4th',
+        9: '5th',
+        10: '5th',
+    }
 
     const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
 
@@ -54,6 +78,49 @@ const Register = () => {
         outputRange: [1, 0],
     })
 
+    const handleRegister = async () => {
+        try {
+            setLoading(true)
+            const API_URL = process.env.EXPO_PUBLIC_API_URL
+
+            const response = await fetch(`${API_URL}/api/user/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    oid: oid,
+                    email: mail,
+                    first_name: displayName.split(' ')[0],
+                    last_name:
+                        displayName.split(' ')?.slice(1)?.join(' ') || '',
+                    branch: selectedBranch,
+                    batch: String(batchYear),
+                    image_url: '',
+                    roll_number: rollNumber,
+                    semester: parseInt(semester),
+                }),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Registration failed')
+            }
+
+            const user = result.data.user
+            await SecureStore.setItemAsync('uid', String(user.id))
+
+            setUser(user)
+            console.log('Success:', result)
+        } catch (error) {
+            console.error('Registration Error:', error.message)
+            alert(error.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -74,7 +141,7 @@ const Register = () => {
                                     style={[styles.input, styles.disabledInput]}
                                 >
                                     <Text style={styles.inputText}>
-                                        John Doe
+                                        {displayName}
                                     </Text>
                                 </View>
                             </View>
@@ -88,18 +155,57 @@ const Register = () => {
                                         style={styles.inputText}
                                         numberOfLines={1}
                                     >
-                                        john_01@inst.ac.in
+                                        {mail}
                                     </Text>
                                 </View>
                             </View>
 
                             <View style={styles.fieldGroup}>
-                                <Text style={styles.h2}>Roll Number</Text>
+                                <Text
+                                    style={[
+                                        styles.h2,
+                                        {
+                                            textTransform: 'uppercase',
+                                        },
+                                    ]}
+                                >
+                                    Roll Number
+                                </Text>
+                                <View
+                                    style={[styles.input, styles.disabledInput]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.inputText,
+                                            {
+                                                textTransform: 'uppercase',
+                                            },
+                                        ]}
+                                    >
+                                        {rollNumber}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* show batch and year */}
+                            <View style={styles.fieldGroup}>
+                                <Text style={styles.h2}>Batch</Text>
                                 <View
                                     style={[styles.input, styles.disabledInput]}
                                 >
                                     <Text style={styles.inputText}>
-                                        2401001
+                                        {`${batchYear} - ${batchYear + 4}`}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.fieldGroup}>
+                                <Text style={styles.h2}>Year</Text>
+                                <View
+                                    style={[styles.input, styles.disabledInput]}
+                                >
+                                    <Text style={styles.inputText}>
+                                        {yearSemMap[semester]}
                                     </Text>
                                 </View>
                             </View>
@@ -141,7 +247,7 @@ const Register = () => {
                                             styles.pickerScrollContent
                                         }
                                     >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                                        {Object.keys(yearSemMap).map((num) => (
                                             <TouchableOpacity
                                                 key={num}
                                                 onPress={() => setSemester(num)}
@@ -166,16 +272,25 @@ const Register = () => {
                                 </View>
                             </View>
 
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity
-                                    style={styles.submitButton}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.buttonText}>
-                                        Sign Up
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={handleRegister}
+                                disabled={loading}
+                                style={[
+                                    styles.submitButton,
+                                    loading && { opacity: 0.5 },
+                                ]}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#ffffff" />
+                                ) : (
+                                    <View style={styles.buttonContent}>
+                                        <Text style={styles.buttonText}>
+                                            Sign Up
+                                        </Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
                         </View>
                     </Pressable>
                 </ScrollView>
@@ -264,6 +379,28 @@ const Register = () => {
 }
 
 const styles = StyleSheet.create({
+    submitButton: {
+        backgroundColor: '#29303d',
+        paddingVertical: 18,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        minHeight: 60,
+    },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    opacity50: {
+        opacity: 0.5,
+    },
     container: {
         flex: 1,
         backgroundColor: '#ffffff',

@@ -1,8 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { HeaderButton, Text } from '@react-navigation/elements'
 import { createStaticNavigation } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { Image, TouchableOpacity } from 'react-native'
+import React from 'react'
+
+import { useAuth } from '../context/index'
 
 import {
     Home,
@@ -13,6 +15,7 @@ import {
     Login,
     Register,
 } from './screens'
+
 import {
     Home as HomeIcon,
     Lectures as LecturesIcon,
@@ -35,7 +38,6 @@ const HomeTabs = createBottomTabNavigator({
                 />
             </TouchableOpacity>
         ),
-
         headerTintColor: '#29303d',
         tabBarActiveTintColor: '#29303d',
         tabBarInactiveTintColor: '#888',
@@ -58,10 +60,7 @@ const HomeTabs = createBottomTabNavigator({
                     <Image
                         source={HomeIcon}
                         tintColor={color}
-                        style={{
-                            width: size,
-                            height: size,
-                        }}
+                        style={{ width: size, height: size }}
                     />
                 ),
             },
@@ -73,10 +72,7 @@ const HomeTabs = createBottomTabNavigator({
                     <Image
                         source={LecturesIcon}
                         tintColor={color}
-                        style={{
-                            width: size,
-                            height: size,
-                        }}
+                        style={{ width: size, height: size }}
                     />
                 ),
             },
@@ -88,33 +84,29 @@ const HomeTabs = createBottomTabNavigator({
                     <Image
                         source={StatsIcon}
                         tintColor={color}
-                        style={{
-                            width: size,
-                            height: size,
-                        }}
+                        style={{ width: size, height: size }}
                     />
                 ),
             },
         },
-        // Profile: {
-        //   screen: Profile,
-        //   options: {
-        //     tabBarIcon: ({ color, size }) => (
-        //       <Image
-        //         source={bell}
-        //         tintColor={color}
-        //         style={{
-        //           width: size,
-        //           height: size,
-        //         }}
-        //       />
-        //     ),
-        //   },
-        // },
     },
 })
 
-const RootStack = createNativeStackNavigator({
+const AuthStack = createNativeStackNavigator({
+    screens: {
+        Login: {
+            screen: Login,
+            options: { headerShown: false },
+        },
+
+        Register: {
+            screen: Register,
+            options: { headerShown: false },
+        },
+    },
+})
+
+const MainStack = createNativeStackNavigator({
     screens: {
         HomeTabs: {
             screen: HomeTabs,
@@ -131,32 +123,37 @@ const RootStack = createNativeStackNavigator({
             },
             linking: {
                 path: ':user(@[a-zA-Z0-9-_]+)',
-                parse: {
-                    user: (value) => value.replace(/^@/, ''),
-                },
-                stringify: {
-                    user: (value) => `@${value}`,
-                },
+                parse: { user: (value) => value.replace(/^@/, '') },
+                stringify: { user: (value) => `@${value}` },
             },
-        },
-        NotFound: {
-            screen: NotFound,
-            options: {
-                title: '404',
-            },
-            linking: {
-                path: '*',
-            },
-        },
-        Login: {
-            screen: Login,
-            options: { headerShown: false },
-        },
-        Register: {
-            screen: Register,
-            options: { headerShown: false },
         },
     },
 })
 
-export const Navigation = createStaticNavigation(RootStack)
+const RootStack = createNativeStackNavigator({
+    screens: {
+        AuthStack: {
+            screen: AuthStack,
+            if: () => !useAuth().isAuthenticated(),
+            options: { headerShown: false },
+        },
+
+        MainStack: {
+            screen: MainStack,
+            if: () => useAuth().isAuthenticated(),
+            options: { headerShown: false },
+        },
+
+        NotFound: {
+            screen: NotFound,
+            options: { title: '404' },
+            linking: { path: '*' },
+        },
+    },
+})
+
+const Nav = createStaticNavigation(RootStack)
+
+export const Navigation = React.forwardRef((props, ref) => {
+    return <Nav {...props} ref={ref} />
+})
