@@ -104,14 +104,14 @@ const registerUser = catchAsync(async (req, res) => {
     email = email.toLowerCase()
     roll_number = roll_number.toLowerCase()
 
-    if (!BRANCHES.split('_').some((b) => b === branch))
+    const VALID_BRANCHES = BRANCHES.split('_')
+    if (!VALID_BRANCHES.includes(branch))
         throw new AppError('Invalid branch provided', 400)
 
     if (!email.includes(roll_number))
         throw new AppError('Roll number does not match with email', 400)
 
     let user = null
-
     await prisma.$transaction(async (tx) => {
         user = await tx.users.create({
             data: {
@@ -140,15 +140,15 @@ const registerUser = catchAsync(async (req, res) => {
                 400
             )
 
-        let data = []
-        for (const course of courses)
-            data.push({
+        let data = courses.map((c) => ({
                 user_id: user.id,
-                course_code: course.course_code,
-            })
+                course_code: c.course_code,
+                total_lectures: c.course_code.endsWith('L') ? 10 : 42,
+            }))
 
         await tx.course_attendance.createMany({
             data: data,
+            skipDuplicates: true,
         })
     })
 
@@ -189,7 +189,7 @@ const modifySemester = catchAsync(async (req, res) => {
     const { new_semester } = req.body
 
     if (new_semester === semester)
-        throw new AppError('Semester is already set to the provided value', 400)
+        throw new AppError('Semester Updated Successfully', 200)
 
     const user = await prisma.users.findUnique({
         where: {
@@ -275,17 +275,21 @@ const resetSemester = catchAsync(async (req, res) => {
         })
 
         if (courses.length === 0)
-            throw new AppError(
-                'No courses found for the given branch and semester',
-                400
-            )
+        {
+            await tx.course_attendance.deleteMany({
+                where: {
+                    user_id: uid,
+                    course_code: { in: courses.map((c) => c.course_code) },
+                },
+            })
 
-        await tx.course_attendance.deleteMany({
-            where: {
-                user_id: uid,
-                course_code: { in: courses.map((c) => c.course_code) },
-            },
-        })
+            await tx.attendance_logs.deleteMany({
+                where: {
+                    user_id: uid,
+                    course_code: { in: courses.map((c) => c.course_code) },
+                },
+            })
+        }
 
         const data = courses.map((c) => ({
             user_id: uid,
@@ -296,12 +300,6 @@ const resetSemester = catchAsync(async (req, res) => {
             data: data,
         })
 
-        await tx.attendance_logs.deleteMany({
-            where: {
-                user_id: uid,
-                course_code: course_code,
-            },
-        })
     })
 
     res.status(200).json({
