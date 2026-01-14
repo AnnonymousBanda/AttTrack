@@ -8,44 +8,55 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
 
     let combinedLectures = []
 
-    for (const sheetLecture of SheetLectures) {
-        const matchingDBLecture = DBLectures.find(
-            (dbL) =>
-                dbL.courseCode === sheetLecture.courseCode &&
-                dbL.from === sheetLecture.from &&
-                dbL.to === sheetLecture.to
-        )
+    for (const dblec of DBLectures) {
+        const startTimeStr = dblec.start_time
+        const endTimeStr = dblec.end_time
+        const course_code = dblec.course_code
 
-        if (matchingDBLecture) {
-            if (matchingDBLecture.status !== 'cancelled') {
-                combinedLectures.push({
-                    ...sheetLecture,
-                    status: matchingDBLecture.status,
-                })
-            }
-        } else {
-            combinedLectures.push({ ...sheetLecture })
-        }
-    }
+        const sheetlec = SheetLectures.find((slec) => {
+            return (
+                slec.from === startTimeStr &&
+                slec.to === endTimeStr &&
+                slec.courseCode === course_code
+            )
+        })
 
-    for (const dbL of DBLectures) {
-        const existsInSheets = SheetLectures.some(
-            (sL) =>
-                sL.courseCode === dbL.courseCode &&
-                sL.from === dbL.start_time &&
-                sL.to === dbL.end_time
-        )
-
-        if (!existsInSheets && dbL.status !== 'cancelled') {
+        if (sheetlec && dblec.status !== 'cancelled') {
             combinedLectures.push({
-                courseCode: dbL.courseCode,
-                courseName: dbL.courseName,
-                from: dbL.from,
-                to: dbL.to,
-                status: dbL.status,
+                ...dblec,
+            })
+        } else if (!sheetlec && dblec.status !== 'cancelled') {
+            combinedLectures.push({
+                ...dblec,
+            })
+        } else if (dblec.status !== 'cancelled') {
+            combinedLectures.push({
+                ...dblec,
             })
         }
     }
+
+    for (const slec of SheetLectures) {
+        const existsInDB = DBLectures.find((item) => {
+            return (
+                item.from === slec.from &&
+                item.to === slec.to &&
+                item.course_code === slec.course_code
+            )
+        })
+
+        if (!existsInDB) {
+            combinedLectures.push({ ...slec })
+        }
+    }
+
+    await getCourses(req, res, next)
+    const userCourses = req.courses || []
+    console.log(combinedLectures)
+
+    combinedLectures = combinedLectures.filter((lecture) => {
+        return userCourses.some((course => course.course_code === lecture.courseCode))
+    })
 
     combinedLectures.sort((a, b) => {
         const padTime = (timeStr) => timeStr.padStart(5, '0')
@@ -57,6 +68,17 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
         status: 200,
         data: combinedLectures,
     })
+})
+
+const getCourses = catchAsync(async (req, res, next) => {
+    const { id:uid, semester } = req.user
+    const courses = await prisma.course_attendance.findMany({
+        where: {
+            user_id: uid,
+        },
+    })
+
+    req.courses = courses
 })
 
 const addExtraClass = catchAsync(async (req, res) => {

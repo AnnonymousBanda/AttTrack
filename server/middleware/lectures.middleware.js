@@ -102,7 +102,16 @@ const getLectures = catchAsync(async (req, res, next) => {
     const timetable = extractTimetable(json)
     const lectures = timetable[day] || []
 
-    req['SheetLectures'] = mergeLectures(lectures)
+    const mergedLectures = mergeLectures(lectures)
+
+    const padTime = (str) => {
+        return str.length === 4 ? `0${str}` : str
+    }
+    req['SheetLectures'] = mergedLectures.map((lec) => ({
+        ...lec,
+        from: padTime(lec.from),
+        to: padTime(lec.to),
+    }))
 })
 
 function extractTimetable(json) {
