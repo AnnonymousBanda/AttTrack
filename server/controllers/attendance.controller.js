@@ -2,7 +2,7 @@ const { prisma } = require('../database')
 const { catchAsync, AppError } = require('../utils/error.util')
 
 const createAttendanceLog = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id: uid, semester } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
     
     if(start_time >= end_time)
@@ -65,6 +65,13 @@ const createAttendanceLog = catchAsync(async (req, res) => {
         where: {
             user_id: uid,
             lecture_date: lecture_date,
+            semester: semester,
+        },
+        orderBy: {
+            start_time: 'asc',
+        },
+        include: {
+            courses: true,
         },
     })
 
@@ -150,11 +157,6 @@ const getAttendanceReport = catchAsync(async (req, res) => {
         },
         include: {
             courses: true,
-            attendance_logs: {
-                orderBy: {
-                    lecture_date: 'desc',
-                },
-            },
         },
     })
 
@@ -169,7 +171,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
 })
 
 const updateAttendanceStatus = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id: uid, semester } = req.user
     const { log_id, status } = req.body
 
     const log = await prisma.attendance_logs.findUnique({
@@ -228,9 +230,23 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
         }
     })
 
+    const lectures = await prisma.attendance_logs.findMany({
+        where: {
+            user_id: uid,
+            lecture_date: log.lecture_date,
+            semester: semester,
+        },
+        orderBy: {
+            start_time: 'asc',
+        },
+        include: {
+            courses: true,
+        },
+    })
     res.status(200).json({
         message: 'Attendance status updated successfully!',
         status: 200,
+        data: lectures,
     })
 })
 
