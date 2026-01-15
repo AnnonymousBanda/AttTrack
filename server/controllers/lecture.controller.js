@@ -52,7 +52,6 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
 
     await getCourses(req, res, next)
     const userCourses = req.courses || []
-    console.log(combinedLectures)
 
     combinedLectures = combinedLectures.filter((lecture) => {
         return userCourses.some((course => course.course_code === lecture.courseCode))
