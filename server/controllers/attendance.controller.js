@@ -4,6 +4,9 @@ const { catchAsync, AppError } = require('../utils/error.util')
 const createAttendanceLog = catchAsync(async (req, res) => {
     const { id: uid } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
+    
+    if(start_time >= end_time)
+        throw new AppError('Invalid class time', 400);
 
     const conflictsLog = await prisma.attendance_logs.findFirst({
         where: {
@@ -19,9 +22,6 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     });
     if (conflictsLog)
         throw new AppError('Time is overlapping with an existing lecture', 400);
-
-    if(start_time >= end_time)
-        throw new AppError('Invalid class time', 400);
 
     const prismaOperations = []
 
