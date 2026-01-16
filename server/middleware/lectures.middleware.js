@@ -16,13 +16,12 @@ const getDBLectures = catchAsync(async (req, res, next) => {
     const { uid, semester } = req.user
 
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
-    const dateString = dateInput.toISOString().split('T')[0]
-    const searchDate = new Date(dateString)
+    const dateString = dateInput.toISOString()
 
     const lectures = await prisma.attendance_logs.findMany({
         where: {
             user_id: uid,
-            lecture_date: searchDate,
+            lecture_date: dateString,
             courses: {
                 semester: semester,
             },
@@ -40,9 +39,11 @@ const getDBLectures = catchAsync(async (req, res, next) => {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
+            timeZone: 'UTC',
         })
 
     const formattedLectures = lectures.map((lecture) => ({
+        id: lecture.id,
         courseCode: lecture.courses.course_code,
         courseName: lecture.courses.course_name,
         from: formatTime(lecture.start_time),
@@ -108,6 +109,7 @@ const getLectures = catchAsync(async (req, res, next) => {
         return str.length === 4 ? `0${str}` : str
     }
     req['SheetLectures'] = mergedLectures.map((lec) => ({
+        id: null,
         ...lec,
         from: padTime(lec.from),
         to: padTime(lec.to),
