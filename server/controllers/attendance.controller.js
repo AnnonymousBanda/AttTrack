@@ -235,7 +235,9 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
         where: {
             user_id: uid,
             lecture_date: log.lecture_date,
-            semester: semester,
+            courses: {
+                semester: semester,
+            },
         },
         orderBy: {
             start_time: 'asc',

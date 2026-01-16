@@ -54,7 +54,9 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
     const userCourses = req.courses || []
 
     combinedLectures = combinedLectures.filter((lecture) => {
-        return userCourses.some((course => course.course_code === lecture.courseCode))
+        return userCourses.some(
+            (course) => course.course_code === lecture.courseCode
+        )
     })
 
     combinedLectures.sort((a, b) => {
@@ -70,7 +72,7 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
 })
 
 const getCourses = catchAsync(async (req, res, next) => {
-    const { id:uid, semester } = req.user
+    const { id: uid, semester } = req.user
     const courses = await prisma.course_attendance.findMany({
         where: {
             user_id: uid,
