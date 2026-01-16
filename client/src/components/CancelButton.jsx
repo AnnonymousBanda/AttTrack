@@ -1,45 +1,126 @@
 import { useState } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Modal, Alert, ActivityIndicator } from 'react-native'
+import {
+    StyleSheet,
+    View,
+    Text,
+    TouchableOpacity,
+    Modal,
+    Alert,
+    ActivityIndicator,
+} from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
-// import { modifyAttendance } from '@/firebase/api'
-// import { useAuth } from '@/context'
+import { useAuth } from '../context/auth.context'
 
-export function CancelButton({ lecture, day, setLectures }) {
+export function CancelButton({ lecture, lectures, setLectures }) {
     const [isDialog, setDialog] = useState(false)
     const [loading, setLoading] = useState(false)
-    // const { user } = useAuth()
+    const { user } = useAuth()
+
+    const id = lecture.id
+
+    const formatToTimeString = (timeStr) => {
+        if (!timeStr) return '00:00:00'
+        let [hours, minutes] = timeStr?.split(':')
+
+        const hh = hours.padStart(2, '0')
+        const mm = minutes.padStart(2, '0')
+        const ss = '00'
+
+        return `${hh}:${mm}:${ss}.000Z`
+    }
 
     const handleSubmit = async () => {
         setLoading(true)
-        try {
-            // const res = await modifyAttendance(
-            //     user.userID,
-            //     user.semester,
-            //     lecture.to,
-            //     lecture.from,
-            //     day,
-            //     lecture.courseCode,
-            //     'cancelled'
-            // )
 
-            // if (!res) throw new Error('Failed to cancel class')
-            // if (res.status !== 200) throw new Error(res.message)
+        if (id === null) {
+            try {
+                const formattedLecture = {
+                    course_code: lecture.courseCode,
+                    lecture_date: new Date(
+                        lecture?.lecture_date?.split('T')[0]
+                    ).toISOString(),
+                    start_time: `${
+                        lecture?.lecture_date?.split('T')[0]
+                    } ${formatToTimeString(lecture.from)}`,
+                    end_time: `${
+                        lecture?.lecture_date?.split('T')[0]
+                    } ${formatToTimeString(lecture.to)}`,
+                    status: 'cancelled',
+                }
 
-            // setLectures(res.data)
-            // setDialog(false)
-            // Alert.alert('Success', 'Class cancelled successfully')
-        } catch (error) {
-            // Handle error appropriately
-            
-        } finally {
-            setLoading(false)
+                const API_URL = process.env.EXPO_PUBLIC_API_URL
+                const response = await fetch(`${API_URL}/api/attendance/log`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': user?.id,
+                    },
+                    body: JSON.stringify({ ...formattedLecture }),
+                })
+
+                const result = await response.json()
+                if (result.status !== 201) {
+                    throw new Error(
+                        result.message || 'Failed to update attendance status'
+                    )
+                }
+
+                const latestLectures = lectures.filter((lec) => {
+                    return (
+                        lec.courseCode !== lecture.courseCode ||
+                        lec.from !== lecture.from ||
+                        lec.lecture_date !== lecture.lecture_date
+                    )
+                })
+
+                setLectures(latestLectures)
+            } catch (error) {
+                Alert.alert('Error', error.message)
+            } finally {
+                setLoading(false)
+            }
+        } else {
+            try {
+                const API_URL = process.env.EXPO_PUBLIC_API_URL
+                const response = await fetch(
+                    `${API_URL}/api/attendance/log/status`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-id': user?.id,
+                        },
+                        body: JSON.stringify({
+                            log_id: id,
+                            status: 'cancelled',
+                        }),
+                    }
+                )
+
+                const result = await response.json()
+                if (result.status !== 200) {
+                    throw new Error(
+                        result.message || 'Failed to update attendance status'
+                    )
+                }
+
+                const latestLectures = lectures.filter((lec) => {
+                    lec.id !== id
+                })
+
+                setLectures(latestLectures)
+            } catch (error) {
+                Alert.alert('Error', error.message)
+            } finally {
+                setLoading(false)
+            }
         }
     }
 
     return (
         <>
-            <TouchableOpacity 
-                style={styles.closeIconBtn} 
+            <TouchableOpacity
+                style={styles.closeIconBtn}
                 onPress={() => setDialog(true)}
             >
                 <MaterialIcons name="close" size={24} color="#6b7280" />
@@ -58,20 +139,27 @@ export function CancelButton({ lecture, day, setLectures }) {
                         </Text>
 
                         <View style={styles.buttonRow}>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={() => setDialog(false)}
                                 style={[styles.modalBtn, styles.bgRed]}
                             >
                                 <Text style={styles.btnText}>Cancel</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={handleSubmit}
                                 disabled={loading}
-                                style={[styles.modalBtn, styles.bgGreen, loading && styles.disabled]}
+                                style={[
+                                    styles.modalBtn,
+                                    styles.bgGreen,
+                                    loading && styles.disabled,
+                                ]}
                             >
                                 {loading ? (
-                                    <ActivityIndicator color="#000" size="small" />
+                                    <ActivityIndicator
+                                        color="#000"
+                                        size="small"
+                                    />
                                 ) : (
                                     <Text style={styles.btnText}>Confirm</Text>
                                 )}

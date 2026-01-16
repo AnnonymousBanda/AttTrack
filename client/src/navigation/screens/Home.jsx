@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     Alert,
     Dimensions,
+    StatusBar,
 } from 'react-native'
 import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { AttendanceButton, CancelButton, AddButton } from '../../components'
@@ -21,7 +22,7 @@ const getLectures = async (id) => {
         const API_URL = process.env.EXPO_PUBLIC_API_URL
 
         const response = await fetch(
-            `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
+            `${API_URL}/api/lectures?date=${date?.split('T')[0]}`,
             {
                 method: 'GET',
                 headers: {
@@ -42,6 +43,7 @@ const getLectures = async (id) => {
 
         const lectures = result.data.map((lec) => {
             return {
+                id: lec.id,
                 courseCode: lec.courseCode,
                 courseName: lec.courseName,
                 lecture_date: date,
@@ -152,11 +154,11 @@ export function Home() {
 
     const OngoingClasses = () => {
         const ongoingClasses = classes?.filter((cls) => {
-            const [from_hours, from_minutes] = cls.from.split(':').map(Number)
+            const [from_hours, from_minutes] = cls.from?.split(':').map(Number)
             const from = new Date()
             from.setHours(from_hours, from_minutes, 0, 0)
 
-            const [to_hours, to_minutes] = cls.to.split(':').map(Number)
+            const [to_hours, to_minutes] = cls.to?.split(':').map(Number)
             const to = new Date()
             to.setHours(to_hours, to_minutes, 0, 0)
             const now = new Date()
@@ -180,7 +182,7 @@ export function Home() {
 
     const UpcomingClasses = () => {
         const upcomingClasses = classes.filter((cls) => {
-            const [from_hours, from_minutes] = cls.from.split(':').map(Number)
+            const [from_hours, from_minutes] = cls.from?.split(':').map(Number)
             const from = new Date()
             from.setHours(from_hours, from_minutes, 0, 0)
             return from > new Date()
@@ -202,7 +204,7 @@ export function Home() {
 
     const PastClasses = () => {
         const pastClasses = classes?.filter((cls) => {
-            const [to_hours, to_minutes] = cls.to.split(':').map(Number)
+            const [to_hours, to_minutes] = cls.to?.split(':').map(Number)
             const to = new Date()
             to.setHours(to_hours, to_minutes, 0, 0)
             return to < new Date()
@@ -220,7 +222,7 @@ export function Home() {
         )
     }
 
-    const ClassCard = ({ cls, isOngoing, lectures, setLectures }) => (
+    const ClassCard = ({ cls, isOngoing }) => (
         <View
             style={[
                 styles.card,
@@ -254,19 +256,14 @@ export function Home() {
             >
                 <AttendanceButton
                     lecture={cls}
-                    day={new Date()
-                        .toLocaleDateString('en-US', { weekday: 'short' })
-                        .toLowerCase()}
+                    lectures={classes}
                     setLectures={setClasses}
-                    lectures={lectures}
                 />
             </View>
 
             <CancelButton
                 lecture={cls}
-                day={new Date()
-                    .toLocaleDateString('en-US', { weekday: 'short' })
-                    .toLowerCase()}
+                lectures={classes}
                 setLectures={setClasses}
             />
         </View>
