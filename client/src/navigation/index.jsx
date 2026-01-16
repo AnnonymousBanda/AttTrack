@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createStaticNavigation } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { Image, TouchableOpacity } from 'react-native'
+import { Image, StatusBar, TouchableOpacity } from 'react-native'
 import React from 'react'
 
 import { useAuth } from '../context/index'
@@ -155,5 +155,10 @@ const RootStack = createNativeStackNavigator({
 const Nav = createStaticNavigation(RootStack)
 
 export const Navigation = React.forwardRef((props, ref) => {
-    return <Nav {...props} ref={ref} />
+    return (
+        <>
+            <StatusBar barStyle="dark-content" />
+            <Nav {...props} ref={ref} />
+        </>
+    )
 })
