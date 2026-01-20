@@ -9,6 +9,7 @@ import {
 import { AttendanceButton, CancelButton } from '../../components'
 import { LecturesSkeleton } from '../../skeletons'
 import { useAuth } from '../../context/auth.context'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export function Lectures() {
     const { user } = useAuth()
@@ -70,7 +71,19 @@ export function Lectures() {
 
                     const result = await response.json()
 
-                    setLectures(result.data || [])
+                    const lectures = result.data.map((lec) => {
+                        return {
+                            id: lec.id,
+                            courseCode: lec.courseCode,
+                            courseName: lec.courseName,
+                            lecture_date: date,
+                            from: lec.from,
+                            to: lec.to,
+                            status: lec.status,
+                        }
+                    })
+
+                    setLectures(lectures || [])
                 } catch (error) {
                     throw new Error('Failed to fetch lectures')
                 } finally {
@@ -144,7 +157,7 @@ export function Lectures() {
             <View style={styles.card}>
                 <CancelButton
                     lecture={item}
-                    day={selectedDay.day}
+                    lectures={lectures}
                     setLectures={setLectures}
                 />
                 <Text style={styles.courseTitle}>
@@ -153,7 +166,7 @@ export function Lectures() {
 
                 <AttendanceButton
                     lecture={item}
-                    day={selectedDay.day}
+                    lectures={lectures}
                     setLectures={setLectures}
                 />
             </View>
@@ -173,8 +186,12 @@ export function Lectures() {
                         new String(item.courseCode + item.from + item.to)
                     }
                     renderItem={({ item }) => <LectureItem item={item} />}
-                    contentContainerStyle={styles.listContent}
+                    contentContainerStyle={[
+                        styles.listContent,
+                        lectures.length === 0 && { flexGrow: 1 },
+                    ]}
                     style={styles.list}
+                    ListEmptyComponent={<NoLecturesCard />}
                 />
             )}
         </View>
@@ -182,6 +199,33 @@ export function Lectures() {
 }
 
 const styles = StyleSheet.create({
+    emptyCard: {
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#e0e1e2',
+        borderRadius: 16,
+        padding: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        flex: 1,
+        height: '100%',
+    },
+    emptyEmoji: {
+        fontSize: 32,
+        marginBottom: 10,
+    },
+    emptyTextTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#101828',
+        marginBottom: 4,
+    },
+    emptyTextSubtitle: {
+        fontSize: 14,
+        color: '#667085',
+        textAlign: 'center',
+    },
     container: {
         flex: 1,
         backgroundColor: '#fff',
@@ -287,3 +331,13 @@ const styles = StyleSheet.create({
     bgYellow: { backgroundColor: '#ffce56' },
     disabled: { opacity: 0.3 },
 })
+
+const NoLecturesCard = () => (
+    <View style={styles.emptyCard}>
+        <MaterialCommunityIcons name="party-popper" size={50} color="#6F8DBD" />
+        <Text style={styles.emptyTextTitle}>No Lectures Today</Text>
+        <Text style={styles.emptyTextSubtitle}>
+            Enjoy your free time or {'\n'}catch up on some studies!
+        </Text>
+    </View>
+)
