@@ -240,6 +240,8 @@ export function Stats() {
     const [courseData, setCourseData] = useState([])
     const [loading, setLoading] = useState(true)
 
+    return <ComingSoon />
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -513,4 +515,45 @@ const styles = StyleSheet.create({
     skeletonContainer: {
         padding: 20,
     },
+    emptyCard: {
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#e0e1e2',
+        borderRadius: 16,
+        padding: 20,
+        margin: 10, // Added padding for better spacing
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        minHeight: 250,
+        flex: 1, // Ensures it has enough presence on the screen
+    },
+    emptyTextTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#101828',
+        marginBottom: 4,
+        marginTop: 12, // Space between icon and text
+    },
+    emptyTextSubtitle: {
+        fontSize: 14,
+        color: '#667085',
+        textAlign: 'center',
+        lineHeight: 20,
+    },
 })
+
+const ComingSoon = () => (
+    <View style={styles.emptyCard}>
+        <MaterialCommunityIcons
+            name="chart-timeline-variant"
+            size={50}
+            color="#6F8DBD"
+        />
+        <Text style={styles.emptyTextTitle}>Analytics Coming Soon</Text>
+        <Text style={styles.emptyTextSubtitle}>
+            We're building powerful insights to help{'\n'}you stay on top of
+            your attendance!
+        </Text>
+    </View>
+)
