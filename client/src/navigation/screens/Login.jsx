@@ -21,6 +21,7 @@ const LoginScreen = () => {
 
         const authData = await signInWithMicrosoft()
         await login({ ...authData })
+        setButtonClicked(false)
     }
 
     return (

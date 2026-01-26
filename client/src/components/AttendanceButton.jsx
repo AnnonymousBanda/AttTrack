@@ -102,6 +102,7 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
                 setStatus(newStatus)
             } catch (error) {
                 Alert.alert('Error', error.message)
+                console.error('Error details:', error)
             } finally {
                 setLoading(null)
             }
@@ -139,6 +140,7 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
                 setStatus(newStatus)
             } catch (error) {
                 Alert.alert('Error', error.message)
+                console.error('Error details:', error)
             } finally {
                 setLoading(null)
             }

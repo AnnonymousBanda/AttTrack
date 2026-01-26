@@ -69,6 +69,7 @@ const AuthProvider = ({ children }) => {
                 'Authentication Error',
                 'Failed to sign in with Microsoft. Please try again.'
             )
+            console.error('Microsoft Sign-in Error:', error)
             throw new Error('Microsoft Sign-in Error:', error)
         } finally {
             setIsLoading(false)
@@ -122,6 +123,7 @@ const AuthProvider = ({ children }) => {
             setUser(userData)
         } catch (error) {
             Alert.alert('Error', error.message)
+            console.error('Fetch User Error:', error)
         } finally {
             setIsLoading(false)
         }

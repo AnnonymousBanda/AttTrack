@@ -1,54 +1,72 @@
 {
-  "expo": {
-    "name": "AttTrack",
-    "slug": "AttTrack",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/logo-1024x1024.png",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "scheme": "atttrack",
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.atttrack",
-      "icon": "./assets/logo-1024x1024.png",
-      "splash": {
-        "image": "./assets/logo-1024x1024.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-1024x1024.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.atttrack",
-      "splash": {
-        "image": "./assets/logo-1024x1024.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon.ico"
-    },
-    "plugins": [
-      "expo-asset",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#ffffff",
-          "image": "./assets/logo-1024x1024.png",
-          "imageWidth": 200
+    "expo": {
+        "name": "AttTrack",
+        "slug": "AttTrack",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/logo-1024x1024.png",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": false,
+        "scheme": "atttrack-auth",
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.atttrack",
+            "icon": "./assets/logo-1024x1024.png",
+            "splash": {
+                "image": "./assets/logo-1024x1024.png",
+                "resizeMode": "contain",
+                "backgroundColor": "#ffffff"
+            }
+        },
+        "android": {
+            "package": "com.vinay610555.atttrack",
+            "versionCode": 1,
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/logo-1024x1024.png",
+                "backgroundColor": "#ffffff"
+            },
+            "splash": {
+                "image": "./assets/logo-1024x1024.png",
+                "resizeMode": "contain",
+                "backgroundColor": "#ffffff"
+            }
+        },
+        "web": {
+            "favicon": "./assets/favicon.ico"
+        },
+        "plugins": [
+            "expo-asset",
+            "expo-secure-store",
+            [
+                "expo-build-properties",
+                {
+                    "android": {
+                        "compileSdkVersion": 35,
+                        "targetSdkVersion": 35,
+                        "buildToolsVersion": "35.0.0"
+                    }
+                }
+            ],
+            [
+                "expo-splash-screen",
+                {
+                    "backgroundColor": "#ffffff",
+                    "image": "./assets/logo-1024x1024.png",
+                    "imageWidth": 200
+                }
+            ],
+            [
+                "react-native-app-auth",
+                {
+                    "appAuthRedirectScheme": "atttrack-auth"
+                }
+            ]
+        ],
+        "assetBundlePatterns": ["**/*"],
+        "extra": {
+            "eas": {
+                "projectId": "80c5387e-ac9b-4a79-8887-f04090709d71"
+            }
         }
-      ],
-      "expo-secure-store"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "b3712540-b0f9-48ed-8fa4-102b2fa2fa95"
-      }
     }
-  }
 }
