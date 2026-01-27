@@ -28,8 +28,9 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
 
     const handleClick = async (newStatus) => {
         setLoading(newStatus)
+        console.log()
 
-        if (id === null) {
+        if (!id) {
             try {
                 const formattedLecture = {
                     course_code: lecture.courseCode,
