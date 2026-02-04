@@ -48,6 +48,10 @@ const AuthProvider = ({ children }) => {
             if (result.status === 200) {
                 setUser(result.data.user)
             }
+
+            if (!res.ok) {
+                logout()
+            }
         } catch (error) {
             console.error('Get User Error:', error)
         }
@@ -69,7 +73,6 @@ const AuthProvider = ({ children }) => {
                 'Authentication Error',
                 'Failed to sign in with Microsoft. Please try again.'
             )
-            console.error('Microsoft Sign-in Error:', error)
             throw new Error('Microsoft Sign-in Error:', error)
         } finally {
             setIsLoading(false)
@@ -85,6 +88,7 @@ const AuthProvider = ({ children }) => {
             setUser(null)
             setUid(null)
         } catch (error) {
+            Alert.alert('Error', 'Failed to log out. Please try again.')
             console.error('Sign-out Error:', error)
         } finally {
             setIsLoading(false)
