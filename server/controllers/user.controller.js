@@ -291,6 +291,7 @@ const resetSemester = catchAsync(async (req, res) => {
             const data = courses.map((c) => ({
                 user_id: uid,
                 course_code: c.course_code,
+                total_classes: c.course_code.endsWith('L') ? 10 : 42,
             }))
 
             await tx.course_attendance.createMany({
