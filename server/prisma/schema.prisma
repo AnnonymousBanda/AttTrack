@@ -38,7 +38,7 @@ model attendance_logs {
   courses      courses @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
   users        users   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_user")
 
-  @@unique([user_id, course_code, start_time], map: "unique_log_entry")
+  @@unique([user_id, course_code, start_time,status], map: "unique_log_entry")
   @@index([course_code], map: "fk_logs_course")
   @@index([user_id, lecture_date], map: "idx_user_lecture_date")
 }

@@ -1,5 +1,6 @@
 const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
+const { createDateTime } = require('../utils/utils')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
     const DBLectures = req['DBLectures'] || []
@@ -110,6 +111,7 @@ const addExtraClass = catchAsync(async (req, res) => {
             end_time: {
                 gt: startDateTime,
             },
+            status: { not: 'cancelled' },
         },
         include: {
             courses: true,
@@ -146,14 +148,5 @@ const addExtraClass = catchAsync(async (req, res) => {
         },
     })
 })
-
-const createDateTime = (dateStr, timeStr) => {
-    const date = new Date(dateStr)
-    const [hours, minutes] = timeStr.split(':').map(Number)
-
-    const combined = new Date(date)
-    combined.setUTCHours(hours, minutes, 0, 0)
-    return combined
-}
 
 module.exports = { getTodaySchedule, addExtraClass }

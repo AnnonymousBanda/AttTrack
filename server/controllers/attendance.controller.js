@@ -1,21 +1,25 @@
 const { prisma } = require('../database')
 const { catchAsync, AppError } = require('../utils/error.util')
+const { createDateTime } = require('../utils/utils')
 
 const createAttendanceLog = catchAsync(async (req, res) => {
     const { id: uid, semester } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
-    if (start_time >= end_time) throw new AppError('Invalid class time', 400)
+    
+    const startDateTime = createDateTime(lecture_date, start_time)
+    const endDateTime = createDateTime(lecture_date, end_time)
+    if (startDateTime >= endDateTime) throw new AppError('Invalid class time', 400)
 
     const conflictsLog = await prisma.attendance_logs.findFirst({
         where: {
             user_id: uid,
-            lecture_date: lecture_date,
+            lecture_date: new Date(lecture_date),
             start_time: {
-                lt: end_time,
+                lt: endDateTime,
             },
             end_time: {
-                gt: start_time,
+                gt: startDateTime,
             },
         },
     })
@@ -50,9 +54,9 @@ const createAttendanceLog = catchAsync(async (req, res) => {
             data: {
                 user_id: uid,
                 course_code: course_code,
-                lecture_date: lecture_date,
-                start_time: start_time,
-                end_time: end_time,
+                lecture_date: new Date(lecture_date),
+                start_time: startDateTime,
+                end_time: endDateTime,
                 status: status,
             },
         })
@@ -60,26 +64,26 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
     await prisma.$transaction(prismaOperations)
 
-    const all_logs = await prisma.attendance_logs.findMany({
-        where: {
-            user_id: uid,
-            lecture_date: lecture_date,
-            courses: {
-                semester: semester,
-            },
-        },
-        orderBy: {
-            start_time: 'asc',
-        },
-        include: {
-            courses: true,
-        },
-    })
+    // const all_logs = await prisma.attendance_logs.findMany({
+    //     where: {
+    //         user_id: uid,
+    //         lecture_date: new Date(lecture_date),
+    //         courses: {
+    //             semester: semester,
+    //         },
+    //     },
+    //     orderBy: {
+    //         start_time: 'asc',
+    //     },
+    //     include: {
+    //         courses: true,
+    //     },
+    // })
 
     res.status(201).json({
         message: 'Daily attendance marked successfully!',
         status: 201,
-        data: all_logs,
+        // data: all_logs,
     })
 })
 
