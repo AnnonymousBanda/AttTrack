@@ -44,6 +44,7 @@ export function Profile() {
     const [loading, setLoading] = useState(false)
     const [courses, setCourses] = useState([])
     const [isLoggingOut, setIsLoggingOut] = useState(false)
+    const [isResettingSemester, setIsResettingSemester] = useState(false)
 
     const [tempSemester, setTempSemester] = useState(user?.semester)
 
@@ -114,46 +115,95 @@ export function Profile() {
         outputRange: [1, 0],
     })
 
-    useEffect(() => {
-        const fetchCourses = async () => {
-            setLoading(true)
-            try {
-                const API_URL = process.env.EXPO_PUBLIC_API_URL
-                const res = await fetch(`${API_URL}/api/attendance/report`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-user-id': user?.id,
-                    },
-                })
-                const result = await res.json()
-                if (res.ok) {
-                    const data = result.data || []
-                    const filteredCourses = data.filter(
-                        (item) =>
-                            Number(item.courses.semester) ===
-                            Number(user?.semester)
-                    )
+    const fetchCourses = async () => {
+        setLoading(true)
+        try {
+            const API_URL = process.env.EXPO_PUBLIC_API_URL
+            const res = await fetch(`${API_URL}/api/attendance/report`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id,
+                },
+            })
+            const result = await res.json()
+            if (res.ok) {
+                const data = result.data || []
+                const filteredCourses = data.filter(
+                    (item) =>
+                        Number(item.courses.semester) === Number(user?.semester)
+                )
 
-                    const coursesList = filteredCourses.map((course) => ({
-                        courseCode: course.courses.course_code,
-                        courseName: course.courses.course_name,
-                        present: course.present_total,
-                        absent: course.absent_total,
-                        medical: course.medical_total,
-                        totalClasses: course.total_classes,
-                    }))
+                const coursesList = filteredCourses.map((course) => ({
+                    courseCode: course.courses.course_code,
+                    courseName: course.courses.course_name,
+                    present: course.present_total,
+                    absent: course.absent_total,
+                    medical: course.medical_total,
+                    totalClasses: course.total_classes,
+                }))
 
-                    setCourses(coursesList)
-                }
-            } catch (error) {
-                Alert.alert('Error', 'Failed to fetch courses')
-            } finally {
-                setLoading(false)
+                setCourses(coursesList)
             }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to fetch courses')
+        } finally {
+            setLoading(false)
         }
+    }
+
+    useEffect(() => {
         fetchCourses()
     }, [user?.semester])
+
+    const handleResetSemester = () => {
+        Alert.alert(
+            'Reset semester data',
+            'This will reset all attendance data for your current semester. Continue?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setIsResettingSemester(true)
+                        try {
+                            const API_URL = process.env.EXPO_PUBLIC_API_URL
+                            const res = await fetch(
+                                `${API_URL}/api/user/semester/reset`,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'x-user-id': user?.id,
+                                    },
+                                }
+                            )
+                            const result = await res.json()
+                            console.log(result)
+                            if (res.ok) {
+                                await fetchCourses()
+                                Alert.alert('Success', 'Semester data reset.')
+                            } else {
+                                Alert.alert(
+                                    'Error',
+                                    result?.message ||
+                                        'Failed to reset semester data.'
+                                )
+                            }
+                        } catch (error) {
+                            Alert.alert(
+                                'Error',
+                                'Failed to reset semester data.'
+                            )
+                        } finally {
+                            setIsResettingSemester(false)
+                        }
+                    },
+                },
+            ]
+        )
+    }
 
     const handleUpdateSemester = async () => {
         setLoading(true)
@@ -474,6 +524,29 @@ export function Profile() {
                         </View>
 
                         <View style={styles.footer}>
+                            <TouchableOpacity
+                                style={styles.resetSemesterBtn}
+                                onPress={handleResetSemester}
+                                disabled={isResettingSemester}
+                            >
+                                {isResettingSemester ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color="#fff"
+                                    />
+                                ) : (
+                                    <>
+                                        <MaterialIcons
+                                            name="restart-alt"
+                                            size={24}
+                                            color="#fff"
+                                        />
+                                        <Text style={styles.footerBtnText}>
+                                            Reset semester data
+                                        </Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
                             <TouchableOpacity
                                 style={styles.bugReportBtn}
                                 onPress={() =>
@@ -1104,6 +1177,15 @@ const styles = StyleSheet.create({
     },
     logoutBtn: {
         backgroundColor: '#ff6384',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 14,
+        borderRadius: 8,
+        gap: 12,
+        justifyContent: 'center',
+    },
+    resetSemesterBtn: {
+        backgroundColor: '#3b82f6',
         flexDirection: 'row',
         alignItems: 'center',
         padding: 14,

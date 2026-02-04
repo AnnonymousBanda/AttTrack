@@ -141,10 +141,10 @@ const registerUser = catchAsync(async (req, res) => {
             )
 
         let data = courses.map((c) => ({
-                user_id: user.id,
-                course_code: c.course_code,
-                total_classes: c.course_code.endsWith('L') ? 10 : 42,
-            }))
+            user_id: user.id,
+            course_code: c.course_code,
+            total_classes: c.course_code.endsWith('L') ? 10 : 42,
+        }))
 
         await tx.course_attendance.createMany({
             data: data,
@@ -268,38 +268,36 @@ const resetSemester = catchAsync(async (req, res) => {
 
     await prisma.$transaction(async (tx) => {
         const courses = await tx.courses.findMany({
-            where: {
-                branch: branch,
-                semester: semester,
-            },
+            where: { branch, semester },
         })
 
-        if (courses.length === 0)
-        {
+        if (courses.length > 0) {
+            const courseCodes = courses.map((c) => c.course_code)
+
             await tx.course_attendance.deleteMany({
                 where: {
                     user_id: uid,
-                    course_code: { in: courses.map((c) => c.course_code) },
+                    course_code: { in: courseCodes },
                 },
             })
 
             await tx.attendance_logs.deleteMany({
                 where: {
                     user_id: uid,
-                    course_code: { in: courses.map((c) => c.course_code) },
+                    course_code: { in: courseCodes },
                 },
             })
+
+            const data = courses.map((c) => ({
+                user_id: uid,
+                course_code: c.course_code,
+            }))
+
+            await tx.course_attendance.createMany({
+                data: data,
+                skipDuplicates: true,
+            })
         }
-
-        const data = courses.map((c) => ({
-            user_id: uid,
-            course_code: c.course_code,
-        }))
-
-        await tx.course_attendance.createMany({
-            data: data,
-        })
-
     })
 
     res.status(200).json({
