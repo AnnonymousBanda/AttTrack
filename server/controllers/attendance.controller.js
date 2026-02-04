@@ -85,7 +85,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
 const adjustAttendanceTotals = catchAsync(async (req, res) => {
     const { id: uid } = req.user
-    const { course_code, present_total, absent_total, medical_total } = req.body
+    const { course_code, present_total, absent_total, medical_total, total_classes } = req.body
 
     const existingRecord = await prisma.course_attendance.findUnique({
         where: {
@@ -103,6 +103,7 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
     if (present_total !== undefined) updateData.present_total = present_total
     if (absent_total !== undefined) updateData.absent_total = absent_total
     if (medical_total !== undefined) updateData.medical_total = medical_total
+    if (total_classes !== undefined) updateData.total_classes = total_classes
 
     await prisma.course_attendance.update({
         where: {
