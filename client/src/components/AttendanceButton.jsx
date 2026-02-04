@@ -28,7 +28,6 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
 
     const handleClick = async (newStatus) => {
         setLoading(newStatus)
-        console.log()
 
         if (!id) {
             try {
@@ -97,8 +96,6 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
                         : lec
                 )
 
-                console.log('Latest Lectures:', latestLectures)
-
                 setLectures(latestLectures)
                 setStatus(newStatus)
             } catch (error) {
@@ -109,7 +106,6 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
             }
         } else {
             try {
-                console.log('Existing log ID:', lecture)
                 const API_URL = process.env.EXPO_PUBLIC_API_URL
                 const response = await fetch(
                     `${API_URL}/api/attendance/log/status`,

@@ -143,7 +143,7 @@ const registerUser = catchAsync(async (req, res) => {
         let data = courses.map((c) => ({
                 user_id: user.id,
                 course_code: c.course_code,
-                total_lectures: c.course_code.endsWith('L') ? 10 : 42,
+                total_classes: c.course_code.endsWith('L') ? 10 : 42,
             }))
 
         await tx.course_attendance.createMany({

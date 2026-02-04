@@ -165,7 +165,6 @@ export function Profile() {
                 body: JSON.stringify({ new_semester: tempSemester }),
             })
 
-            console.log('Update Semester Response Status:', res.ok)
             if (res.ok) {
                 setUser((prev) => ({ ...prev, semester: tempSemester }))
                 closeModal()

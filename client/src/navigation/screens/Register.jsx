@@ -30,7 +30,7 @@ const Register = ({ route }) => {
     const [semester, setSemester] = useState(1)
     const [loading, setLoading] = useState(false)
 
-    const { setUser } = useAuth()
+    const { setUser, setUid } = useAuth()
 
     const { oid, displayName, mail, jobTitle } = route.params
     const rollNumber = mail.split('_')[1]?.split('@')[0]
@@ -112,7 +112,7 @@ const Register = ({ route }) => {
             await SecureStore.setItemAsync('uid', String(user.id))
 
             setUser(user)
-            console.log('Success:', result)
+            setUid(user.id)
         } catch (error) {
             console.error('Registration Error:', error.message)
             alert(error.message)

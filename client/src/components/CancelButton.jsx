@@ -32,7 +32,7 @@ export function CancelButton({ lecture, lectures, setLectures }) {
     const handleSubmit = async () => {
         setLoading(true)
 
-        if (id === null) {
+        if (!id) {
             try {
                 const formattedLecture = {
                     course_code: lecture.courseCode,
@@ -105,7 +105,11 @@ export function CancelButton({ lecture, lectures, setLectures }) {
                 }
 
                 const latestLectures = lectures.filter((lec) => {
-                    lec.id !== id
+                    return (
+                        lec.courseCode !== lecture.courseCode ||
+                        lec.from !== lecture.from ||
+                        lec.lecture_date !== lecture.lecture_date
+                    )
                 })
 
                 setLectures(latestLectures)
