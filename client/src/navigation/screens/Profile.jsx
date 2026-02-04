@@ -134,13 +134,16 @@ export function Profile() {
                             Number(item.courses.semester) ===
                             Number(user?.semester)
                     )
+
                     const coursesList = filteredCourses.map((course) => ({
                         courseCode: course.courses.course_code,
                         courseName: course.courses.course_name,
                         present: course.present_total,
                         absent: course.absent_total,
                         medical: course.medical_total,
+                        totalClasses: course.total_classes,
                     }))
+
                     setCourses(coursesList)
                 }
             } catch (error) {
@@ -193,6 +196,7 @@ export function Profile() {
                     present_total: selectedCourse.present,
                     absent_total: selectedCourse.absent,
                     medical_total: selectedCourse.medical,
+                    total_classes: selectedCourse.totalClasses,
                 }),
             })
 
@@ -454,6 +458,14 @@ export function Profile() {
                                                         </Text>
                                                     </View>
                                                 </View>
+                                                <Text
+                                                    style={
+                                                        styles.totalClassesText
+                                                    }
+                                                >
+                                                    Total classes:{' '}
+                                                    {item.totalClasses}
+                                                </Text>
                                             </View>
                                         </Swipeable>
                                     ))}
@@ -546,7 +558,6 @@ export function Profile() {
                                     style={styles.glassModalContent}
                                     onPress={(e) => e.stopPropagation()}
                                 >
-                                    <View style={styles.modalHandle} />
                                     <View style={styles.modalHeaderRow}>
                                         <Text style={styles.modalTitle}>
                                             {modalType === 'semester'
@@ -623,6 +634,46 @@ export function Profile() {
                                                         />
                                                     </View>
                                                 ))}
+                                            </View>
+                                            <View
+                                                style={
+                                                    styles.totalClassesInputContainer
+                                                }
+                                            >
+                                                <Text
+                                                    style={
+                                                        styles.totalClassesInputLabel
+                                                    }
+                                                >
+                                                    Total classes :
+                                                </Text>
+                                                <TextInput
+                                                    style={
+                                                        styles.totalClassesInput
+                                                    }
+                                                    placeholder="0"
+                                                    value={
+                                                        selectedCourse
+                                                            ? String(
+                                                                  selectedCourse.totalClasses ??
+                                                                      ''
+                                                              )
+                                                            : ''
+                                                    }
+                                                    onChangeText={(v) =>
+                                                        setSelectedCourse(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                totalClasses:
+                                                                    v.replace(
+                                                                        /[^0-9]/g,
+                                                                        ''
+                                                                    ),
+                                                            })
+                                                        )
+                                                    }
+                                                    keyboardType="numeric"
+                                                />
                                             </View>
                                             <TouchableOpacity
                                                 style={[
@@ -1029,6 +1080,12 @@ const styles = StyleSheet.create({
     statCol: { alignItems: 'center', gap: 4 },
     statLabel: { fontWeight: '600', fontSize: 14, color: '#374151' },
     statValue: { fontSize: 16, fontWeight: '600', color: '#111' },
+    totalClassesText: {
+        fontSize: 13,
+        color: '#6b7280',
+        marginTop: 5,
+        fontStyle: 'italic',
+    },
     footer: {
         backgroundColor: '#d7e4ee',
         padding: 16,
@@ -1104,7 +1161,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     glassModalContent: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: 'rgba(255, 255, 255, 1)',
         borderTopLeftRadius: 35,
         borderTopRightRadius: 35,
         padding: 24,
@@ -1137,6 +1194,29 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     modalInputGroup: { width: '30%', alignItems: 'center' },
+    totalClassesInputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 25,
+        gap: 10,
+    },
+    totalClassesInputLabel: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#374151',
+    },
+    totalClassesInput: {
+        width: 80,
+        backgroundColor: '#f3f4f6',
+        borderRadius: 12,
+        padding: 8,
+        textAlign: 'center',
+        fontSize: 18,
+        fontWeight: 'bold',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+    },
     modalInputLabel: {
         fontSize: 16,
         fontWeight: '600',
