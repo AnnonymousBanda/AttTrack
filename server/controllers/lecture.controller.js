@@ -2,7 +2,6 @@ const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
-    const { uid, semester } = req.user
     const DBLectures = req['DBLectures'] || []
     const SheetLectures = req['SheetLectures'] || []
 
@@ -83,9 +82,9 @@ const getCourses = catchAsync(async (req, res, next) => {
 })
 
 const addExtraClass = catchAsync(async (req, res) => {
-    const { uid, semester } = req.user
+    const { id:uid, semester } = req.user
     const { course_code, lecture_date, start_time, end_time } = req.body
-
+    
     const course = await prisma.course_attendance.findFirst({
         where: {
             course_code: course_code,
@@ -93,7 +92,7 @@ const addExtraClass = catchAsync(async (req, res) => {
         },
     })
 
-    if (!course) throw new AppError('Course not found!', 404)
+    if (!course) throw new AppError('You are not enrolled in this course!', 404)
 
     const startDateTime = createDateTime(lecture_date, start_time)
     const endDateTime = createDateTime(lecture_date, end_time)
@@ -153,7 +152,7 @@ const createDateTime = (dateStr, timeStr) => {
     const [hours, minutes] = timeStr.split(':').map(Number)
 
     const combined = new Date(date)
-    combined.setHours(hours, minutes, 0, 0)
+    combined.setUTCHours(hours, minutes, 0, 0)
     return combined
 }
 
