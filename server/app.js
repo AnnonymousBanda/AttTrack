@@ -16,6 +16,10 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use(morgan('dev'))
 
+app.use('/',(req, res) => {
+	res.send('Welcome to AttTrack API!')
+})
+
 app.use('/api/user', userRouter)
 app.use('/api/lectures', lectureRouter)
 app.use('/api/attendance', attendanceRouter)
