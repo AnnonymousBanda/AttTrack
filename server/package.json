@@ -25,5 +25,9 @@
     "cross-env": "^7.0.3",
     "nodemon": "^3.1.9",
     "prisma": "^7.9.0"
+  },
+  "allowScripts": {
+    "prisma@7.9.0": true,
+    "@prisma/engines@7.9.0": true
   }
 }
