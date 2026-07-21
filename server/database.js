@@ -1,31 +1,40 @@
-const { PrismaClient } = require('@prisma/client')
+require('dotenv/config')
+const { PrismaMariaDb } = require('@prisma/adapter-mariadb')
+const { PrismaClient } = require('./prisma/generated/client.js')
 
-const prisma = new PrismaClient()
+const adapter = new PrismaMariaDb({
+    connectionLimit: 5,
+    connectionUrl: process.env.DATABASE_URL,
+})
+
+const prisma = new PrismaClient({ adapter })
 
 const connectDB = async () => {
-	const URI = process.env.DATABASE_URL
-
-	try {
-		await prisma.$connect()
-        console.info(`[${new Date().toISOString()}] ✅ MySQL (Prisma) Connected`)
-	} catch (error) {
-		console.error(
+    try {
+        await prisma.$connect()
+        console.info(
+            `[${new Date().toISOString()}] ✅ MySQL (Prisma) Connected`
+        )
+    } catch (error) {
+        console.error(
             `[${new Date().toISOString()}] ❌ MySQL Connection Error: ${error.message}`
         )
         process.exit(1)
-	}
+    }
 }
 
 const disconnectDB = async () => {
-	try {
-		await prisma.$disconnect()
-        console.warn(`[${new Date().toISOString()}] ⚠️ MySQL (Prisma) Disconnected`)
-	} catch (error) {
-		console.error(
-			`[${new Date().toISOString()}] ❌ MongoDB Disconnection Error: ${error.message}`
-		)
-		process.exit(1)
-	}
+    try {
+        await prisma.$disconnect()
+        console.warn(
+            `[${new Date().toISOString()}] ⚠️ MySQL (Prisma) Disconnected`
+        )
+    } catch (error) {
+        console.error(
+            `[${new Date().toISOString()}] ❌ MySQL Disconnection Error: ${error.message}`
+        )
+        process.exit(1)
+    }
 }
 
 module.exports = { connectDB, disconnectDB, prisma }

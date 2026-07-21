@@ -4,25 +4,25 @@ const cors = require('cors')
 
 const { userRouter, lectureRouter, attendanceRouter } = require('./routes')
 const {
-	notFound,
-	globalErrorHandler,
+    notFound,
+    globalErrorHandler,
 } = require('./controllers/error.controller')
 
 const app = express()
 
-app.use(cors());
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use(morgan('dev'))
 
-app.use('/',(req, res) => {
-	res.send('Welcome to AttTrack API!')
-})
-
 app.use('/api/user', userRouter)
 app.use('/api/lectures', lectureRouter)
 app.use('/api/attendance', attendanceRouter)
+
+app.route('/').get((req, res) => {
+    res.send('Welcome to AttTrack API!')
+})
 
 app.all('*', notFound)
 
