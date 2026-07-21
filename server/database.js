@@ -1,6 +1,6 @@
 require('dotenv/config')
 const { PrismaMariaDb } = require('@prisma/adapter-mariadb')
-const { PrismaClient } = require('./prisma/generated/client.js')
+const { PrismaClient } = require('./generated/client.js')
 
 const adapter = new PrismaMariaDb({
     connectionLimit: 5,

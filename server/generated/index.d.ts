@@ -1247,10 +1247,12 @@ export namespace Prisma {
 
   export type UsersAvgAggregateOutputType = {
     semester: number | null
+    batch: number | null
   }
 
   export type UsersSumAggregateOutputType = {
     semester: number | null
+    batch: number | null
   }
 
   export type UsersMinAggregateOutputType = {
@@ -1263,7 +1265,7 @@ export namespace Prisma {
     branch: string | null
     semester: number | null
     image_url: string | null
-    batch: string | null
+    batch: number | null
   }
 
   export type UsersMaxAggregateOutputType = {
@@ -1276,7 +1278,7 @@ export namespace Prisma {
     branch: string | null
     semester: number | null
     image_url: string | null
-    batch: string | null
+    batch: number | null
   }
 
   export type UsersCountAggregateOutputType = {
@@ -1296,10 +1298,12 @@ export namespace Prisma {
 
   export type UsersAvgAggregateInputType = {
     semester?: true
+    batch?: true
   }
 
   export type UsersSumAggregateInputType = {
     semester?: true
+    batch?: true
   }
 
   export type UsersMinAggregateInputType = {
@@ -1438,7 +1442,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url: string | null
-    batch: string
+    batch: number
     _count: UsersCountAggregateOutputType | null
     _avg: UsersAvgAggregateOutputType | null
     _sum: UsersSumAggregateOutputType | null
@@ -1514,7 +1518,7 @@ export namespace Prisma {
       branch: string
       semester: number
       image_url: string | null
-      batch: string
+      batch: number
     }, ExtArgs["result"]["users"]>
     composites: {}
   }
@@ -1895,7 +1899,7 @@ export namespace Prisma {
     readonly branch: FieldRef<"users", 'String'>
     readonly semester: FieldRef<"users", 'Int'>
     readonly image_url: FieldRef<"users", 'String'>
-    readonly batch: FieldRef<"users", 'String'>
+    readonly batch: FieldRef<"users", 'Int'>
   }
     
 
@@ -5365,8 +5369,7 @@ export namespace Prisma {
     last_name: 'last_name',
     roll_number: 'roll_number',
     branch: 'branch',
-    image_url: 'image_url',
-    batch: 'batch'
+    image_url: 'image_url'
   };
 
   export type usersOrderByRelevanceFieldEnum = (typeof usersOrderByRelevanceFieldEnum)[keyof typeof usersOrderByRelevanceFieldEnum]
@@ -5454,7 +5457,7 @@ export namespace Prisma {
     branch?: StringFilter<"users"> | string
     semester?: IntFilter<"users"> | number
     image_url?: StringNullableFilter<"users"> | string | null
-    batch?: StringFilter<"users"> | string
+    batch?: IntFilter<"users"> | number
     attendance_logs?: Attendance_logsListRelationFilter
     course_attendance?: Course_attendanceListRelationFilter
   }
@@ -5488,7 +5491,7 @@ export namespace Prisma {
     branch?: StringFilter<"users"> | string
     semester?: IntFilter<"users"> | number
     image_url?: StringNullableFilter<"users"> | string | null
-    batch?: StringFilter<"users"> | string
+    batch?: IntFilter<"users"> | number
     attendance_logs?: Attendance_logsListRelationFilter
     course_attendance?: Course_attendanceListRelationFilter
   }, "id" | "oid" | "email" | "roll_number">
@@ -5524,7 +5527,7 @@ export namespace Prisma {
     branch?: StringWithAggregatesFilter<"users"> | string
     semester?: IntWithAggregatesFilter<"users"> | number
     image_url?: StringNullableWithAggregatesFilter<"users"> | string | null
-    batch?: StringWithAggregatesFilter<"users"> | string
+    batch?: IntWithAggregatesFilter<"users"> | number
   }
 
   export type attendance_logsWhereInput = {
@@ -5730,7 +5733,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
     attendance_logs?: attendance_logsCreateNestedManyWithoutUsersInput
     course_attendance?: course_attendanceCreateNestedManyWithoutUsersInput
   }
@@ -5745,7 +5748,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
     attendance_logs?: attendance_logsUncheckedCreateNestedManyWithoutUsersInput
     course_attendance?: course_attendanceUncheckedCreateNestedManyWithoutUsersInput
   }
@@ -5760,7 +5763,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
     attendance_logs?: attendance_logsUpdateManyWithoutUsersNestedInput
     course_attendance?: course_attendanceUpdateManyWithoutUsersNestedInput
   }
@@ -5775,7 +5778,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
     attendance_logs?: attendance_logsUncheckedUpdateManyWithoutUsersNestedInput
     course_attendance?: course_attendanceUncheckedUpdateManyWithoutUsersNestedInput
   }
@@ -5790,7 +5793,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
   }
 
   export type usersUpdateManyMutationInput = {
@@ -5803,7 +5806,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
   }
 
   export type usersUncheckedUpdateManyInput = {
@@ -5816,7 +5819,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
   }
 
   export type attendance_logsCreateInput = {
@@ -6092,6 +6095,7 @@ export namespace Prisma {
 
   export type usersAvgOrderByAggregateInput = {
     semester?: SortOrder
+    batch?: SortOrder
   }
 
   export type usersMaxOrderByAggregateInput = {
@@ -6122,6 +6126,7 @@ export namespace Prisma {
 
   export type usersSumOrderByAggregateInput = {
     semester?: SortOrder
+    batch?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -6905,7 +6910,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
     course_attendance?: course_attendanceCreateNestedManyWithoutUsersInput
   }
 
@@ -6919,7 +6924,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
     course_attendance?: course_attendanceUncheckedCreateNestedManyWithoutUsersInput
   }
 
@@ -6976,7 +6981,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
     course_attendance?: course_attendanceUpdateManyWithoutUsersNestedInput
   }
 
@@ -6990,7 +6995,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
     course_attendance?: course_attendanceUncheckedUpdateManyWithoutUsersNestedInput
   }
 
@@ -7025,7 +7030,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
     attendance_logs?: attendance_logsCreateNestedManyWithoutUsersInput
   }
 
@@ -7039,7 +7044,7 @@ export namespace Prisma {
     branch: string
     semester: number
     image_url?: string | null
-    batch: string
+    batch: number
     attendance_logs?: attendance_logsUncheckedCreateNestedManyWithoutUsersInput
   }
 
@@ -7096,7 +7101,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
     attendance_logs?: attendance_logsUpdateManyWithoutUsersNestedInput
   }
 
@@ -7110,7 +7115,7 @@ export namespace Prisma {
     branch?: StringFieldUpdateOperationsInput | string
     semester?: IntFieldUpdateOperationsInput | number
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
-    batch?: StringFieldUpdateOperationsInput | string
+    batch?: IntFieldUpdateOperationsInput | number
     attendance_logs?: attendance_logsUncheckedUpdateManyWithoutUsersNestedInput
   }
 

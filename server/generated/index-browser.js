@@ -177,8 +177,7 @@ exports.Prisma.usersOrderByRelevanceFieldEnum = {
   last_name: 'last_name',
   roll_number: 'roll_number',
   branch: 'branch',
-  image_url: 'image_url',
-  batch: 'batch'
+  image_url: 'image_url'
 };
 
 exports.Prisma.attendance_logsOrderByRelevanceFieldEnum = {

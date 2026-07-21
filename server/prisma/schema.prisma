@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated"
+  output   = "../generated"
 }
 
 datasource db {
@@ -10,7 +10,7 @@ datasource db {
 model users {
   id          String   @id @default(uuid())
   oid         String   @unique
-  email       String   @unique(map: "email") @db.VarChar(50)
+  email       String   @unique(map: "email") @db.VarChar(75)
   first_name  String   @db.VarChar(50)
   
   last_name   String?  @db.VarChar(50) 
@@ -20,7 +20,7 @@ model users {
   semester    Int      @db.UnsignedTinyInt
   image_url   String?  @db.VarChar(200)
   
-  batch       String   @db.VarChar(4) 
+  batch       Int      @db.UnsignedSmallInt
   
   attendance_logs   attendance_logs[]
   course_attendance course_attendance[]
