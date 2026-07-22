@@ -1,6 +1,5 @@
 require('dotenv').config()
 const { prisma } = require('../database.js')
-const { attendance_logs_status } = require('../generated')
 
 async function main() {
     // ==========================
@@ -11,22 +10,46 @@ async function main() {
         skipDuplicates: true,
         data: [
             {
-                course_code: 'CE3001',
-                course_name: 'Structural Analysis',
-                semester: 5,
-                branch: 'Civil Engineering',
+                course_code: 'CE3201',
+                course_name: 'Design of Steel Structures',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
             },
             {
-                course_code: 'CE3002',
-                course_name: 'Concrete Technology',
-                semester: 5,
-                branch: 'Civil Engineering',
+                course_code: 'CE3202',
+                course_name: 'Infrastructure Drawing and Estimation',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
             },
             {
-                course_code: 'ST3001',
-                course_name: 'Advanced Structural Design',
-                semester: 5,
-                branch: 'Structural Engineering',
+                course_code: 'CE3203',
+                course_name: 'Construction Planning and Management',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            },
+            {
+                course_code: 'CE3204',
+                course_name: 'Environmental Engineering - II',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            },
+            {
+                course_code: 'CE3205',
+                course_name: 'Water Resources Engineering - II',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            },
+            {
+                course_code: 'CE3205L',
+                course_name: 'Water Resources Engineering - II Lab',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            },
+            {
+                course_code: 'CE3206',
+                course_name: 'Transportation Engineering - II',
+                semester: 6,
+                branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
             },
         ],
     })
@@ -35,39 +58,54 @@ async function main() {
     // Users
     // ==========================
 
-    const ankit = await prisma.users.upsert({
-        where: {
-            roll_number: '2301CE03',
-        },
-        update: {},
-        create: {
-            oid: 'seed-ankit',
-            email: 'ankit.bhagat@example.com',
+    const usersData = [
+        {
+            id: '00caf249-c39c-4ff8-8da4-d6620bb34604',
+            oid: '8b459c02-5cea-430f-90a3-1edee2071a7d',
+            email: 'ankit_2301ce03@iitp.ac.in',
             first_name: 'Ankit',
             last_name: 'Bhagat',
-            roll_number: '2301CE03',
-            branch: 'Civil Engineering',
-            semester: 5,
+            roll_number: '2301ce03',
+            branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            semester: 6,
+            image_url: '',
             batch: 2023,
         },
-    })
-
-    const khushi = await prisma.users.upsert({
-        where: {
-            roll_number: '2302ST05',
+        {
+            id: '48503d97-6bf8-49d2-b3a3-1aa65453a479',
+            oid: '8acf9233-0c83-40dd-9518-de0f28a1a5f7',
+            email: 'akshat_2301ce02@iitp.ac.in',
+            first_name: 'Akshat',
+            last_name: 'Kumar Singh',
+            roll_number: '2301ce02',
+            branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            semester: 6,
+            image_url: '',
+            batch: 2023,
         },
-        update: {},
-        create: {
-            oid: 'seed-khushi',
-            email: 'khushi.dwivedi@example.com',
+        {
+            id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c',
+            oid: '92371753-b68f-425b-bd1d-13a0ef86f40e',
+            email: 'khushi_2302st05@iitp.ac.in',
             first_name: 'Khushi',
             last_name: 'Dwivedi',
-            roll_number: '2302ST05',
-            branch: 'Structural Engineering',
-            semester: 5,
+            roll_number: '2302st05',
+            branch: 'Civil Engineering (4 Years, Bachelor of Technology)',
+            semester: 6,
+            image_url: '',
             batch: 2023,
         },
-    })
+    ]
+
+    for (const userData of usersData) {
+        await prisma.users.upsert({
+            where: {
+                roll_number: userData.roll_number,
+            },
+            update: {},
+            create: userData,
+        })
+    }
 
     // ==========================
     // Course Attendance
@@ -76,68 +114,33 @@ async function main() {
     await prisma.course_attendance.createMany({
         skipDuplicates: true,
         data: [
-            {
-                user_id: ankit.id,
-                course_code: 'CE3001',
-                present_total: 18,
-                absent_total: 2,
-                medical_total: 1,
-                total_classes: 21,
-            },
-            {
-                user_id: ankit.id,
-                course_code: 'CE3002',
-                present_total: 20,
-                absent_total: 0,
-                medical_total: 0,
-                total_classes: 20,
-            },
-            {
-                user_id: khushi.id,
-                course_code: 'ST3001',
-                present_total: 17,
-                absent_total: 3,
-                medical_total: 0,
-                total_classes: 20,
-            },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3201', present_total: 20, absent_total: 4, medical_total: 0, total_classes: 42 },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3202', present_total: 13, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3203', present_total: 22, absent_total: 3, medical_total: 0, total_classes: 42 },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3204', present_total: 21, absent_total: 3, medical_total: 0, total_classes: 42 },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3205', present_total: 6, absent_total: 2, medical_total: 0, total_classes: 42 },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3205L', present_total: 7, absent_total: 0, medical_total: 0, total_classes: 10 },
+            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3206', present_total: 19, absent_total: 1, medical_total: 0, total_classes: 42 },
+
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3201', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3202', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3203', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3204', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3205', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3205L', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 10 },
+            { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3206', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3201', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3202', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3203', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3204', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3205', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3205L', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 10 },
+            { user_id: 'a79a3ed6-85dd-433a-b8f8-d133f30e246c', course_code: 'CE3206', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
         ],
     })
 
-    // ==========================
-    // Attendance Logs
-    // ==========================
-
-    await prisma.attendance_logs.createMany({
-        skipDuplicates: true,
-        data: [
-            {
-                user_id: ankit.id,
-                course_code: 'CE3001',
-                lecture_date: new Date('2026-07-18'),
-                start_time: new Date('2026-07-18T09:00:00'),
-                end_time: new Date('2026-07-18T10:00:00'),
-                status: attendance_logs_status.present,
-            },
-            {
-                user_id: ankit.id,
-                course_code: 'CE3001',
-                lecture_date: new Date('2026-07-19'),
-                start_time: new Date('2026-07-19T09:00:00'),
-                end_time: new Date('2026-07-19T10:00:00'),
-                status: attendance_logs_status.absent,
-            },
-            {
-                user_id: khushi.id,
-                course_code: 'ST3001',
-                lecture_date: new Date('2026-07-18'),
-                start_time: new Date('2026-07-18T11:00:00'),
-                end_time: new Date('2026-07-18T12:00:00'),
-                status: attendance_logs_status.present,
-            },
-        ],
-    })
-
-    console.log('✅ Database seeded successfully.')
+    console.log('✅ Database seeded successfully')
 }
 
 main()

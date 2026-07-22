@@ -29,7 +29,7 @@ model users {
 model attendance_logs {
   id           String   @id @default(uuid())
   user_id      String
-  course_code  String   @db.VarChar(6)
+  course_code  String   @db.VarChar(7)
   lecture_date DateTime @db.Date
   start_time   DateTime
   end_time     DateTime
@@ -45,7 +45,7 @@ model attendance_logs {
 
 model course_attendance {
   user_id       String
-  course_code   String   @db.VarChar(6)
+  course_code   String   @db.VarChar(7)
   
   present_total Int      @default(0) @db.UnsignedInt
   absent_total  Int      @default(0) @db.UnsignedInt
@@ -60,7 +60,7 @@ model course_attendance {
 }
 
 model courses {
-  course_code String @id @db.VarChar(6)
+  course_code String @id @db.VarChar(7)
   course_name String @db.VarChar(150)
   semester    Int    @db.UnsignedTinyInt
   branch      String @db.VarChar(100)
