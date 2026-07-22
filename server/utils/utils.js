@@ -1,11 +1,8 @@
 
 const createDateTime = (dateStr, timeStr) => {
-    const date = new Date(dateStr)
-    const [hours, minutes] = timeStr.split(':').map(Number)
-
-    const combined = new Date(date)
-    combined.setUTCHours(hours, minutes, 0, 0)
-    return combined
+    // Construct an ISO string assuming the input is in IST (+05:30)
+    // e.g. "2026-07-22T09:00:00+05:30"
+    return new Date(`${dateStr}T${timeStr}:00+05:30`)
 }
 
 module.exports = { createDateTime }

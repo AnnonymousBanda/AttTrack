@@ -9,29 +9,12 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
     let combinedLectures = []
 
     for (const dblec of DBLectures) {
-        const startTimeStr = dblec.start_time
-        const endTimeStr = dblec.end_time
-        const course_code = dblec.course_code
-
-        const sheetlec = SheetLectures.find((slec) => {
-            return (
-                slec.from === startTimeStr &&
-                slec.to === endTimeStr &&
-                slec.courseCode === course_code
-            )
-        })
-
-        if (sheetlec && dblec.status !== 'cancelled') {
+        if (dblec.status !== 'cancelled') {
             combinedLectures.push({
                 ...dblec,
-            })
-        } else if (!sheetlec && dblec.status !== 'cancelled') {
-            combinedLectures.push({
-                ...dblec,
-            })
-        } else if (dblec.status !== 'cancelled') {
-            combinedLectures.push({
-                ...dblec,
+                from: dblec.start_time,
+                to: dblec.end_time,
+                courseCode: dblec.course_code
             })
         }
     }
@@ -39,14 +22,19 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
     for (const slec of SheetLectures) {
         const existsInDB = DBLectures.find((item) => {
             return (
-                item.from === slec.from &&
-                item.to === slec.to &&
-                item.course_code === slec.course_code
+                item.start_time === slec.from &&
+                item.end_time === slec.to &&
+                item.course_code === slec.courseCode
             )
         })
 
         if (!existsInDB) {
-            combinedLectures.push({ ...slec })
+            combinedLectures.push({
+                ...slec,
+                start_time: slec.from,
+                end_time: slec.to,
+                course_code: slec.courseCode
+            })
         }
     }
 
@@ -83,9 +71,9 @@ const getCourses = catchAsync(async (req, res, next) => {
 })
 
 const addExtraClass = catchAsync(async (req, res) => {
-    const { id:uid, semester } = req.user
+    const { id: uid, semester } = req.user
     const { course_code, lecture_date, start_time, end_time } = req.body
-    
+
     const course = await prisma.course_attendance.findFirst({
         where: {
             course_code: course_code,

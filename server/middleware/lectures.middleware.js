@@ -13,10 +13,12 @@ const cellrange = {
 }
 
 const getDBLectures = catchAsync(async (req, res, next) => {
-    const { id:uid, semester } = req.user
+    const { id: uid, semester } = req.user
 
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
-    let dateString = dateInput.toISOString().split('T')[0]
+    // Convert to IST and extract the YYYY-MM-DD string
+    let dateString = dateInput.toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0]
+    // Parse it back as UTC midnight for Prisma's DATE matching
     dateString = new Date(dateString).toISOString()
 
     const lectures = await prisma.attendance_logs.findMany({
@@ -40,7 +42,7 @@ const getDBLectures = catchAsync(async (req, res, next) => {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
-            timeZone: 'UTC',
+            timeZone: 'Asia/Kolkata',
         })
 
     const formattedLectures = lectures.map((lecture) => ({
@@ -58,9 +60,10 @@ const getDBLectures = catchAsync(async (req, res, next) => {
 
 const getSheetLectures = catchAsync(async (req, res, next) => {
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
-    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
-    const day = dayNames[dateInput.getDay()]
+    // Get weekday in IST timezone
+    const day = dateInput.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'Asia/Kolkata' }).toLowerCase()
+
     req.params['day'] = day
 
     await getLectures(req, res, next)
