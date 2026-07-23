@@ -75,7 +75,6 @@ const unenrollSchema = Joi.object({
     }),
 })
 
-// Mark Attendance Schema
 const markAttendanceSchema = Joi.object({
     course_code: Joi.string().max(7).required().messages({
         'string.max': 'Course code must not exceed 7 characters',

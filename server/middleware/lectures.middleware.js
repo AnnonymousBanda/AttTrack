@@ -17,15 +17,15 @@ const getDBLectures = catchAsync(async (req, res, next) => {
 
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
     // Convert to IST and extract the YYYY-MM-DD string
-    let dateString = dateInput.toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0]
+    const istDateStr = dateInput.toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0]
     // Parse it back as UTC midnight for Prisma's DATE matching
-    dateString = new Date(dateString).toISOString()
+    const finalLectureDate = new Date(istDateStr)
 
     const lectures = await prisma.attendance_logs.findMany({
         where: {
             user_id: id,
 
-            lecture_date: dateString,
+            lecture_date: finalLectureDate,
             courses: {
                 semester: semester,
             },

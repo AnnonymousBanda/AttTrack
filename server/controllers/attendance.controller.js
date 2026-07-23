@@ -6,8 +6,23 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     const { id, semester } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
-    const startDateTime = start_time
-    const endDateTime = end_time
+    const course = await prisma.course_attendance.findFirst({
+        where: {
+            course_code: course_code,
+            user_id: id,
+
+        },
+    })
+
+    if (!course) throw new AppError('You are not enrolled in this course!', 404)
+
+    const lectureDateObj = new Date(lecture_date)
+    const istDateStr = lectureDateObj.toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0]
+    const finalLectureDate = new Date(istDateStr)
+
+    const startDateTime = createDateTime(istDateStr, start_time)
+    const endDateTime = createDateTime(istDateStr, end_time)
+
     if (startDateTime >= endDateTime)
         throw new AppError('Invalid class time', 400)
 
@@ -15,16 +30,30 @@ const createAttendanceLog = catchAsync(async (req, res) => {
         where: {
             user_id: id,
 
-            lecture_date: new Date(lecture_date),
-            start_time: startDateTime,
-            end_time: endDateTime,
+            lecture_date: finalLectureDate,
+            AND: [
+                {
+                    start_time: {
+                        lt: endDateTime,
+                    },
+                },
+                {
+                    end_time: {
+                        gt: startDateTime,
+                    },
+                },
+                {
+                    status: {
+                        not: 'cancelled'
+                    }
+                }
+            ],
         },
     })
     if (conflictsLog)
         throw new AppError('Time is overlapping with an existing lecture', 400)
 
     const prismaOperations = []
-
     if (status !== 'cancelled') {
         const updateCounts = {}
         if (status === 'present') updateCounts.present_total = { increment: 1 }
@@ -53,7 +82,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
                 user_id: id,
 
                 course_code: course_code,
-                lecture_date: new Date(lecture_date),
+                lecture_date: finalLectureDate,
                 start_time: startDateTime,
                 end_time: endDateTime,
                 status: status,
@@ -63,27 +92,26 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
     await prisma.$transaction(prismaOperations)
 
-    const all_logs = await prisma.attendance_logs.findMany({
-        where: {
-            user_id: id,
-
-            lecture_date: new Date(lecture_date),
-            courses: {
-                semester: semester,
-            },
-        },
-        orderBy: {
-            start_time: 'asc',
-        },
-        include: {
-            courses: true,
-        },
-    })
+    // const all_logs = await prisma.attendance_logs.findMany({
+    //     where: {
+    //         user_id: id,
+    //         lecture_date: finalLectureDate,
+    //         courses: {
+    //             semester: semester,
+    //         },
+    //     },
+    //     orderBy: {
+    //         start_time: 'asc',
+    //     },
+    //     include: {
+    //         courses: true,
+    //     },
+    // })
 
     res.status(201).json({
         message: 'Daily attendance marked successfully!',
         status: 201,
-        data: all_logs,
+        // data: all_logs,
     })
 })
 
@@ -195,27 +223,27 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
     if (log.user_id !== id)
         throw new AppError('You are not authorized to update this log', 403)
 
+    if (log.status === 'cancelled')
+        throw new AppError("Can't update cancelled lecture", 400)
+
     const oldStatus = log.status
     const course_code = log.course_code
 
     const updateCounts = {}
 
-    if (oldStatus && oldStatus !== 'cancelled') {
-        if (oldStatus === 'present')
-            updateCounts.present_total = { decrement: 1 }
-        else if (oldStatus === 'absent')
-            updateCounts.absent_total = { decrement: 1 }
-        else if (oldStatus === 'medical')
-            updateCounts.medical_total = { decrement: 1 }
-    }
+    if (oldStatus === 'present')
+        updateCounts.present_total = { decrement: 1 }
+    else if (oldStatus === 'absent')
+        updateCounts.absent_total = { decrement: 1 }
+    else if (oldStatus === 'medical')
+        updateCounts.medical_total = { decrement: 1 }
 
-    if (status !== 'cancelled') {
-        if (status === 'present') updateCounts.present_total = { increment: 1 }
-        else if (status === 'absent')
-            updateCounts.absent_total = { increment: 1 }
-        else if (status === 'medical')
-            updateCounts.medical_total = { increment: 1 }
-    }
+    if (status === 'present')
+        updateCounts.present_total = { increment: 1 }
+    else if (status === 'absent')
+        updateCounts.absent_total = { increment: 1 }
+    else if (status === 'medical')
+        updateCounts.medical_total = { increment: 1 }
 
     await prisma.$transaction(async (tx) => {
         await tx.attendance_logs.update({
@@ -241,26 +269,26 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
         }
     })
 
-    const lectures = await prisma.attendance_logs.findMany({
-        where: {
-            user_id: id,
+    // const lectures = await prisma.attendance_logs.findMany({
+    //     where: {
+    //         user_id: id,
 
-            lecture_date: log.lecture_date,
-            courses: {
-                semester: semester,
-            },
-        },
-        orderBy: {
-            start_time: 'asc',
-        },
-        include: {
-            courses: true,
-        },
-    })
+    //         lecture_date: log.lecture_date,
+    //         courses: {
+    //             semester: semester,
+    //         },
+    //     },
+    //     orderBy: {
+    //         start_time: 'asc',
+    //     },
+    //     include: {
+    //         courses: true,
+    //     },
+    // })
     res.status(200).json({
         message: 'Attendance status updated successfully!',
         status: 200,
-        data: lectures,
+        //data: lectures,
     })
 })
 

@@ -85,17 +85,21 @@ const addExtraClass = catchAsync(async (req, res) => {
 
     if (!course) throw new AppError('You are not enrolled in this course!', 404)
 
-    const startDateTime = createDateTime(lecture_date, start_time)
-    const endDateTime = createDateTime(lecture_date, end_time)
+    const lectureDateObj = new Date(lecture_date)
+    const istDateStr = lectureDateObj.toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0]
+    const finalLectureDate = new Date(istDateStr)
+
+    const startDateTime = createDateTime(istDateStr, start_time)
+    const endDateTime = createDateTime(istDateStr, end_time)
 
     if (startDateTime >= endDateTime)
         throw new AppError('Start time must be before end time', 400)
 
-    const old_logs = await prisma.attendance_logs.findMany({
+    const old_logs = await prisma.attendance_logs.findFirst({
         where: {
             user_id: id,
 
-            lecture_date: new Date(lecture_date),
+            lecture_date: finalLectureDate,
             start_time: {
                 lt: endDateTime,
             },
@@ -109,7 +113,7 @@ const addExtraClass = catchAsync(async (req, res) => {
         },
     })
 
-    if (old_logs.length > 0)
+    if (old_logs)
         throw new AppError(
             'Lecture already exists for the given time range and date',
             400
@@ -122,7 +126,7 @@ const addExtraClass = catchAsync(async (req, res) => {
             start_time: startDateTime,
             end_time: endDateTime,
             course_code: course_code,
-            lecture_date: new Date(lecture_date),
+            lecture_date: finalLectureDate,
         },
     })
 
@@ -134,7 +138,7 @@ const addExtraClass = catchAsync(async (req, res) => {
 
             semester: semester,
             course_code: course_code,
-            lecture_date: new Date(lecture_date),
+            lecture_date: finalLectureDate,
             start_time: startDateTime,
             end_time: endDateTime,
             status: null,
