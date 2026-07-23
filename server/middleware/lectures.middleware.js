@@ -13,7 +13,7 @@ const cellrange = {
 }
 
 const getDBLectures = catchAsync(async (req, res, next) => {
-    const { id: uid, semester } = req.user
+    const { id, semester } = req.user
 
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
     // Convert to IST and extract the YYYY-MM-DD string
@@ -23,7 +23,8 @@ const getDBLectures = catchAsync(async (req, res, next) => {
 
     const lectures = await prisma.attendance_logs.findMany({
         where: {
-            user_id: uid,
+            user_id: id,
+
             lecture_date: dateString,
             courses: {
                 semester: semester,

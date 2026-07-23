@@ -4,11 +4,11 @@ const { prisma } = require('../database')
 const BRANCHES = require('./../utils/branches')
 
 const getUserData = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id } = req.user
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid,
+            id,
         },
     })
 
@@ -162,11 +162,11 @@ const registerUser = catchAsync(async (req, res) => {
 })
 
 const deleteUserData = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id } = req.user
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid,
+            id,
         },
     })
 
@@ -174,7 +174,7 @@ const deleteUserData = catchAsync(async (req, res) => {
 
     await prisma.users.delete({
         where: {
-            id: uid,
+            id,
         },
     })
 
@@ -185,7 +185,7 @@ const deleteUserData = catchAsync(async (req, res) => {
 })
 
 const modifySemester = catchAsync(async (req, res) => {
-    const { id: uid, semester, branch } = req.user
+    const { id, semester, branch } = req.user
     const { new_semester } = req.body
 
     if (new_semester === semester)
@@ -193,7 +193,7 @@ const modifySemester = catchAsync(async (req, res) => {
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid,
+            id,
         },
     })
 
@@ -201,7 +201,8 @@ const modifySemester = catchAsync(async (req, res) => {
 
     const coursesEnrolled = await prisma.course_attendance.findMany({
         where: {
-            user_id: uid,
+            user_id: id,
+
             courses: {
                 semester: new_semester,
             },
@@ -214,7 +215,7 @@ const modifySemester = catchAsync(async (req, res) => {
     if (coursesEnrolled.length > 0) {
         await prisma.users.update({
             where: {
-                id: uid,
+                id,
             },
             data: {
                 semester: new_semester,
@@ -239,7 +240,8 @@ const modifySemester = catchAsync(async (req, res) => {
             )
 
         const data = courses.map((c) => ({
-            user_id: uid,
+            user_id: id,
+
             course_code: c.course_code,
         }))
 
@@ -249,7 +251,7 @@ const modifySemester = catchAsync(async (req, res) => {
 
         await tx.users.update({
             where: {
-                id: uid,
+                id,
             },
             data: {
                 semester: new_semester,
@@ -264,7 +266,7 @@ const modifySemester = catchAsync(async (req, res) => {
 })
 
 const resetSemester = catchAsync(async (req, res) => {
-    const { id: uid, semester, branch } = req.user
+    const { id, semester, branch } = req.user
 
     await prisma.$transaction(async (tx) => {
         const courses = await tx.courses.findMany({
@@ -276,20 +278,23 @@ const resetSemester = catchAsync(async (req, res) => {
 
             await tx.course_attendance.deleteMany({
                 where: {
-                    user_id: uid,
+                    user_id: id,
+
                     course_code: { in: courseCodes },
                 },
             })
 
             await tx.attendance_logs.deleteMany({
                 where: {
-                    user_id: uid,
+                    user_id: id,
+
                     course_code: { in: courseCodes },
                 },
             })
 
             const data = courses.map((c) => ({
-                user_id: uid,
+                user_id: id,
+
                 course_code: c.course_code,
                 total_classes: c.course_code.endsWith('L') ? 10 : 42,
             }))
@@ -308,13 +313,14 @@ const resetSemester = catchAsync(async (req, res) => {
 })
 
 const unenrollFromCourse = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id } = req.user
     const { course_code } = req.body
 
     await prisma.$transaction(async (tx) => {
         await tx.attendance_logs.deleteMany({
             where: {
-                user_id: uid,
+                user_id: id,
+
                 course_code: course_code,
             },
         })
@@ -322,7 +328,8 @@ const unenrollFromCourse = catchAsync(async (req, res) => {
         await tx.course_attendance.delete({
             where: {
                 user_id_course_code: {
-                    user_id: uid,
+                    user_id: id,
+
                     course_code: course_code,
                 },
             },

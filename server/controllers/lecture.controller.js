@@ -60,10 +60,11 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
 })
 
 const getCourses = catchAsync(async (req, res, next) => {
-    const { id: uid, semester } = req.user
+    const { id, semester } = req.user
     const courses = await prisma.course_attendance.findMany({
         where: {
-            user_id: uid,
+            user_id: id,
+
         },
     })
 
@@ -71,13 +72,14 @@ const getCourses = catchAsync(async (req, res, next) => {
 })
 
 const addExtraClass = catchAsync(async (req, res) => {
-    const { id: uid, semester } = req.user
+    const { id, semester } = req.user
     const { course_code, lecture_date, start_time, end_time } = req.body
 
     const course = await prisma.course_attendance.findFirst({
         where: {
             course_code: course_code,
-            user_id: uid,
+            user_id: id,
+
         },
     })
 
@@ -91,7 +93,8 @@ const addExtraClass = catchAsync(async (req, res) => {
 
     const old_logs = await prisma.attendance_logs.findMany({
         where: {
-            user_id: uid,
+            user_id: id,
+
             lecture_date: new Date(lecture_date),
             start_time: {
                 lt: endDateTime,
@@ -114,7 +117,8 @@ const addExtraClass = catchAsync(async (req, res) => {
 
     await prisma.attendance_logs.create({
         data: {
-            user_id: uid,
+            user_id: id,
+
             start_time: startDateTime,
             end_time: endDateTime,
             course_code: course_code,
@@ -126,7 +130,8 @@ const addExtraClass = catchAsync(async (req, res) => {
         message: 'Extra class added successfully!',
         status: 201,
         data: {
-            user_id: uid,
+            user_id: id,
+
             semester: semester,
             course_code: course_code,
             lecture_date: new Date(lecture_date),

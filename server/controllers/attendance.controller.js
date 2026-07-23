@@ -3,7 +3,7 @@ const { catchAsync, AppError } = require('../utils/error.util')
 const { createDateTime } = require('../utils/utils')
 
 const createAttendanceLog = catchAsync(async (req, res) => {
-    const { id: uid, semester } = req.user
+    const { id, semester } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
     const startDateTime = start_time
@@ -13,7 +13,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
     const conflictsLog = await prisma.attendance_logs.findFirst({
         where: {
-            user_id: uid,
+            user_id: id,
+
             lecture_date: new Date(lecture_date),
             start_time: startDateTime,
             end_time: endDateTime,
@@ -36,7 +37,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
             prisma.course_attendance.update({
                 where: {
                     user_id_course_code: {
-                        user_id: uid,
+                        user_id: id,
+
                         course_code: course_code,
                     },
                 },
@@ -48,7 +50,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     prismaOperations.push(
         prisma.attendance_logs.create({
             data: {
-                user_id: uid,
+                user_id: id,
+
                 course_code: course_code,
                 lecture_date: new Date(lecture_date),
                 start_time: startDateTime,
@@ -62,7 +65,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 
     const all_logs = await prisma.attendance_logs.findMany({
         where: {
-            user_id: uid,
+            user_id: id,
+
             lecture_date: new Date(lecture_date),
             courses: {
                 semester: semester,
@@ -84,13 +88,14 @@ const createAttendanceLog = catchAsync(async (req, res) => {
 })
 
 const adjustAttendanceTotals = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id } = req.user
     const { course_code, present_total, absent_total, medical_total, total_classes } = req.body
 
     const existingRecord = await prisma.course_attendance.findUnique({
         where: {
             user_id_course_code: {
-                user_id: uid,
+                user_id: id,
+
                 course_code: course_code,
             },
         },
@@ -108,7 +113,8 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
     await prisma.course_attendance.update({
         where: {
             user_id_course_code: {
-                user_id: uid,
+                user_id: id,
+
                 course_code: course_code,
             },
         },
@@ -122,12 +128,12 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
 })
 
 const getAttendanceReport = catchAsync(async (req, res) => {
-    const { id: uid } = req.user
+    const { id } = req.user
     const { course_code } = req.query
 
     const user = await prisma.users.findUnique({
         where: {
-            id: uid,
+            id,
         },
     })
 
@@ -136,7 +142,8 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     if (!course_code) {
         const allCourses = await prisma.course_attendance.findMany({
             where: {
-                user_id: uid,
+                user_id: id,
+
             },
             include: {
                 courses: true,
@@ -153,7 +160,8 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     const courseAttendance = await prisma.course_attendance.findUnique({
         where: {
             user_id_course_code: {
-                user_id: uid,
+                user_id: id,
+
                 course_code: course_code,
             },
         },
@@ -173,7 +181,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
 })
 
 const updateAttendanceStatus = catchAsync(async (req, res) => {
-    const { id: uid, semester } = req.user
+    const { id, semester } = req.user
     const { log_id, status } = req.body
 
     const log = await prisma.attendance_logs.findUnique({
@@ -184,7 +192,7 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
 
     if (!log) throw new AppError('Log not found!', 404)
 
-    if (log.user_id !== uid)
+    if (log.user_id !== id)
         throw new AppError('You are not authorized to update this log', 403)
 
     const oldStatus = log.status
@@ -223,7 +231,8 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
             await tx.course_attendance.update({
                 where: {
                     user_id_course_code: {
-                        user_id: uid,
+                        user_id: id,
+
                         course_code: course_code,
                     },
                 },
@@ -234,7 +243,8 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
 
     const lectures = await prisma.attendance_logs.findMany({
         where: {
-            user_id: uid,
+            user_id: id,
+
             lecture_date: log.lecture_date,
             courses: {
                 semester: semester,
