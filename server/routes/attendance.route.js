@@ -6,11 +6,12 @@ const {
 	createAttendanceLog,
 	updateAttendanceStatus,
 } = require('../controllers/attendance.controller')
-const { protect } = require('../middleware')
+const { protect, httpCache } = require('../middleware')
 const validate = require('../middleware/validate')
 const { markAttendanceSchema, updateAttendanceStatusSchema, adjustAttendanceTotalsSchema } = require('../utils/validationSchemas')
 
 router.use(protect)
+router.use(httpCache())
 
 router.route('/adjust').patch(validate(adjustAttendanceTotalsSchema), adjustAttendanceTotals)
 router.route('/report').get(getAttendanceReport)

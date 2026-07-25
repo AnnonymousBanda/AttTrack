@@ -1,4 +1,4 @@
-const { prisma } = require('../database')
+const { prisma, redis } = require('../database')
 const { catchAsync, AppError } = require('../utils/error.util')
 const { createDateTime } = require('../utils/utils')
 
@@ -108,6 +108,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     //     },
     // })
 
+    await redis.del(req.cache.key)
+
     res.status(201).json({
         message: 'Daily attendance marked successfully!',
         status: 201,
@@ -148,6 +150,8 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
         },
         data: updateData,
     })
+
+    await redis.del(req.cache.key)
 
     res.status(200).json({
         message: 'Attendance totals adjusted successfully!',
@@ -201,11 +205,18 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     if (!courseAttendance)
         throw new AppError('Course attendance record not found!', 404)
 
-    res.status(200).json({
+    const response = {
         status: 200,
         message: 'Attendance report fetched successfully!',
         data: courseAttendance,
+    }
+
+    await redis.set(req.cache.key, JSON.stringify(response), {
+        EX: req.cache.exp,
+        NX: true,
     })
+
+    res.status(200).json(response)
 })
 
 const updateAttendanceStatus = catchAsync(async (req, res) => {
@@ -285,6 +296,9 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
     //         courses: true,
     //     },
     // })
+
+    await redis.del(req.cache.key)
+
     res.status(200).json({
         message: 'Attendance status updated successfully!',
         status: 200,

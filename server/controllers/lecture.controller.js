@@ -1,8 +1,10 @@
 const { catchAsync, AppError } = require('../utils/error.util')
-const { prisma } = require('../database')
+const { prisma, redis } = require('../database')
 const { createDateTime } = require('../utils/utils')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
+    const { id } = req.user.id
+
     const DBLectures = req['DBLectures'] || []
     const SheetLectures = req['SheetLectures'] || []
 
@@ -38,8 +40,11 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
         }
     }
 
-    await getCourses(req, res, next)
-    const userCourses = req.courses || []
+    const userCourses = await prisma.course_attendance.findMany({
+        where: {
+            user_id: id,
+        },
+    })
 
     combinedLectures = combinedLectures.filter((lecture) => {
         return userCourses.some(
@@ -52,23 +57,18 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
         return padTime(a.from).localeCompare(padTime(b.from))
     })
 
-    res.status(200).json({
+    const response = {
         message: 'Lectures fetched successfully!',
         status: 200,
-        data: combinedLectures,
-    })
-})
+        data: combinedLectures
+    }
 
-const getCourses = catchAsync(async (req, res, next) => {
-    const { id, semester } = req.user
-    const courses = await prisma.course_attendance.findMany({
-        where: {
-            user_id: id,
-
-        },
+    await redis.set(req.cache.key, JSON.stringify(response), {
+        EX: req.cache.exp,
+        NX: true
     })
 
-    req.courses = courses
+    res.status(200).json(response)
 })
 
 const addExtraClass = catchAsync(async (req, res) => {
@@ -129,6 +129,8 @@ const addExtraClass = catchAsync(async (req, res) => {
             lecture_date: finalLectureDate,
         },
     })
+
+    await redis.del(req.cache.key)
 
     res.status(201).json({
         message: 'Extra class added successfully!',
