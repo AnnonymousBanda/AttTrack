@@ -15,6 +15,9 @@ const cellrange = {
 const getDBLectures = catchAsync(async (req, res, next) => {
     const { id, semester } = req.user
 
+    if (req.body?.lecture_date)
+        req.query.date = req.body?.lecture_date
+
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
     // Convert to IST and extract the YYYY-MM-DD string
     const istDateStr = dateInput.toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0]
@@ -186,4 +189,66 @@ function mergeLectures(lectures) {
     return merged
 }
 
-module.exports = { getDBLectures, getSheetLectures }
+const mergeDbSheeLectures = catchAsync(async (req, res, next) => {
+    const { id } = req.user.id
+
+    const DBLectures = req['DBLectures'] || []
+    const SheetLectures = req['SheetLectures'] || []
+
+    let combinedLectures = []
+
+    for (const dblec of DBLectures) {
+        if (dblec.status !== 'cancelled') {
+            combinedLectures.push({
+                id: dblec.id,
+                from: dblec.from,
+                to: dblec.to,
+                courseCode: dblec.courseCode,
+                courseName: dblec.courseName,
+                status: dblec.status
+            })
+        }
+    }
+
+    for (const slec of SheetLectures) {
+        const existsInDB = DBLectures.find((item) => {
+            return (
+                item.start_time === slec.from &&
+                item.end_time === slec.to &&
+                item.course_code === slec.courseCode
+            )
+        })
+
+        if (!existsInDB) {
+            combinedLectures.push({
+                ...slec,
+                from: slec.from,
+                to: slec.to,
+                courseCode: slec.courseCode
+            })
+        }
+    }
+
+    const userCourses = await prisma.course_attendance.findMany({
+        where: {
+            user_id: id,
+        },
+    })
+
+    combinedLectures = combinedLectures.filter((lecture) => {
+        return userCourses.some(
+            (course) => course.course_code === lecture.courseCode
+        )
+    })
+
+    combinedLectures.sort((a, b) => {
+        const padTime = (timeStr) => timeStr.padStart(5, '0')
+        return padTime(a.from).localeCompare(padTime(b.from))
+    })
+
+    req.scheduledLectures = combinedLectures
+
+    next()
+})
+
+module.exports = { getDBLectures, getSheetLectures, mergeDbSheeLectures }

@@ -3,61 +3,7 @@ const { prisma, redis } = require('../database')
 const { createDateTime } = require('../utils/utils')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
-    const { id } = req.user.id
-
-    const DBLectures = req['DBLectures'] || []
-    const SheetLectures = req['SheetLectures'] || []
-
-    let combinedLectures = []
-
-    for (const dblec of DBLectures) {
-        if (dblec.status !== 'cancelled') {
-            combinedLectures.push({
-                id: dblec.id,
-                from: dblec.from,
-                to: dblec.to,
-                courseCode: dblec.courseCode,
-                courseName: dblec.courseName,
-                status: dblec.status
-            })
-        }
-    }
-
-    for (const slec of SheetLectures) {
-        const existsInDB = DBLectures.find((item) => {
-            return (
-                item.start_time === slec.from &&
-                item.end_time === slec.to &&
-                item.course_code === slec.courseCode
-            )
-        })
-
-        if (!existsInDB) {
-            combinedLectures.push({
-                ...slec,
-                from: slec.from,
-                to: slec.to,
-                courseCode: slec.courseCode
-            })
-        }
-    }
-
-    const userCourses = await prisma.course_attendance.findMany({
-        where: {
-            user_id: id,
-        },
-    })
-
-    combinedLectures = combinedLectures.filter((lecture) => {
-        return userCourses.some(
-            (course) => course.course_code === lecture.courseCode
-        )
-    })
-
-    combinedLectures.sort((a, b) => {
-        const padTime = (timeStr) => timeStr.padStart(5, '0')
-        return padTime(a.from).localeCompare(padTime(b.from))
-    })
+    const combinedLectures = req['scheduledLectures'] || []
 
     const response = {
         message: 'Lectures fetched successfully!',
@@ -97,26 +43,16 @@ const addExtraClass = catchAsync(async (req, res) => {
     if (startDateTime >= endDateTime)
         throw new AppError('Start time must be before end time', 400)
 
-    const old_logs = await prisma.attendance_logs.findFirst({
-        where: {
-            user_id: id,
+    const old_logs = req.scheduledLectures.find((lecture) => {
+        const existingStart = createDateTime(istDateStr, lecture.from);
+        const existingEnd = createDateTime(istDateStr, lecture.to);
 
-            lecture_date: finalLectureDate,
-            start_time: {
-                lt: endDateTime,
-            },
-            end_time: {
-                gt: startDateTime,
-            },
-            OR: [
-                { status: { not: 'cancelled' } },
-                { status: null }
-            ]
-        },
-        include: {
-            courses: true,
-        },
-    })
+        return (
+            existingStart < endDateTime &&
+            existingEnd > startDateTime &&
+            lecture.status !== "cancelled"
+        );
+    });
 
     if (old_logs)
         throw new AppError(
