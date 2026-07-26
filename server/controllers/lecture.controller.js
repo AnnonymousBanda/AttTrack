@@ -13,10 +13,12 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
     for (const dblec of DBLectures) {
         if (dblec.status !== 'cancelled') {
             combinedLectures.push({
-                ...dblec,
-                from: dblec.start_time,
-                to: dblec.end_time,
-                courseCode: dblec.course_code
+                id: dblec.id,
+                from: dblec.from,
+                to: dblec.to,
+                courseCode: dblec.courseCode,
+                courseName: dblec.courseName,
+                status: dblec.status
             })
         }
     }
@@ -33,9 +35,9 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
         if (!existsInDB) {
             combinedLectures.push({
                 ...slec,
-                start_time: slec.from,
-                end_time: slec.to,
-                course_code: slec.courseCode
+                from: slec.from,
+                to: slec.to,
+                courseCode: slec.courseCode
             })
         }
     }
@@ -106,7 +108,10 @@ const addExtraClass = catchAsync(async (req, res) => {
             end_time: {
                 gt: startDateTime,
             },
-            status: { not: 'cancelled' },
+            OR: [
+                { status: { not: 'cancelled' } },
+                { status: null }
+            ]
         },
         include: {
             courses: true,
@@ -130,7 +135,10 @@ const addExtraClass = catchAsync(async (req, res) => {
         },
     })
 
-    await redis.del(`${req.cache.key}:date=${lecture_date}`)
+    await redis.del(req.cache.key)
+    await redis.del(`${req.cache.key}date=${lecture_date}`)
+
+    console.log(`${req.cache.key}date=${lecture_date}`)
 
     res.status(201).json({
         message: 'Extra class added successfully!',
