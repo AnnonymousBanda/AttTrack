@@ -13,9 +13,9 @@ const { markAttendanceSchema, updateAttendanceStatusSchema, adjustAttendanceTota
 router.use(protect)
 router.use(httpCache())
 
-router.route('/adjust').patch(validate(adjustAttendanceTotalsSchema), adjustAttendanceTotals)
+router.route('/adjust').patch(adjustAttendanceTotals)
 router.route('/report').get(getAttendanceReport)
-router.route('/log').post(validate(markAttendanceSchema), createAttendanceLog)
+router.route('/log').post(createAttendanceLog)
 router.route('/log/status').patch(validate(updateAttendanceStatusSchema), updateAttendanceStatus)
 
 module.exports = router

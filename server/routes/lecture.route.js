@@ -9,6 +9,6 @@ router.use(protect)
 router.use(httpCache())
 
 router.route('/').get(getDBLectures, getSheetLectures, getTodaySchedule)
-router.route('/extra').post(validate(addExtraClassSchema), addExtraClass)
+router.route('/extra').post(addExtraClass)
 
 module.exports = router
