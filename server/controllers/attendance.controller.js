@@ -109,6 +109,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     // })
 
     await redis.del(req.cache.key)
+    await redis.del(`${req.cache.key}course_code=${course_code}`)
 
     res.status(201).json({
         message: 'Daily attendance marked successfully!',
@@ -152,6 +153,7 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
     })
 
     await redis.del(req.cache.key)
+    await redis.del(`${req.cache.key}course_code=${course_code}`)
 
     res.status(200).json({
         message: 'Attendance totals adjusted successfully!',
@@ -160,7 +162,7 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
 })
 
 const getAttendanceReport = catchAsync(async (req, res) => {
-    const { id } = req.user
+    const { id, semester } = req.user
     const { course_code } = req.query
 
     const user = await prisma.users.findUnique({
@@ -175,18 +177,29 @@ const getAttendanceReport = catchAsync(async (req, res) => {
         const allCourses = await prisma.course_attendance.findMany({
             where: {
                 user_id: id,
-
+                courses: {
+                    semester: semester,
+                },
             },
             include: {
                 courses: true,
             },
         })
 
-        return res.status(200).json({
+        const response = {
             message: 'Attendance report fetched successfully!',
             results: allCourses.length,
             data: allCourses,
+        }
+
+        await redis.set(req.cache.key, JSON.stringify(response), {
+            EX: req.cache.exp,
+            NX: true,
         })
+
+        console.log("cached the data")
+
+        return res.status(200).json(response)
     }
 
     const courseAttendance = await prisma.course_attendance.findUnique({
@@ -215,6 +228,8 @@ const getAttendanceReport = catchAsync(async (req, res) => {
         EX: req.cache.exp,
         NX: true,
     })
+
+    console.log("cached the data")
 
     res.status(200).json(response)
 })
@@ -298,6 +313,7 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
     // })
 
     await redis.del(req.cache.key)
+    await redis.del(`${req.cache.key}course_code=${course_code}`)
 
     res.status(200).json({
         message: 'Attendance status updated successfully!',

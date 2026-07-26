@@ -130,7 +130,7 @@ const addExtraClass = catchAsync(async (req, res) => {
         },
     })
 
-    await redis.del(req.cache.key)
+    await redis.del(`${req.cache.key}:date=${lecture_date}`)
 
     res.status(201).json({
         message: 'Extra class added successfully!',

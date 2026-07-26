@@ -9,8 +9,8 @@ const redis = createClient({
         host: process.env.REDIS_HOST,
         port: Number(process.env.REDIS_PORT),
     },
-    username: process.env.REDIS_USER,
-    password: process.env.REDIS_PASSWORD,
+    // username: process.env.REDIS_USER,
+    // password: process.env.REDIS_PASSWORD,
     database: Number(process.env.REDIS_DB),
 })
     .on("error", (err) => {
@@ -33,11 +33,6 @@ const prisma = new PrismaClient({ adapter })
 
 const connectDB = async () => {
     try {
-        await prisma.$connect()
-        console.info(
-            `[${new Date().toISOString()}] ✅ MySQL (Prisma) Connected`
-        )
-
         if (!redis.isOpen) {
             await redis.connect()
             console.info(
@@ -48,6 +43,11 @@ const connectDB = async () => {
             console.info(
                 `[${new Date().toISOString()}] 🟡 Redis Already Connected`
             )
+
+        await prisma.$connect()
+        console.info(
+            `[${new Date().toISOString()}] ✅ MySQL (Prisma) Connected`
+        )
     } catch (error) {
         console.error(
             `[${new Date().toISOString()}] ❌ Database Connection Error: ${error.message}`
