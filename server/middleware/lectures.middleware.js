@@ -213,9 +213,9 @@ const mergeDbSheeLectures = catchAsync(async (req, res, next) => {
     for (const slec of SheetLectures) {
         const existsInDB = DBLectures.find((item) => {
             return (
-                item.start_time === slec.from &&
-                item.end_time === slec.to &&
-                item.course_code === slec.courseCode
+                item.from === slec.from &&
+                item.to === slec.to &&
+                item.courseCode === slec.courseCode
             )
         })
 
