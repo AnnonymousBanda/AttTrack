@@ -11,11 +11,10 @@ const validate = require('../middleware/validate')
 const { markAttendanceSchema, updateAttendanceStatusSchema, adjustAttendanceTotalsSchema } = require('../utils/validationSchemas')
 
 router.use(protect)
-router.use(httpCache())
 
 router.route('/adjust').patch(adjustAttendanceTotals)
 router.route('/report').get(getAttendanceReport)
 router.route('/log').post(createAttendanceLog)
-router.route('/log/status').patch(validate(updateAttendanceStatusSchema), updateAttendanceStatus)
+router.route('/log/status').patch(updateAttendanceStatus)
 
 module.exports = router

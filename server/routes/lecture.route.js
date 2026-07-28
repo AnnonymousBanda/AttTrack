@@ -6,7 +6,6 @@ const validate = require('../middleware/validate')
 const { addExtraClassSchema } = require('../utils/validationSchemas')
 
 router.use(protect)
-router.use(httpCache())
 
 router.route('/').get(getDBLectures, getSheetLectures, mergeDbSheeLectures, getTodaySchedule)
 router.route('/extra').post(getDBLectures, getSheetLectures, mergeDbSheeLectures, addExtraClass)

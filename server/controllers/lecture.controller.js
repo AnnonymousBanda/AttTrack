@@ -1,8 +1,10 @@
 const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma, redis } = require('../database')
-const { createDateTime } = require('../utils/utils')
+const { createDateTime } = require('../utils/date.utils')
+const { cacheBuilder } = require('../utils/cache.utils')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
+    const { id, semester } = req.user
     const combinedLectures = req['scheduledLectures'] || []
 
     const response = {
@@ -11,10 +13,12 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
         data: combinedLectures
     }
 
-    await redis.set(req.cache.key, JSON.stringify(response), {
-        EX: req.cache.exp,
+    const key = cacheBuilder.lecturesByDate(id, semester, req.query.date)
+    await redis.set(key, JSON.stringify(response), {
+        EX: process.env.TTL_CACHE * 3600,
         NX: true
     })
+    console.log(key)
 
     res.status(200).json(response)
 })
@@ -71,10 +75,9 @@ const addExtraClass = catchAsync(async (req, res) => {
         },
     })
 
-    await redis.del(req.cache.key)
-    await redis.del(`${req.cache.key}date=${lecture_date}`)
-
-    console.log(`${req.cache.key}date=${lecture_date}`)
+    const key = cacheBuilder.lectures(id, semester, lecture_date)
+    await redis.del(key)
+    console.log(key + " deleted lectures")
 
     res.status(201).json({
         message: 'Extra class added successfully!',

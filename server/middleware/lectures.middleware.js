@@ -1,4 +1,5 @@
 const { prisma } = require('../database')
+const { cacheBuilder, getCached } = require('../utils/cache.utils')
 const { catchAsync, AppError } = require('../utils/error.util')
 
 const cellrange = {
@@ -17,6 +18,13 @@ const getDBLectures = catchAsync(async (req, res, next) => {
 
     if (req.body?.lecture_date)
         req.query.date = req.body?.lecture_date
+    else if (!req.query?.date)
+        req.query.date = new Date().toISOString().split('T')[0];
+
+    const key = cacheBuilder.lecturesByDate(id, semester, req.query.date)
+    const cached = await getCached(key);
+    if (cached)
+        return res.json(cached);
 
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
     // Convert to IST and extract the YYYY-MM-DD string
@@ -233,8 +241,6 @@ const mergeDbSheeLectures = catchAsync(async (req, res, next) => {
     //     },
     // })
     const userCourses = req.user.courses
-
-    console.log(userCourses)
 
     combinedLectures = combinedLectures.filter((lecture) => {
         return userCourses.some(

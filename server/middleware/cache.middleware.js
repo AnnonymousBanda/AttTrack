@@ -28,7 +28,7 @@ const httpCache = (exp = 120) => {
         const cachedResponse = await redis.get(cacheKey)
         if (cachedResponse) {
             console.log("Cached Data Returned!")
-            return res.status(200).json(JSON.parse(cachedResponse))
+            // return res.status(200).json(JSON.parse(cachedResponse))
         }
 
         next()
