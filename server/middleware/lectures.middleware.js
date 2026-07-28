@@ -190,8 +190,6 @@ function mergeLectures(lectures) {
 }
 
 const mergeDbSheeLectures = catchAsync(async (req, res, next) => {
-    const { id } = req.user.id
-
     const DBLectures = req['DBLectures'] || []
     const SheetLectures = req['SheetLectures'] || []
 
@@ -229,11 +227,14 @@ const mergeDbSheeLectures = catchAsync(async (req, res, next) => {
         }
     }
 
-    const userCourses = await prisma.course_attendance.findMany({
-        where: {
-            user_id: id,
-        },
-    })
+    // const userCourses = await prisma.course_attendance.findMany({
+    //     where: {
+    //         user_id: id,
+    //     },
+    // })
+    const userCourses = req.user.courses
+
+    console.log(userCourses)
 
     combinedLectures = combinedLectures.filter((lecture) => {
         return userCourses.some(

@@ -7,12 +7,40 @@ const protect = catchAsync(async (req, res, next) => {
     if (!id) throw new AppError('Unauthorized Access', 401)
 
     const user = await prisma.users.findUnique({
-        where: { id },
-        select: { branch: true, semester: true },
+        where: {
+            id,
+        },
     })
-    if (!user) throw new AppError('User Not Found', 401)
+    if (!user) throw new AppError('User not found!', 404)
 
-    req.user = { id, ...user }
+    const courses = await prisma.course_attendance.findMany({
+        where: {
+            user_id: id,
+        },
+        include: {
+            users: true,
+            courses: true,
+        }
+    })
+
+    const userCourses = []
+    for (const c of courses) {
+        if (c.users.semester === c.courses.semester)
+            userCourses.push(c.courses)
+    }
+
+    req.user = {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        branch: user.branch,
+        batch: user.batch,
+        image_url: user.image_url,
+        roll_number: user.roll_number,
+        semester: user.semester,
+        courses: userCourses,
+    }
     next()
 })
 
