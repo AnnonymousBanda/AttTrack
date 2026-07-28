@@ -11,14 +11,40 @@ const getUserData = catchAsync(async (req, res) => {
             id,
         },
     })
-
     if (!user) throw new AppError('User not found!', 404)
+
+    const courses = await prisma.course_attendance.findMany({
+        where: {
+            user_id: id,
+        },
+        include: {
+            users: true,
+            courses: true,
+        }
+    })
+
+    const userCourses = []
+    for (const c of courses) {
+        if (c.users.semester === c.courses.semester)
+            userCourses.push(c.courses)
+    }
+
+    console.log(userCourses)
 
     res.status(200).json({
         message: 'User data fetched successfully!',
         status: 200,
         data: {
-            user: user,
+            id: user.id,
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            branch: user.branch,
+            batch: user.batch,
+            image_url: user.image_url,
+            roll_number: user.roll_number,
+            semester: user.semester,
+            courses: userCourses,
         },
     })
 })
