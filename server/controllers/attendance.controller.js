@@ -1,19 +1,13 @@
-const { prisma, redis } = require('../database')
+const { prisma } = require('../database')
 const { catchAsync, AppError } = require('../utils/error.util')
 const { createDateTime } = require('../utils/date.utils')
-const { cacheBuilder } = require('../utils/cache.utils')
+const { cacheBuilder, deleteCached, setCached, getCached } = require('../utils/cache.utils')
 
 const createAttendanceLog = catchAsync(async (req, res) => {
-    const { id, semester } = req.user
+    const { id, semester, courses } = req.user
     const { course_code, lecture_date, start_time, end_time, status } = req.body
 
-    const course = await prisma.course_attendance.findFirst({
-        where: {
-            course_code: course_code,
-            user_id: id,
-
-        },
-    })
+    const course = courses.find((course) => course.course_code === course_code)
 
     if (!course) throw new AppError('You are not enrolled in this course!', 404)
 
@@ -27,32 +21,14 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     if (startDateTime >= endDateTime)
         throw new AppError('Invalid class time', 400)
 
-    const conflictsLog = await prisma.attendance_logs.findFirst({
-        where: {
-            user_id: id,
-
-            lecture_date: finalLectureDate,
-            AND: [
-                {
-                    start_time: {
-                        lt: endDateTime,
-                    },
-                },
-                {
-                    end_time: {
-                        gt: startDateTime,
-                    },
-                },
-                {
-                    status: {
-                        not: 'cancelled'
-                    }
-                }
-            ],
-        },
+    console.log(req.scheduledLectures)
+    const addable = req.scheduledLectures.some((lecture) => {
+        if (lecture.id !== null)
+            return false
+        return lecture.courseCode === course_code && lecture.from === start_time && lecture.to === end_time
     })
-    if (conflictsLog)
-        throw new AppError('Time is overlapping with an existing lecture', 400)
+    if (!addable)
+        throw new AppError('There does not exist any such lecture!', 400)
 
     const prismaOperations = []
     if (status !== 'cancelled') {
@@ -112,7 +88,7 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     const lectureKey = cacheBuilder.lectures(id, semester, lecture_date)
     const attendanceKey = cacheBuilder.attendance(id, semester)
     const attendanceByCourseKey = cacheBuilder.attendanceByCourseCode(id, course_code);
-    await redis.del(lectureKey, attendanceKey, attendanceByCourseKey)
+    await deleteCached([lectureKey, attendanceKey, attendanceByCourseKey])
 
     console.log(lectureKey + " deleted lectures")
     console.log(attendanceKey + " deleted attendance")
@@ -161,7 +137,7 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
 
     const attendanceKey = cacheBuilder.attendance(id, semester);
     const attendanceByCourseKey = cacheBuilder.attendanceByCourseCode(id, course_code);
-    await redis.del(attendanceKey, attendanceByCourseKey);
+    await deleteCached([attendanceKey, attendanceByCourseKey])
 
     console.log(attendanceKey + " deleted attendance")
     console.log(attendanceByCourseKey + " deleted attendance by course")
@@ -186,6 +162,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
 
     if (!course_code) {
         const key = cacheBuilder.attendance(id, semester)
+        console.log(key)
 
         const cached = await getCached(key);
         if (cached)
@@ -209,10 +186,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
             data: allCourses,
         }
 
-        await redis.set(key, JSON.stringify(response), {
-            EX: process.env.TTL_CACHE * 3600,
-            NX: true,
-        })
+        await setCached(key, response)
 
         return res.status(200).json(response)
     }
@@ -223,6 +197,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
         throw new AppError('Course attendance record not found!', 404)
 
     const key = cacheBuilder.attendanceByCourseCode(id, course_code);
+    console.log(key)
 
     const cached = await getCached(key);
     if (cached)
@@ -247,10 +222,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
         data: courseAttendance,
     }
 
-    await redis.set(key, JSON.stringify(response), {
-        EX: process.env.TTL_CACHE * 3600,
-        NX: true,
-    })
+    await setCached(key, response)
 
     res.status(200).json(response)
 })
@@ -275,6 +247,12 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
 
     const oldStatus = log.status
     const course_code = log.course_code
+
+    if (oldStatus === status)
+        return res.json({
+            message: `Attendance status is already ${status.toUpperCase()}`,
+            status: 200,
+        })
 
     const updateCounts = {}
 
@@ -333,10 +311,11 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
     //     },
     // })
 
-    const lectureKey = cacheBuilder.lectures(id, semester, log.lecture_date)
+    const date = log.lecture_date.toISOString().split('T')[0];
+    const lectureKey = cacheBuilder.lectures(id, semester, date)
     const attendanceKey = cacheBuilder.attendance(id, semester)
     const attendanceByCourseKey = cacheBuilder.attendanceByCourseCode(id, course_code);
-    await redis.del(lectureKey, attendanceKey, attendanceByCourseKey)
+    await deleteCached([lectureKey, attendanceKey, attendanceByCourseKey])
 
     console.log(lectureKey + " deleted lectures")
     console.log(attendanceKey + " deleted attendance")

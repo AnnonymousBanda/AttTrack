@@ -1,8 +1,7 @@
 const { redis } = require("../database");
 
 const cacheBuilder = {
-    lectures: (id, semester) => `lectures:${id}:${semester}`,
-    lecturesByDate: (id, semester, date) => `lectures:${id}:${semester}:${date}`,
+    lectures: (id, semester, date) => `lectures:${id}:${semester}:${date}`,
     attendance: (id, semester) => `attendance:${id}:${semester}`,
     attendanceByCourseCode: (id, courseCode) => `attendance:${id}:${courseCode}`,
     users: (id) => `users:${id}`,
@@ -26,8 +25,8 @@ const setCached = async (key, value) => {
 }
 
 const deleteCached = async (...keys) => {
-    if (keys.length)
-        await redis.del(...keys);
+    const deleted = await redis.del(...keys);
+    console.log("Deleted count:", deleted);
 }
 
 module.exports = {

@@ -1,7 +1,7 @@
 const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma, redis } = require('../database')
 const { createDateTime } = require('../utils/date.utils')
-const { cacheBuilder } = require('../utils/cache.utils')
+const { cacheBuilder, setCached, deleteCached } = require('../utils/cache.utils')
 
 const getTodaySchedule = catchAsync(async (req, res, next) => {
     const { id, semester } = req.user
@@ -13,27 +13,18 @@ const getTodaySchedule = catchAsync(async (req, res, next) => {
         data: combinedLectures
     }
 
-    const key = cacheBuilder.lecturesByDate(id, semester, req.query.date)
-    await redis.set(key, JSON.stringify(response), {
-        EX: process.env.TTL_CACHE * 3600,
-        NX: true
-    })
+    const key = cacheBuilder.lectures(id, semester, req.query.date)
+    await setCached(key, response)
     console.log(key)
 
     res.status(200).json(response)
 })
 
 const addExtraClass = catchAsync(async (req, res) => {
-    const { id, semester } = req.user
+    const { id, semester, courses } = req.user
     const { course_code, lecture_date, start_time, end_time } = req.body
 
-    const course = await prisma.course_attendance.findFirst({
-        where: {
-            course_code: course_code,
-            user_id: id,
-
-        },
-    })
+    const course = courses.find((course) => course.course_code === course_code)
 
     if (!course) throw new AppError('You are not enrolled in this course!', 404)
 
@@ -76,7 +67,7 @@ const addExtraClass = catchAsync(async (req, res) => {
     })
 
     const key = cacheBuilder.lectures(id, semester, lecture_date)
-    await redis.del(key)
+    await deleteCached([key])
     console.log(key + " deleted lectures")
 
     res.status(201).json({

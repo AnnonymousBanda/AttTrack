@@ -21,9 +21,9 @@ const getDBLectures = catchAsync(async (req, res, next) => {
     else if (!req.query?.date)
         req.query.date = new Date().toISOString().split('T')[0];
 
-    const key = cacheBuilder.lecturesByDate(id, semester, req.query.date)
+    const key = cacheBuilder.lectures(id, semester, req.query.date)
     const cached = await getCached(key);
-    if (cached)
+    if (cached && req.method == 'GET')
         return res.json(cached);
 
     let dateInput = req.query.date ? new Date(req.query.date) : new Date()
