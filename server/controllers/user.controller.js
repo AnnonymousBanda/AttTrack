@@ -2,6 +2,7 @@ const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
 
 const BRANCHES = require('./../utils/branches')
+const { deleteByPattern } = require('../utils/cache.utils')
 
 const getUserData = catchAsync(async (req, res) => {
     res.status(200).json({
@@ -166,6 +167,8 @@ const deleteUserData = catchAsync(async (req, res) => {
         },
     })
 
+    await deleteByPattern(`user:${id}:*`)
+
     res.status(200).json({
         message: 'Data deleted successfully!',
         status: 200,
@@ -294,6 +297,11 @@ const resetSemester = catchAsync(async (req, res) => {
         }
     })
 
+    await Promise.all([
+        deleteByPattern(`user:${id}:*:semester:${semester}*`),
+        deleteByPattern(`user:${id}:attendance:course:*`)
+    ])
+
     res.status(200).json({
         message: 'Semester reset successfully!',
         status: 200,
@@ -301,7 +309,7 @@ const resetSemester = catchAsync(async (req, res) => {
 })
 
 const unenrollFromCourse = catchAsync(async (req, res) => {
-    const { id } = req.user
+    const { id, semester } = req.user
     const { course_code } = req.body
 
     await prisma.$transaction(async (tx) => {
@@ -323,6 +331,11 @@ const unenrollFromCourse = catchAsync(async (req, res) => {
             },
         })
     })
+
+    await Promise.all([
+        deleteByPattern(`user:${id}:*:semester:${semester}*`),
+        deleteByPattern(`user:${id}:attendance:course:${course_code}`)
+    ])
 
     res.status(200).json({
         message: 'Unenrolled from course successfully!',

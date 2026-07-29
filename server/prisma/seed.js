@@ -60,7 +60,7 @@ async function main() {
 
     const usersData = [
         {
-            id: '00caf249-c39c-4ff8-8da4-d6620bb34604',
+            id: 'bde47a63-d9af-4738-88ce-b06331d36a70',
             oid: '8b459c02-5cea-430f-90a3-1edee2071a7d',
             email: 'ankit_2301ce03@iitp.ac.in',
             first_name: 'Ankit',

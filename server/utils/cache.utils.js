@@ -1,10 +1,10 @@
 const { redis } = require("../database");
 
 const cacheBuilder = {
-    lectures: (id, semester, date) => `lectures:${id}:${semester}:${date}`,
-    attendance: (id, semester) => `attendance:${id}:${semester}`,
-    attendanceByCourseCode: (id, courseCode) => `attendance:${id}:${courseCode}`,
-    users: (id) => `users:${id}`,
+    user: (userId) => `user:${userId}:profile`,
+    lectures: (userId, semester, date) => `user:${userId}:lectures:semester:${semester}:date:${date}`,
+    attendanceBySemester: (userId, semester) => `user:${userId}:attendance:semester:${semester}`,
+    attendanceByCourse: (userId, courseCode) => `user:${userId}:attendance:course:${courseCode}`,
 }
 
 const getCached = async (key) => {
@@ -24,14 +24,37 @@ const setCached = async (key, value) => {
     });
 }
 
-const deleteCached = async (...keys) => {
-    const deleted = await redis.del(...keys);
+const deleteCached = async (keys) => {
+    const deleted = await redis.del(keys);
     console.log("Deleted count:", deleted);
 }
+
+const deleteByPattern = async (pattern) => {
+    let deleted = 0;
+    let batch = [];
+
+    for await (const key of redis.scanIterator({
+        MATCH: pattern, COUNT: 100,
+    })) {
+        batch.push(key);
+
+        if (batch.length === 100) {
+            deleted += await redis.del(batch);
+            batch = [];
+        }
+    }
+
+    if (batch.length)
+        deleted += await redis.del(batch);
+    console.log(`Deleted ${deleted} keys matching "${pattern}"`);
+
+    return deleted;
+};
 
 module.exports = {
     cacheBuilder,
     getCached,
     setCached,
     deleteCached,
+    deleteByPattern
 }

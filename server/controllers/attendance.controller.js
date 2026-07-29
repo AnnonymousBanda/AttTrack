@@ -86,8 +86,8 @@ const createAttendanceLog = catchAsync(async (req, res) => {
     // })
 
     const lectureKey = cacheBuilder.lectures(id, semester, lecture_date)
-    const attendanceKey = cacheBuilder.attendance(id, semester)
-    const attendanceByCourseKey = cacheBuilder.attendanceByCourseCode(id, course_code);
+    const attendanceKey = cacheBuilder.attendanceBySemester(id, semester)
+    const attendanceByCourseKey = cacheBuilder.attendanceByCourse(id, course_code);
     await deleteCached([lectureKey, attendanceKey, attendanceByCourseKey])
 
     console.log(lectureKey + " deleted lectures")
@@ -135,8 +135,8 @@ const adjustAttendanceTotals = catchAsync(async (req, res) => {
         data: updateData,
     })
 
-    const attendanceKey = cacheBuilder.attendance(id, semester);
-    const attendanceByCourseKey = cacheBuilder.attendanceByCourseCode(id, course_code);
+    const attendanceKey = cacheBuilder.attendanceBySemester(id, semester);
+    const attendanceByCourseKey = cacheBuilder.attendanceByCourse(id, course_code);
     await deleteCached([attendanceKey, attendanceByCourseKey])
 
     console.log(attendanceKey + " deleted attendance")
@@ -161,7 +161,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     if (!user) throw new AppError('User not found!', 404)
 
     if (!course_code) {
-        const key = cacheBuilder.attendance(id, semester)
+        const key = cacheBuilder.attendanceBySemester(id, semester)
         console.log(key)
 
         const cached = await getCached(key);
@@ -196,7 +196,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     if (!course)
         throw new AppError('Course attendance record not found!', 404)
 
-    const key = cacheBuilder.attendanceByCourseCode(id, course_code);
+    const key = cacheBuilder.attendanceByCourse(id, course_code);
     console.log(key)
 
     const cached = await getCached(key);
@@ -313,8 +313,8 @@ const updateAttendanceStatus = catchAsync(async (req, res) => {
 
     const date = log.lecture_date.toISOString().split('T')[0];
     const lectureKey = cacheBuilder.lectures(id, semester, date)
-    const attendanceKey = cacheBuilder.attendance(id, semester)
-    const attendanceByCourseKey = cacheBuilder.attendanceByCourseCode(id, course_code);
+    const attendanceKey = cacheBuilder.attendanceBySemester(id, semester)
+    const attendanceByCourseKey = cacheBuilder.attendanceByCourse(id, course_code);
     await deleteCached([lectureKey, attendanceKey, attendanceByCourseKey])
 
     console.log(lectureKey + " deleted lectures")
