@@ -36,9 +36,12 @@ const deleteByPattern = async (pattern) => {
     for await (const key of redis.scanIterator({
         MATCH: pattern, COUNT: 100,
     })) {
-        batch.push(key);
+        if (Array.isArray(key))
+            batch.push(...key);
+        else
+            batch.push(key);
 
-        if (batch.length === 100) {
+        if (batch.length >= 100) {
             deleted += await redis.del(batch);
             batch = [];
         }

@@ -2,7 +2,7 @@ const { catchAsync, AppError } = require('../utils/error.util')
 const { prisma } = require('../database')
 
 const BRANCHES = require('./../utils/branches')
-const { deleteByPattern } = require('../utils/cache.utils')
+const { deleteByPattern, deleteCached, cacheBuilder } = require('../utils/cache.utils')
 
 const getUserData = catchAsync(async (req, res) => {
     res.status(200).json({
@@ -180,7 +180,7 @@ const modifySemester = catchAsync(async (req, res) => {
     const { new_semester } = req.body
 
     if (new_semester === semester)
-        throw new AppError('Semester Updated Successfully', 200)
+        throw new AppError('Semester was already set to the requested value!', 409)
 
     const user = await prisma.users.findUnique({
         where: {
@@ -227,7 +227,7 @@ const modifySemester = catchAsync(async (req, res) => {
         if (courses.length === 0)
             throw new AppError(
                 'No courses found for the given branch and semester',
-                400
+                404
             )
 
         const data = courses.map((c) => ({
@@ -249,6 +249,8 @@ const modifySemester = catchAsync(async (req, res) => {
             },
         })
     })
+
+    await deleteCached(cacheBuilder.user(id))
 
     res.status(200).json({
         message: 'Semester updated successfully!',
@@ -298,6 +300,7 @@ const resetSemester = catchAsync(async (req, res) => {
     })
 
     await Promise.all([
+        deleteCached(cacheBuilder.user(id)),
         deleteByPattern(`user:${id}:*:semester:${semester}*`),
         deleteByPattern(`user:${id}:attendance:course:*`),
     ])
@@ -309,8 +312,13 @@ const resetSemester = catchAsync(async (req, res) => {
 })
 
 const unenrollFromCourse = catchAsync(async (req, res) => {
-    const { id, semester } = req.user
+    const { id, semester, courses } = req.user
     const { course_code } = req.body
+
+    const enrolled = courses.find((c) => c.course_code === course_code)
+
+    if (!enrolled)
+        throw new AppError('You are not enrolled in this course!', 400)
 
     await prisma.$transaction(async (tx) => {
         await tx.attendance_logs.deleteMany({
@@ -333,6 +341,7 @@ const unenrollFromCourse = catchAsync(async (req, res) => {
     })
 
     await Promise.all([
+        deleteCached(cacheBuilder.user(id)),
         deleteByPattern(`user:${id}:*:semester:${semester}*`),
         deleteByPattern(`user:${id}:attendance:course:*`),
     ])
