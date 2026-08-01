@@ -8,7 +8,7 @@ const getUserData = catchAsync(async (req, res) => {
     res.status(200).json({
         message: 'User data fetched successfully!',
         status: 200,
-        data: req.user
+        data: req.user,
     })
 })
 
@@ -299,7 +299,7 @@ const resetSemester = catchAsync(async (req, res) => {
 
     await Promise.all([
         deleteByPattern(`user:${id}:*:semester:${semester}*`),
-        deleteByPattern(`user:${id}:attendance:course:*`)
+        deleteByPattern(`user:${id}:attendance:course:*`),
     ])
 
     res.status(200).json({
@@ -334,7 +334,7 @@ const unenrollFromCourse = catchAsync(async (req, res) => {
 
     await Promise.all([
         deleteByPattern(`user:${id}:*:semester:${semester}*`),
-        deleteByPattern(`user:${id}:attendance:course:${course_code}`)
+        deleteByPattern(`user:${id}:attendance:course:*`),
     ])
 
     res.status(200).json({

@@ -114,13 +114,13 @@ async function main() {
     await prisma.course_attendance.createMany({
         skipDuplicates: true,
         data: [
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3201', present_total: 20, absent_total: 4, medical_total: 0, total_classes: 42 },
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3202', present_total: 13, absent_total: 0, medical_total: 0, total_classes: 42 },
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3203', present_total: 22, absent_total: 3, medical_total: 0, total_classes: 42 },
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3204', present_total: 21, absent_total: 3, medical_total: 0, total_classes: 42 },
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3205', present_total: 6, absent_total: 2, medical_total: 0, total_classes: 42 },
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3205L', present_total: 7, absent_total: 0, medical_total: 0, total_classes: 10 },
-            { user_id: '00caf249-c39c-4ff8-8da4-d6620bb34604', course_code: 'CE3206', present_total: 19, absent_total: 1, medical_total: 0, total_classes: 42 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3201', present_total: 20, absent_total: 4, medical_total: 0, total_classes: 42 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3202', present_total: 13, absent_total: 0, medical_total: 0, total_classes: 42 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3203', present_total: 22, absent_total: 3, medical_total: 0, total_classes: 42 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3204', present_total: 21, absent_total: 3, medical_total: 0, total_classes: 42 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3205', present_total: 6, absent_total: 2, medical_total: 0, total_classes: 42 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3205L', present_total: 7, absent_total: 0, medical_total: 0, total_classes: 10 },
+            { user_id: 'bde47a63-d9af-4738-88ce-b06331d36a70', course_code: 'CE3206', present_total: 19, absent_total: 1, medical_total: 0, total_classes: 42 },
 
             { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3201', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
             { user_id: '48503d97-6bf8-49d2-b3a3-1aa65453a479', course_code: 'CE3202', present_total: 0, absent_total: 0, medical_total: 0, total_classes: 42 },
