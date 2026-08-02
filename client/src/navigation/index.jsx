@@ -3,6 +3,7 @@ import { createStaticNavigation } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { Image, StatusBar, TouchableOpacity } from 'react-native'
 import React from 'react'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useAuth } from '../context/index'
 
@@ -24,33 +25,39 @@ import {
 } from '../assets'
 
 const HomeTabs = createBottomTabNavigator({
-    screenOptions: ({ navigation }) => ({
-        headerRight: () => (
-            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                <Image
-                    source={profilePic}
-                    style={{
-                        width: 30,
-                        height: 30,
-                        marginRight: 15,
-                        borderRadius: 15,
-                    }}
-                />
-            </TouchableOpacity>
-        ),
-        headerTintColor: '#29303d',
-        tabBarActiveTintColor: '#29303d',
-        tabBarInactiveTintColor: '#888',
-        tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '600',
-        },
-        tabBarStyle: {
-            height: 60,
-            paddingBottom: 5,
-            paddingTop: 5,
-        },
-    }),
+    screenOptions: ({ navigation }) => {
+        const insets = useSafeAreaInsets()
+
+        return {
+            headerRight: () => (
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('Profile')}
+                >
+                    <Image
+                        source={profilePic}
+                        style={{
+                            width: 30,
+                            height: 30,
+                            marginRight: 15,
+                            borderRadius: 15,
+                        }}
+                    />
+                </TouchableOpacity>
+            ),
+            headerTintColor: '#29303d',
+            tabBarActiveTintColor: '#29303d',
+            tabBarInactiveTintColor: '#888',
+            tabBarLabelStyle: {
+                fontSize: 12,
+                fontWeight: '600',
+            },
+            tabBarStyle: {
+                height: 60 + insets.bottom,
+                paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+                paddingTop: 4,
+            },
+        }
+    },
     screens: {
         Home: {
             screen: Home,
