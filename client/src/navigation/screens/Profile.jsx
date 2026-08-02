@@ -292,9 +292,7 @@ export function Profile() {
                             }
                         )
                         if (res.ok) {
-                            setCourses((prev) =>
-                                prev.filter((c) => c.courseCode !== courseCode)
-                            )
+                            fetchCourses()
                         }
                     } catch (error) {
                         Alert.alert('Error', 'Failed to unenroll')

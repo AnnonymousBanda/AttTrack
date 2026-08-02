@@ -6,8 +6,8 @@
         "orientation": "portrait",
         "icon": "./assets/logo-1024x1024.png",
         "userInterfaceStyle": "automatic",
-        "newArchEnabled": false,
-        "scheme": "atttrack-auth",
+        "newArchEnabled": true,
+        "scheme": "atttrack",
         "ios": {
             "supportsTablet": true,
             "bundleIdentifier": "com.atttrack",
@@ -32,7 +32,7 @@
             }
         },
         "web": {
-            "favicon": "./assets/favicon.ico"
+            "favicon": "./assets/favicon.png"
         },
         "plugins": [
             "expo-asset",
@@ -58,7 +58,7 @@
             [
                 "react-native-app-auth",
                 {
-                    "appAuthRedirectScheme": "atttrack-auth"
+                    "appAuthRedirectScheme": "atttrack"
                 }
             ]
         ],

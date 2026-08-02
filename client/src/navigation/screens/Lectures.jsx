@@ -188,7 +188,7 @@ export function Lectures() {
                     renderItem={({ item }) => <LectureItem item={item} />}
                     contentContainerStyle={[
                         styles.listContent,
-                        lectures.length === 0 && { flexGrow: 1 },
+                        lectures?.length === 0 && { flexGrow: 1 },
                     ]}
                     style={styles.list}
                     ListEmptyComponent={<NoLecturesCard />}

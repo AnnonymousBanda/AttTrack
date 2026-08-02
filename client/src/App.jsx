@@ -4,6 +4,8 @@ import { Asset } from 'expo-asset'
 import { createURL } from 'expo-linking'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
+import { StyleSheet } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Navigation } from './navigation'
 import { AuthProvider, useAuth } from './context'
 import { navigationRef } from './navigation/rootnavigation'
@@ -49,13 +51,21 @@ const Root = () => {
     }
 
     return (
-        <Navigation
-            theme={theme}
-            linking={{
-                enabled: 'auto',
-                prefixes: [prefix],
-            }}
-            ref={navigationRef}
-        />
+        <GestureHandlerRootView style={styles.container}>
+            <Navigation
+                theme={theme}
+                linking={{
+                    enabled: 'auto',
+                    prefixes: [prefix],
+                }}
+                ref={navigationRef}
+            />
+        </GestureHandlerRootView>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+})

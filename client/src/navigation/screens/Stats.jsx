@@ -1,70 +1,23 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import {
     StyleSheet,
     View,
     Text,
-    ScrollView,
-    Dimensions,
     FlatList,
+    Dimensions,
     Animated,
     Alert,
+    Pressable,
 } from 'react-native'
-import { BarChart, PieChart } from 'react-native-gifted-charts'
+import { ScrollView } from 'react-native-gesture-handler'
+import { useNavigation } from '@react-navigation/native'
+import { PieChart } from 'react-native-gifted-charts'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-
-const getMockAttendanceData = () => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                status: 200,
-                data: [
-                    {
-                        courseCode: 'CS101',
-                        courseName: 'Intro to Programming',
-                        presentPercentage: 85,
-                        present: 17,
-                        absent: 2,
-                        medical: 1,
-                        minimumLecturesToAttend: 0,
-                        maximumAchievableAttendance: 92,
-                    },
-                    {
-                        courseCode: 'MA201',
-                        courseName: 'Mathematics II',
-                        presentPercentage: 65,
-                        present: 13,
-                        absent: 7,
-                        medical: 0,
-                        minimumLecturesToAttend: 5,
-                        maximumAchievableAttendance: 88,
-                    },
-                    {
-                        courseCode: 'PH102',
-                        courseName: 'Physics',
-                        presentPercentage: 95,
-                        present: 19,
-                        absent: 1,
-                        medical: 0,
-                        minimumLecturesToAttend: 0,
-                        maximumAchievableAttendance: 98,
-                    },
-                    {
-                        courseCode: 'ME101',
-                        courseName: 'Mechanics',
-                        presentPercentage: 72,
-                        present: 12,
-                        absent: 5,
-                        medical: 1,
-                        minimumLecturesToAttend: 2,
-                        maximumAchievableAttendance: 85,
-                    },
-                ],
-            })
-        }, 1500)
-    })
-}
+import { useAuth } from '../../context'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
+const CARD_WIDTH = SCREEN_WIDTH - 40
+const CARD_SPACING = 12
 
 const SkeletonBox = ({ style }) => {
     const opacity = useRef(new Animated.Value(0.3)).current
@@ -149,11 +102,86 @@ const NoPie = () => (
     </View>
 )
 
-const AnalysisCard = ({ item }) => {
+const SummaryBar = ({
+    style,
+    data = [],
+    maxValue = 100,
+    labelWidth = 62,
+    valueFormatter = (value) => `${value}%`,
+}) => {
+    const resolvedMaxValue = Math.max(maxValue, 100)
+
+    return (
+        <View style={[styles.summaryBarList, style]}>
+            {data.map((item, index) => {
+                const percent = Math.max(
+                    0,
+                    Math.min(100, (item.value / resolvedMaxValue) * 100)
+                )
+                const fillWidth = `${percent}%`
+                const isZero = percent === 0
+                const textColor = percent >= 55 ? '#ffffff' : '#111827'
+
+                return (
+                    <View
+                        key={`${item.label}-${index}`}
+                        style={styles.summaryBarRow}
+                    >
+                        <View
+                            style={[
+                                styles.summaryBarLabelBox,
+                                { width: labelWidth },
+                            ]}
+                        >
+                            <Text
+                                style={styles.summaryBarLabel}
+                                numberOfLines={1}
+                            >
+                                {item.label}
+                            </Text>
+                        </View>
+
+                        <View style={[styles.summaryBarTrack, { flex: 1 }]}>
+                            {isZero ? (
+                                <View style={styles.zeroCircle}>
+                                    <Text style={styles.zeroCircleText}>
+                                        0%
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View
+                                    style={[
+                                        styles.summaryBarFill,
+                                        {
+                                            width: fillWidth,
+                                            backgroundColor:
+                                                item.color || '#4BC0C0',
+                                        },
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.summaryBarFillText,
+                                            { color: textColor },
+                                        ]}
+                                    >
+                                        {valueFormatter(item.value)}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                )
+            })}
+        </View>
+    )
+}
+
+const AnalysisCard = ({ item, onPressIn }) => {
     const pieData = [
-        { value: item.present, color: '#4BC0C0', text: 'Present' },
-        { value: item.medical, color: '#FFCE56', text: 'Medical' },
-        { value: item.absent, color: '#FF6384', text: 'Absent' },
+        { value: item.present, color: '#4BC0C0' },
+        { value: item.medical, color: '#FFCE56' },
+        { value: item.absent, color: '#FF6384' },
     ].filter((d) => d.value > 0)
 
     const hasData = item.present > 0 || item.absent > 0 || item.medical > 0
@@ -163,98 +191,205 @@ const AnalysisCard = ({ item }) => {
     else if (item.presentPercentage >= 75) statusColor = '#FFCE56'
 
     return (
-        <View
+        <Pressable
             style={[
-                styles.card,
-                { width: SCREEN_WIDTH - 40, marginHorizontal: 0 },
+                styles.analysisPressable,
+                {
+                    marginHorizontal: 0,
+                },
             ]}
+            onPressIn={onPressIn}
         >
-            <Text style={styles.courseTitle}>
-                {item.courseCode} - {item.courseName}
-            </Text>
+            <View
+                style={[
+                    styles.card,
+                    {
+                        width: 300,
+                        marginHorizontal: 0,
+                        backgroundColor: '#f1f1f1',
+                        rounded: 12,
+                        minHeight: 380,
+                        maxHeight: 380,
+                    },
+                ]}
+            >
+                <Text style={styles.courseTitle}>
+                    Course Code: {item.courseCode}
+                </Text>
 
-            <View style={styles.pieContainer}>
-                {!hasData ? (
-                    <NoPie />
-                ) : (
-                    <>
-                        <PieChart
-                            data={pieData}
-                            donut
-                            radius={80}
-                            innerRadius={50}
-                            showText
-                            textSize={12}
-                            textColor="black"
-                        />
+                <View style={styles.pieContainer}>
+                    {!hasData ? (
+                        <NoPie />
+                    ) : (
+                        <>
+                            <PieChart
+                                data={pieData}
+                                donut
+                                radius={80}
+                                innerRadius={0}
+                                showText
+                                textSize={12}
+                                textColor="black"
+                            />
 
-                        <View style={styles.legendContainer}>
-                            <View style={styles.legendRow}>
-                                <View
-                                    style={[
-                                        styles.dot,
-                                        { backgroundColor: '#4BC0C0' },
-                                    ]}
-                                />
-                                <Text>Present: {item.present}</Text>
+                            <View style={styles.legendContainer}>
+                                <View style={styles.legendRow}>
+                                    <View
+                                        style={[
+                                            styles.dot,
+                                            { backgroundColor: '#4BC0C0' },
+                                        ]}
+                                    />
+                                    <Text>Present: {item.present}</Text>
+                                </View>
+                                <View style={styles.legendRow}>
+                                    <View
+                                        style={[
+                                            styles.dot,
+                                            { backgroundColor: '#FFCE56' },
+                                        ]}
+                                    />
+                                    <Text>Medical: {item.medical}</Text>
+                                </View>
+                                <View style={styles.legendRow}>
+                                    <View
+                                        style={[
+                                            styles.dot,
+                                            { backgroundColor: '#FF6384' },
+                                        ]}
+                                    />
+                                    <Text>Absent: {item.absent}</Text>
+                                </View>
                             </View>
-                            <View style={styles.legendRow}>
-                                <View
-                                    style={[
-                                        styles.dot,
-                                        { backgroundColor: '#FFCE56' },
-                                    ]}
-                                />
-                                <Text>Medical: {item.medical}</Text>
-                            </View>
-                            <View style={styles.legendRow}>
-                                <View
-                                    style={[
-                                        styles.dot,
-                                        { backgroundColor: '#FF6384' },
-                                    ]}
-                                />
-                                <Text>Absent: {item.absent}</Text>
-                            </View>
-                        </View>
 
-                        <Text style={styles.currentText}>
-                            Current:
-                            <Text
-                                style={[
-                                    styles.percentageBadge,
-                                    { backgroundColor: statusColor },
-                                ]}
-                            >
-                                {` ${Math.floor(item.presentPercentage)}% `}
+                            <Text style={styles.currentText}>
+                                Current:
+                                <Text
+                                    style={[
+                                        styles.percentageBadge,
+                                        { backgroundColor: statusColor },
+                                    ]}
+                                >
+                                    {` ${Math.floor(item.presentPercentage)}% `}
+                                </Text>
                             </Text>
-                        </Text>
-                    </>
-                )}
+                        </>
+                    )}
+                </View>
             </View>
-        </View>
+        </Pressable>
     )
 }
 
 export function Stats() {
     const [courseData, setCourseData] = useState([])
     const [loading, setLoading] = useState(true)
+    const [activeIndex, setActiveIndex] = useState(0)
+    const flatListRef = useRef(null)
+    const { user } = useAuth()
 
-    return <ComingSoon />
+    const fetchAttendance = useCallback(async () => {
+        setLoading(true)
+        try {
+            const API_URL = process.env.EXPO_PUBLIC_API_URL
+            const res = await fetch(`${API_URL}/api/attendance/report`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id,
+                },
+            })
+            const result = await res.json()
+            if (res.ok) {
+                const data = result?.data
+
+                const coursesList = data?.map((course) => {
+                    const totalPresent =
+                        course.present_total + course.medical_total
+                    const totalClassesHappened =
+                        course.present_total +
+                        course.absent_total +
+                        course.medical_total
+
+                    const presentPercentage =
+                        totalClassesHappened === 0
+                            ? 0
+                            : (totalPresent / totalClassesHappened) * 100
+                    // Calculate the minimum lectures to attend to maintain 75% attendance using the total number of classes , total present classes and total absent classes
+                    const minimumLecturesToAttend =
+                        presentPercentage >= 75
+                            ? 0
+                            : totalClassesHappened === 0
+                              ? course.total_classes
+                              : Math.ceil(
+                                    (0.75 *
+                                        (totalClassesHappened - totalPresent)) /
+                                        0.25
+                                )
+
+                    const remainingClasses =
+                        course.total_classes - totalClassesHappened
+                    const maximumAchievableAttendance =
+                        ((totalPresent + remainingClasses) /
+                            course.total_classes) *
+                        100
+
+                    return {
+                        courseCode: course.course_code,
+                        courseName: course.courses.course_name,
+                        present: course.present_total,
+                        absent: course.absent_total,
+                        medical: course.medical_total,
+                        totalClasses: course.total_classes,
+                        presentPercentage:
+                            totalClassesHappened === 0
+                                ? 0
+                                : (totalPresent / totalClassesHappened) * 100,
+                        minimumLecturesToAttend: minimumLecturesToAttend,
+                        maximumAchievableAttendance:
+                            maximumAchievableAttendance,
+                    }
+                })
+
+                setCourseData(coursesList)
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to fetch attendance data')
+        } finally {
+            setLoading(false)
+        }
+    }, [user])
+
+    const navigation = useNavigation()
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await getMockAttendanceData()
-                setCourseData(res.data)
-                setLoading(false)
-            } catch (error) {
-                Alert.alert('Error', error.message)
-                setLoading(false)
-            }
-        }
-        fetchData()
-    }, [])
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchAttendance()
+        })
+
+        return unsubscribe
+    }, [navigation, fetchAttendance])
+
+    useEffect(() => {
+        if (!courseData.length) return
+
+        const timer = setInterval(() => {
+            setActiveIndex((prev) => {
+                const nextIndex = prev + 1
+                const targetIndex =
+                    nextIndex >= courseData.length ? 0 : nextIndex
+
+                flatListRef.current?.scrollToIndex({
+                    index: targetIndex,
+                    animated: true,
+                })
+
+                return targetIndex
+            })
+        }, 3000)
+
+        return () => clearInterval(timer)
+    }, [courseData.length])
 
     const getOrdinalSuffix = (n) => {
         const s = ['th', 'st', 'nd', 'rd']
@@ -266,38 +401,22 @@ export function Stats() {
         month: 'long',
     })} ${getOrdinalSuffix(date.getDate())}`
 
-    const mainBarData = courseData.map((item) => ({
+    const attendanceSummaryData = courseData?.map((item) => ({
         value: item.presentPercentage,
         label: item.courseCode,
-        frontColor: item.presentPercentage >= 75 ? '#4BC0C0' : '#FF6384',
-        topLabelComponent: () => (
-            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>
-                {item.presentPercentage}%
-            </Text>
-        ),
+        color: item.presentPercentage >= 75 ? '#4BC0C0' : '#FF6384',
     }))
 
-    const minClassesData = courseData.map((item) => ({
+    const minClassesSummaryData = courseData?.map((item) => ({
         value: item.minimumLecturesToAttend,
         label: item.courseCode,
-        frontColor: '#36A2EB',
-        topLabelComponent: () => (
-            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>
-                {item.minimumLecturesToAttend}
-            </Text>
-        ),
+        color: '#36A2EB',
     }))
 
-    const maxAchievableData = courseData.map((item) => ({
+    const maxAchievableSummaryData = courseData?.map((item) => ({
         value: item.maximumAchievableAttendance,
         label: item.courseCode,
-        frontColor:
-            item.maximumAchievableAttendance >= 75 ? '#4BC0C0' : '#FF6384',
-        topLabelComponent: () => (
-            <Text style={{ color: 'black', fontSize: 10, marginBottom: 2 }}>
-                {item.maximumAchievableAttendance}%
-            </Text>
-        ),
+        color: item.maximumAchievableAttendance >= 75 ? '#4BC0C0' : '#FF6384',
     }))
 
     if (loading) return <StatsSkeleton />
@@ -306,113 +425,88 @@ export function Stats() {
         <ScrollView
             style={styles.container}
             contentContainerStyle={{ paddingBottom: 40 }}
+            // nestedScrollEnabled={true}
         >
             <View style={styles.header}>
                 <Text style={styles.dateText}>Today, {formattedDate}</Text>
             </View>
 
             <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Attendance Report</Text>
-                <View style={{ marginTop: 20 }}>
-                    <BarChart
-                        data={mainBarData}
-                        horizontal
-                        barWidth={22}
-                        spacing={24}
-                        barBorderRadius={4}
-                        showValuesAsTopLabel={false}
-                        yAxisThickness={0}
-                        xAxisThickness={1}
-                        xAxisType="dashed"
-                        noOfSections={4}
-                        maxValue={100}
-                        width={SCREEN_WIDTH - 90}
-                        yAxisLabelWidth={50}
-                        initialSpacing={10}
-                        showReferenceLine1
-                        referenceLine1Position={75}
-                        referenceLine1Config={{
-                            color: 'red',
-                            dashWidth: 2,
-                            dashGap: 3,
-                        }}
-                    />
-                </View>
-                <Text
-                    style={{
-                        textAlign: 'center',
-                        color: 'red',
-                        fontSize: 10,
-                        marginTop: 5,
-                    }}
-                >
-                    --- 75% Threshold ---
-                </Text>
+                <Text style={styles.sectionTitle}>Attendance by Course</Text>
+                <SummaryBar
+                    data={attendanceSummaryData}
+                    maxValue={100}
+                    valueFormatter={(value) => `${Math.round(value)}%`}
+                />
             </View>
 
             <View
                 style={[
                     styles.card,
-                    { padding: 0, paddingVertical: 20, overflow: 'hidden' },
+                    {
+                        padding: 0,
+                        paddingVertical: 20,
+                        overflow: 'hidden',
+                    },
                 ]}
             >
                 <Text style={styles.sectionTitle}>Analysis</Text>
                 <FlatList
+                    ref={flatListRef}
                     data={courseData}
-                    keyExtractor={(item) => item.courseCode}
+                    keyExtractor={(item, index) =>
+                        `${item.courseCode}-${index}`
+                    }
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
-                    renderItem={({ item }) => <AnalysisCard item={item} />}
-                    contentContainerStyle={{ alignItems: 'center' }}
+                    snapToAlignment="center"
+                    decelerationRate="fast"
+                    contentContainerStyle={{
+                        paddingHorizontal: 8,
+                        paddingBottom: 8,
+                    }}
+                    onMomentumScrollEnd={(event) => {
+                        const contentOffsetX = event.nativeEvent.contentOffset.x
+                        const viewSize =
+                            event.nativeEvent.layoutMeasurement.width
+                        const index = Math.round(contentOffsetX / viewSize)
+                        setActiveIndex(index)
+                    }}
+                    renderItem={({ item }) => (
+                        <View style={styles.analysisItem}>
+                            <AnalysisCard item={item} />
+                        </View>
+                    )}
                 />
-                <Text style={styles.swipeHint}>Swipe for other courses</Text>
             </View>
 
             <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Predictions</Text>
+                <Text style={styles.sectionTitle, { marginBottom: 20, fontSize: 18, fontWeight: 'bold', color: '#1f2937' }}>Predictions</Text>
 
                 <Text style={styles.subTitle}>
                     Minimum classes to maintain 75%
                 </Text>
-                <View style={{ marginBottom: 30 }}>
-                    <BarChart
-                        data={minClassesData}
-                        horizontal
-                        barWidth={22}
-                        spacing={24}
-                        barBorderRadius={4}
-                        frontColor="#36A2EB"
-                        width={SCREEN_WIDTH - 90}
-                        yAxisLabelWidth={50}
-                        maxValue={20}
-                        noOfSections={4}
-                        yAxisThickness={0}
-                        xAxisThickness={1}
-                    />
-                </View>
+                <SummaryBar
+                style={{ marginBottom: 20 }}
+                    data={minClassesSummaryData}
+                    maxValue={() => {
+                        const maxValue = Math.max(
+                            ...minClassesSummaryData.map((item) => item.value)
+                        )
+                        return maxValue > 0 ? maxValue : 1
+                    }}
+                    valueFormatter={(value) => `${value}`}
+                />
 
                 <Text style={styles.subTitle}>
                     Maximum achievable attendance
                 </Text>
-                <View>
-                    <BarChart
-                        data={maxAchievableData}
-                        horizontal
-                        barWidth={22}
-                        spacing={24}
-                        barBorderRadius={4}
-                        width={SCREEN_WIDTH - 90}
-                        yAxisLabelWidth={50}
-                        maxValue={100}
-                        noOfSections={4}
-                        showReferenceLine1
-                        referenceLine1Position={75}
-                        referenceLine1Config={{ color: 'red', dashWidth: 2 }}
-                        yAxisThickness={0}
-                        xAxisThickness={1}
-                    />
-                </View>
+                <SummaryBar
+                    data={maxAchievableSummaryData}
+                    maxValue={100}
+                    valueFormatter={(value) => `${Math.round(value)}%`}
+                />
             </View>
         </ScrollView>
     )
@@ -438,12 +532,102 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         marginBottom: 20,
-        elevation: 2,
+        elevation: 1,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         alignItems: 'center',
+    },
+    analysisItem: {
+        width: CARD_WIDTH,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+    },
+    analysisWrapper: {
+        width: CARD_WIDTH,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    analysisPressable: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    analysisCardContent: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'center',
+    },
+    summaryBarList: {
+        width: '100%',
+        gap: 10,
+        marginVertical: 8,
+    },
+    summaryBarRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        gap: 8,
+    },
+    summaryBarLabelBox: {
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        flexShrink: 0,
+    },
+    summaryBarLabel: {
+        color: '#111827',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    summaryBarTrack: {
+        height: 28,
+        backgroundColor: '#e5e7eb',
+        borderRadius: 999,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    summaryBarFill: {
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        paddingRight: 10,
+        borderRadius: 999,
+    },
+    summaryBarFillText: {
+        fontSize: 11,
+        fontWeight: '600',
+        zIndex: 2,
+    },
+    zeroCircle: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2,
+    },
+    zeroCircleText: {
+        color: '#3a3a3a',
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    summaryBarValue: {
+        fontSize: 11,
+        fontWeight: '600',
+        zIndex: 2,
+    },
+    chartContainer: {
+        // alignItems: 'center',
+        // justifyContent: 'center',
+        height: 350,
+        width: '100%',
     },
     sectionTitle: {
         fontSize: 18,
@@ -506,11 +690,25 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         overflow: 'hidden',
     },
-    swipeHint: {
+    chartLabel: {
+        color: '#111827',
+        fontSize: 10,
+        marginBottom: 2,
+    },
+    axisLabel: {
+        fontSize: 11.2,
+        color: '#3a3a3a',
+    },
+    barValue: {
+        color: '#3a3a3a',
+        fontSize: 8,
+        fontWeight: '600',
+    },
+    chartHint: {
         fontSize: 12,
-        color: '#9ca3af',
+        color: '#3a3a3a',
         marginTop: 10,
-        fontStyle: 'italic',
+        textAlign: 'center',
     },
     skeletonContainer: {
         padding: 20,

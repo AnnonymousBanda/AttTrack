@@ -46,7 +46,7 @@ const AuthProvider = ({ children }) => {
             const result = await res.json()
 
             if (result.status === 200) {
-                setUser(result.data.user)
+                setUser(result.data)
             }
 
             if (!res.ok) {

@@ -95,7 +95,7 @@ const Register = ({ route }) => {
                     last_name:
                         displayName.split(' ')?.slice(1)?.join(' ') || '',
                     branch: selectedBranch,
-                    batch: String(batchYear),
+                    batch: batchYear,
                     image_url: '',
                     roll_number: rollNumber,
                     semester: parseInt(semester),

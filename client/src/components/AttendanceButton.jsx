@@ -9,21 +9,66 @@ import {
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useAuth } from '../context/auth.context'
 
+const getLectures = async (id, date) => {
+    try {
+        const API_URL = process.env.EXPO_PUBLIC_API_URL
+
+        const response = await fetch(`${API_URL}/api/lectures?date=${date}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-user-id': id,
+            },
+        })
+
+        const result = await response.json()
+
+        if (response.status !== 200) {
+            return {
+                status: response.status,
+                message: result.message || 'Failed to fetch',
+            }
+        }
+
+        const lectures = result.data.map((lec) => {
+            return {
+                id: lec.id,
+                courseCode: lec.courseCode,
+                courseName: lec.courseName,
+                lecture_date: date,
+                from: lec.from,
+                to: lec.to,
+                status: lec.status,
+            }
+        })
+
+        return {
+            status: 200,
+            message: 'Lectures fetched successfully',
+            data: lectures,
+        }
+    } catch (error) {
+        return { status: 500, message: 'Internal Server Error' }
+    }
+}
+
 export function AttendanceButton({ lecture, lectures, setLectures }) {
     const [status, setStatus] = useState(lecture.status)
     const id = lecture.id
     const [loading, setLoading] = useState(null)
     const { user } = useAuth()
 
-    const formatToTimeString = (timeStr) => {
-        if (!timeStr) return '00:00:00'
-        let [hours, minutes] = timeStr.split(':')
+    const normalizeTime = (value) => {
+        if (!value) return ''
+        const match = String(value).match(/^(\d{1,2}):(\d{2})(?::\d{2})?/)
+        if (!match) return String(value).trim()
+        return `${match[1].padStart(2, '0')}:${match[2]}`
+    }
 
-        const hh = hours.padStart(2, '0')
-        const mm = minutes.padStart(2, '0')
-        const ss = '00'
-
-        return `${hh}:${mm}:${ss}.000Z`
+    const getDateKey = (value) => {
+        if (!value) return ''
+        if (value instanceof Date) return value.toISOString().split('T')[0]
+        return String(value).split('T')[0].split(' ')[0]
     }
 
     const handleClick = async (newStatus) => {
@@ -31,17 +76,15 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
 
         if (!id) {
             try {
+                const lectureDate = getDateKey(lecture.lecture_date)
+                const normalizedStart = normalizeTime(lecture.from)
+                const normalizedEnd = normalizeTime(lecture.to)
+
                 const formattedLecture = {
                     course_code: lecture.courseCode,
-                    lecture_date: new Date(
-                        lecture.lecture_date.split('T')[0]
-                    ).toISOString(),
-                    start_time: `${
-                        lecture.lecture_date.split('T')[0]
-                    } ${formatToTimeString(lecture.from)}`,
-                    end_time: `${
-                        lecture.lecture_date.split('T')[0]
-                    } ${formatToTimeString(lecture.to)}`,
+                    lecture_date: lectureDate,
+                    start_time: normalizedStart,
+                    end_time: normalizedEnd,
                     status: newStatus,
                 }
 
@@ -62,41 +105,9 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
                     )
                 }
 
-                const data = result.data
+                const latestLectures = await getLectures(user?.id, lectureDate)
 
-                const updatedLectures = data.map((lec) => {
-                    return {
-                        id: lec.id,
-                        courseCode: lec.course_code,
-                        courseName: lec.courses.course_name,
-                        lecture_date: lec.lecture_date,
-                        from: lec.start_time.split('T')[1].slice(0, 5),
-                        to: lec.end_time.split('T')[1].slice(0, 5),
-                        status: lec.status,
-                    }
-                })
-
-                const updatedLecture = updatedLectures.find(
-                    (lec) =>
-                        lec.courseCode === formattedLecture.course_code &&
-                        lec.lecture_date === formattedLecture.lecture_date &&
-                        lec.from ===
-                            formattedLecture.start_time
-                                .split(' ')[1]
-                                .slice(0, 5)
-                )
-
-                const latestLectures = lectures.map((lec) =>
-                    lec.courseCode === formattedLecture.course_code &&
-                    lec.lecture_date.split('T')[0] ===
-                        formattedLecture.lecture_date.split('T')[0] &&
-                    lec.from ===
-                        formattedLecture.start_time.split(' ')[1].slice(0, 5)
-                        ? updatedLecture
-                        : lec
-                )
-
-                setLectures(latestLectures)
+                setLectures(latestLectures?.data)
                 setStatus(newStatus)
             } catch (error) {
                 Alert.alert('Error', error.message)
@@ -133,7 +144,9 @@ export function AttendanceButton({ lecture, lectures, setLectures }) {
                     lec.id === id ? { ...lec, status: newStatus } : lec
                 )
 
+                // console.log(lectures)
                 setLectures(latestLectures)
+                // console.log("affter:" ,lectures)
                 setStatus(newStatus)
             } catch (error) {
                 Alert.alert('Error', error.message)
