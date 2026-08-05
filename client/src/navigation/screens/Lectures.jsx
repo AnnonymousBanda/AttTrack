@@ -10,6 +10,7 @@ import { AttendanceButton, CancelButton } from '../../components'
 import { LecturesSkeleton } from '../../skeletons'
 import { useAuth } from '../../context/auth.context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
 
 export function Lectures() {
     const { user } = useAuth()
@@ -23,6 +24,73 @@ export function Lectures() {
             dateString: today.toISOString(),
         }
     })
+
+    const getLectures = async () => {
+        if (user) {
+            try {
+                setLoading(true)
+
+                const date = selectedDay.dateString
+                const API_URL = process.env.EXPO_PUBLIC_API_URL
+
+                const response = await fetch(
+                    `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-id': user.id,
+                        },
+                    }
+                )
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Error fetching lectures for ${date.split('T')[0]}`
+                    )
+                }
+
+                const result = await response.json()
+
+                const lectures = result.data.map((lec) => {
+                    return {
+                        id: lec.id,
+                        courseCode: lec.courseCode,
+                        courseName: lec.courseName,
+                        lecture_date: date,
+                        from: lec.from,
+                        to: lec.to,
+                        status: lec.status,
+                    }
+                })
+
+                setLectures(lectures || [])
+            } catch (error) {
+                throw new Error('Failed to fetch lectures')
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    const navigation = useNavigation()
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            setSelectedDay(() => {
+                const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+                const today = new Date()
+                return {
+                    day: days[today.getDay()],
+                    date: today,
+                    dateString: today.toISOString(),
+                }
+            })
+            getLectures()
+        })
+
+        return unsubscribe
+    }, [navigation, getLectures])
 
     const [daysDate] = useState(() => {
         const today = new Date()
@@ -44,54 +112,6 @@ export function Lectures() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const getLectures = async () => {
-            if (user) {
-                try {
-                    setLoading(true)
-
-                    const date = selectedDay.dateString
-                    const API_URL = process.env.EXPO_PUBLIC_API_URL
-
-                    const response = await fetch(
-                        `${API_URL}/api/lectures?date=${date.split('T')[0]}`,
-                        {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'x-user-id': user.id,
-                            },
-                        }
-                    )
-
-                    if (!response.ok) {
-                        throw new Error(
-                            `Error fetching lectures for ${date.split('T')[0]}`
-                        )
-                    }
-
-                    const result = await response.json()
-
-                    const lectures = result.data.map((lec) => {
-                        return {
-                            id: lec.id,
-                            courseCode: lec.courseCode,
-                            courseName: lec.courseName,
-                            lecture_date: date,
-                            from: lec.from,
-                            to: lec.to,
-                            status: lec.status,
-                        }
-                    })
-
-                    setLectures(lectures || [])
-                } catch (error) {
-                    throw new Error('Failed to fetch lectures')
-                } finally {
-                    setLoading(false)
-                }
-            }
-        }
-
         getLectures()
     }, [selectedDay])
 

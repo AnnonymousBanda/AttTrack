@@ -15,6 +15,7 @@ import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { AttendanceButton, CancelButton, AddButton } from '../../components'
 import { HomeSkeleton } from '../../skeletons'
 import { useAuth } from '../../context'
+import { useNavigation } from '@react-navigation/native'
 
 const getLectures = async (id) => {
     try {
@@ -81,24 +82,36 @@ export function Home() {
 
     const { user } = useAuth()
 
-    useEffect(() => {
-        const fetch = async () => {
-            if (user) {
-                try {
-                    let res = await getLectures(user?.id)
+    const fetch = async () => {
+        if (user) {
+            setLoading(true)
+            try {
+                let res = await getLectures(user?.id)
 
-                    if (res.status !== 200) throw new Error(res.message)
+                if (res.status !== 200) throw new Error(res.message)
 
-                    setClasses(res.data)
-                } catch (error) {
-                    Alert.alert('Error', error.message)
-                } finally {
-                    setLoading(false)
-                }
+                setClasses(res.data)
+            } catch (error) {
+                Alert.alert('Error', error.message)
+            } finally {
+                setLoading(false)
             }
         }
+    }
+
+    useEffect(() => {
         fetch()
     }, [user])
+
+    const navigation = useNavigation()
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetch()
+        })
+
+        return unsubscribe
+    }, [navigation, fetch])
 
     useEffect(() => {
         const hour = new Date().getHours()
