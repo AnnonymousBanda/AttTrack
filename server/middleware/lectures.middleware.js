@@ -155,23 +155,30 @@ function extractTimetable(json) {
         const slotCourseCodes = label.split(' ').slice(1, 8)
 
         weekdays.forEach((day, dayIndex) => {
-            const code = slotCourseCodes[dayIndex]
-            if (!code) return
+            const codes = slotCourseCodes[dayIndex]
+            if (!codes) return
 
-            const row = rows.find((r) => r.c[1] && r.c[1].v === code)
-            if (!row) return
+            codes
+                .split(',')
+                .map((code) => code.trim())
+                .filter(Boolean)
+                .forEach((code) => {
+                    const row = rows.find(
+                        (r) => r.c[1] && String(r.c[1].v).trim() === code
+                    )
+                    if (!row) return
 
-            const courseName = row.c[0]?.v
+                    const courseName = row.c[0]?.v
+                    if (!courseName) return
 
-            if (!courseName) return
-
-            lectures[day].push({
-                courseCode: code,
-                courseName: courseName,
-                from,
-                to,
-                status: null,
-            })
+                    lectures[day].push({
+                        courseCode: code,
+                        courseName: courseName,
+                        from,
+                        to,
+                        status: null,
+                    })
+                })
         })
     })
 
