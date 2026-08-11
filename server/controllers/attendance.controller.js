@@ -172,7 +172,11 @@ const getAttendanceReport = catchAsync(async (req, res) => {
             where: {
                 user_id: id,
                 courses: {
-                    semester: semester,
+                    course_branches: {
+                        some: {
+                            semester: semester,
+                        },
+                    },
                 },
             },
             include: {

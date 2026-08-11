@@ -116,7 +116,7 @@ const registerUser = catchAsync(async (req, res) => {
             },
         })
 
-        const courses = await tx.courses.findMany({
+        const courses = await tx.course_branches.findMany({
             where: {
                 branch: branch,
                 semester: semester,
@@ -195,7 +195,11 @@ const modifySemester = catchAsync(async (req, res) => {
             user_id: id,
 
             courses: {
-                semester: new_semester,
+                course_branches: {
+                    some: {
+                        semester: new_semester,
+                    },
+                },
             },
         },
         include: {
@@ -217,7 +221,7 @@ const modifySemester = catchAsync(async (req, res) => {
     }
 
     await prisma.$transaction(async (tx) => {
-        const courses = await tx.courses.findMany({
+        const courses = await tx.course_branches.findMany({
             where: {
                 branch: branch,
                 semester: new_semester,
@@ -262,7 +266,7 @@ const resetSemester = catchAsync(async (req, res) => {
     const { id, semester, branch } = req.user
 
     await prisma.$transaction(async (tx) => {
-        const courses = await tx.courses.findMany({
+        const courses = await tx.course_branches.findMany({
             where: { branch, semester },
         })
 

@@ -38,7 +38,7 @@ model attendance_logs {
   courses      courses @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_course")
   users        users   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_logs_user")
 
-  @@unique([user_id, course_code, start_time,status], map: "unique_log_entry")
+  @@unique([user_id, course_code, start_time, status], map: "unique_log_entry")
   @@index([course_code], map: "fk_logs_course")
   @@index([user_id, lecture_date], map: "idx_user_lecture_date")
 }
@@ -62,11 +62,21 @@ model course_attendance {
 model courses {
   course_code String @id @db.VarChar(7)
   course_name String @db.VarChar(150)
-  semester    Int    @db.UnsignedTinyInt
-  branch      String @db.VarChar(100)
   
   attendance_logs   attendance_logs[]
   course_attendance course_attendance[]
+  course_branches   course_branches[]
+}
+
+model course_branches {
+  course_code String @db.VarChar(7)
+  branch      String @db.VarChar(100)
+  semester    Int    @db.UnsignedTinyInt
+
+  courses     courses @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_course_branches_course")
+
+  @@id([course_code, branch])
+  @@index([course_code], map: "fk_course_branches_course")
 }
 
 enum attendance_logs_status {

@@ -38,7 +38,11 @@ const getDBLectures = catchAsync(async (req, res, next) => {
 
             lecture_date: finalLectureDate,
             courses: {
-                semester: semester,
+                course_branches: {
+                    some: {
+                        semester: semester,
+                    },
+                },
             },
         },
         include: {
