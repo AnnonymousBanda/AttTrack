@@ -33,6 +33,11 @@ export type course_attendance = $Result.DefaultSelection<Prisma.$course_attendan
  * 
  */
 export type courses = $Result.DefaultSelection<Prisma.$coursesPayload>
+/**
+ * Model course_branches
+ * 
+ */
+export type course_branches = $Result.DefaultSelection<Prisma.$course_branchesPayload>
 
 /**
  * Enums
@@ -213,6 +218,16 @@ export class PrismaClient<
     * ```
     */
   get courses(): Prisma.coursesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.course_branches`: Exposes CRUD operations for the **course_branches** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Course_branches
+    * const course_branches = await prisma.course_branches.findMany()
+    * ```
+    */
+  get course_branches(): Prisma.course_branchesDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -663,7 +678,8 @@ export namespace Prisma {
     users: 'users',
     attendance_logs: 'attendance_logs',
     course_attendance: 'course_attendance',
-    courses: 'courses'
+    courses: 'courses',
+    course_branches: 'course_branches'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -679,7 +695,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "users" | "attendance_logs" | "course_attendance" | "courses"
+      modelProps: "users" | "attendance_logs" | "course_attendance" | "courses" | "course_branches"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -947,6 +963,72 @@ export namespace Prisma {
           }
         }
       }
+      course_branches: {
+        payload: Prisma.$course_branchesPayload<ExtArgs>
+        fields: Prisma.course_branchesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.course_branchesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.course_branchesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>
+          }
+          findFirst: {
+            args: Prisma.course_branchesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.course_branchesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>
+          }
+          findMany: {
+            args: Prisma.course_branchesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>[]
+          }
+          create: {
+            args: Prisma.course_branchesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>
+          }
+          createMany: {
+            args: Prisma.course_branchesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.course_branchesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>
+          }
+          update: {
+            args: Prisma.course_branchesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>
+          }
+          deleteMany: {
+            args: Prisma.course_branchesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.course_branchesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.course_branchesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$course_branchesPayload>
+          }
+          aggregate: {
+            args: Prisma.Course_branchesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCourse_branches>
+          }
+          groupBy: {
+            args: Prisma.course_branchesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Course_branchesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.course_branchesCountArgs<ExtArgs>
+            result: $Utils.Optional<Course_branchesCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1074,6 +1156,7 @@ export namespace Prisma {
     attendance_logs?: attendance_logsOmit
     course_attendance?: course_attendanceOmit
     courses?: coursesOmit
+    course_branches?: course_branchesOmit
   }
 
   /* Types for Logging */
@@ -1196,11 +1279,13 @@ export namespace Prisma {
   export type CoursesCountOutputType = {
     attendance_logs: number
     course_attendance: number
+    course_branches: number
   }
 
   export type CoursesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     attendance_logs?: boolean | CoursesCountOutputTypeCountAttendance_logsArgs
     course_attendance?: boolean | CoursesCountOutputTypeCountCourse_attendanceArgs
+    course_branches?: boolean | CoursesCountOutputTypeCountCourse_branchesArgs
   }
 
   // Custom InputTypes
@@ -1226,6 +1311,13 @@ export namespace Prisma {
    */
   export type CoursesCountOutputTypeCountCourse_attendanceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: course_attendanceWhereInput
+  }
+
+  /**
+   * CoursesCountOutputType without action
+   */
+  export type CoursesCountOutputTypeCountCourse_branchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: course_branchesWhereInput
   }
 
 
@@ -4275,70 +4367,40 @@ export namespace Prisma {
 
   export type AggregateCourses = {
     _count: CoursesCountAggregateOutputType | null
-    _avg: CoursesAvgAggregateOutputType | null
-    _sum: CoursesSumAggregateOutputType | null
     _min: CoursesMinAggregateOutputType | null
     _max: CoursesMaxAggregateOutputType | null
-  }
-
-  export type CoursesAvgAggregateOutputType = {
-    semester: number | null
-  }
-
-  export type CoursesSumAggregateOutputType = {
-    semester: number | null
   }
 
   export type CoursesMinAggregateOutputType = {
     course_code: string | null
     course_name: string | null
-    semester: number | null
-    branch: string | null
   }
 
   export type CoursesMaxAggregateOutputType = {
     course_code: string | null
     course_name: string | null
-    semester: number | null
-    branch: string | null
   }
 
   export type CoursesCountAggregateOutputType = {
     course_code: number
     course_name: number
-    semester: number
-    branch: number
     _all: number
   }
 
 
-  export type CoursesAvgAggregateInputType = {
-    semester?: true
-  }
-
-  export type CoursesSumAggregateInputType = {
-    semester?: true
-  }
-
   export type CoursesMinAggregateInputType = {
     course_code?: true
     course_name?: true
-    semester?: true
-    branch?: true
   }
 
   export type CoursesMaxAggregateInputType = {
     course_code?: true
     course_name?: true
-    semester?: true
-    branch?: true
   }
 
   export type CoursesCountAggregateInputType = {
     course_code?: true
     course_name?: true
-    semester?: true
-    branch?: true
     _all?: true
   }
 
@@ -4380,18 +4442,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: CoursesAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: CoursesSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: CoursesMinAggregateInputType
@@ -4422,8 +4472,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: CoursesCountAggregateInputType | true
-    _avg?: CoursesAvgAggregateInputType
-    _sum?: CoursesSumAggregateInputType
     _min?: CoursesMinAggregateInputType
     _max?: CoursesMaxAggregateInputType
   }
@@ -4431,11 +4479,7 @@ export namespace Prisma {
   export type CoursesGroupByOutputType = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     _count: CoursesCountAggregateOutputType | null
-    _avg: CoursesAvgAggregateOutputType | null
-    _sum: CoursesSumAggregateOutputType | null
     _min: CoursesMinAggregateOutputType | null
     _max: CoursesMaxAggregateOutputType | null
   }
@@ -4457,10 +4501,9 @@ export namespace Prisma {
   export type coursesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     course_code?: boolean
     course_name?: boolean
-    semester?: boolean
-    branch?: boolean
     attendance_logs?: boolean | courses$attendance_logsArgs<ExtArgs>
     course_attendance?: boolean | courses$course_attendanceArgs<ExtArgs>
+    course_branches?: boolean | courses$course_branchesArgs<ExtArgs>
     _count?: boolean | CoursesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["courses"]>
 
@@ -4469,14 +4512,13 @@ export namespace Prisma {
   export type coursesSelectScalar = {
     course_code?: boolean
     course_name?: boolean
-    semester?: boolean
-    branch?: boolean
   }
 
-  export type coursesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"course_code" | "course_name" | "semester" | "branch", ExtArgs["result"]["courses"]>
+  export type coursesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"course_code" | "course_name", ExtArgs["result"]["courses"]>
   export type coursesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     attendance_logs?: boolean | courses$attendance_logsArgs<ExtArgs>
     course_attendance?: boolean | courses$course_attendanceArgs<ExtArgs>
+    course_branches?: boolean | courses$course_branchesArgs<ExtArgs>
     _count?: boolean | CoursesCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -4485,12 +4527,11 @@ export namespace Prisma {
     objects: {
       attendance_logs: Prisma.$attendance_logsPayload<ExtArgs>[]
       course_attendance: Prisma.$course_attendancePayload<ExtArgs>[]
+      course_branches: Prisma.$course_branchesPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       course_code: string
       course_name: string
-      semester: number
-      branch: string
     }, ExtArgs["result"]["courses"]>
     composites: {}
   }
@@ -4833,6 +4874,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     attendance_logs<T extends courses$attendance_logsArgs<ExtArgs> = {}>(args?: Subset<T, courses$attendance_logsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$attendance_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     course_attendance<T extends courses$course_attendanceArgs<ExtArgs> = {}>(args?: Subset<T, courses$course_attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$course_attendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    course_branches<T extends courses$course_branchesArgs<ExtArgs> = {}>(args?: Subset<T, courses$course_branchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4864,8 +4906,6 @@ export namespace Prisma {
   interface coursesFieldRefs {
     readonly course_code: FieldRef<"courses", 'String'>
     readonly course_name: FieldRef<"courses", 'String'>
-    readonly semester: FieldRef<"courses", 'Int'>
-    readonly branch: FieldRef<"courses", 'String'>
   }
     
 
@@ -5262,6 +5302,30 @@ export namespace Prisma {
   }
 
   /**
+   * courses.course_branches
+   */
+  export type courses$course_branchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    where?: course_branchesWhereInput
+    orderBy?: course_branchesOrderByWithRelationInput | course_branchesOrderByWithRelationInput[]
+    cursor?: course_branchesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Course_branchesScalarFieldEnum | Course_branchesScalarFieldEnum[]
+  }
+
+  /**
    * courses without action
    */
   export type coursesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5277,6 +5341,952 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: coursesInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model course_branches
+   */
+
+  export type AggregateCourse_branches = {
+    _count: Course_branchesCountAggregateOutputType | null
+    _avg: Course_branchesAvgAggregateOutputType | null
+    _sum: Course_branchesSumAggregateOutputType | null
+    _min: Course_branchesMinAggregateOutputType | null
+    _max: Course_branchesMaxAggregateOutputType | null
+  }
+
+  export type Course_branchesAvgAggregateOutputType = {
+    semester: number | null
+  }
+
+  export type Course_branchesSumAggregateOutputType = {
+    semester: number | null
+  }
+
+  export type Course_branchesMinAggregateOutputType = {
+    course_code: string | null
+    branch: string | null
+    semester: number | null
+  }
+
+  export type Course_branchesMaxAggregateOutputType = {
+    course_code: string | null
+    branch: string | null
+    semester: number | null
+  }
+
+  export type Course_branchesCountAggregateOutputType = {
+    course_code: number
+    branch: number
+    semester: number
+    _all: number
+  }
+
+
+  export type Course_branchesAvgAggregateInputType = {
+    semester?: true
+  }
+
+  export type Course_branchesSumAggregateInputType = {
+    semester?: true
+  }
+
+  export type Course_branchesMinAggregateInputType = {
+    course_code?: true
+    branch?: true
+    semester?: true
+  }
+
+  export type Course_branchesMaxAggregateInputType = {
+    course_code?: true
+    branch?: true
+    semester?: true
+  }
+
+  export type Course_branchesCountAggregateInputType = {
+    course_code?: true
+    branch?: true
+    semester?: true
+    _all?: true
+  }
+
+  export type Course_branchesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which course_branches to aggregate.
+     */
+    where?: course_branchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of course_branches to fetch.
+     */
+    orderBy?: course_branchesOrderByWithRelationInput | course_branchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: course_branchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` course_branches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` course_branches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned course_branches
+    **/
+    _count?: true | Course_branchesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Course_branchesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Course_branchesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Course_branchesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Course_branchesMaxAggregateInputType
+  }
+
+  export type GetCourse_branchesAggregateType<T extends Course_branchesAggregateArgs> = {
+        [P in keyof T & keyof AggregateCourse_branches]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCourse_branches[P]>
+      : GetScalarType<T[P], AggregateCourse_branches[P]>
+  }
+
+
+
+
+  export type course_branchesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: course_branchesWhereInput
+    orderBy?: course_branchesOrderByWithAggregationInput | course_branchesOrderByWithAggregationInput[]
+    by: Course_branchesScalarFieldEnum[] | Course_branchesScalarFieldEnum
+    having?: course_branchesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Course_branchesCountAggregateInputType | true
+    _avg?: Course_branchesAvgAggregateInputType
+    _sum?: Course_branchesSumAggregateInputType
+    _min?: Course_branchesMinAggregateInputType
+    _max?: Course_branchesMaxAggregateInputType
+  }
+
+  export type Course_branchesGroupByOutputType = {
+    course_code: string
+    branch: string
+    semester: number
+    _count: Course_branchesCountAggregateOutputType | null
+    _avg: Course_branchesAvgAggregateOutputType | null
+    _sum: Course_branchesSumAggregateOutputType | null
+    _min: Course_branchesMinAggregateOutputType | null
+    _max: Course_branchesMaxAggregateOutputType | null
+  }
+
+  type GetCourse_branchesGroupByPayload<T extends course_branchesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Course_branchesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Course_branchesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Course_branchesGroupByOutputType[P]>
+            : GetScalarType<T[P], Course_branchesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type course_branchesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    course_code?: boolean
+    branch?: boolean
+    semester?: boolean
+    courses?: boolean | coursesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["course_branches"]>
+
+
+
+  export type course_branchesSelectScalar = {
+    course_code?: boolean
+    branch?: boolean
+    semester?: boolean
+  }
+
+  export type course_branchesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"course_code" | "branch" | "semester", ExtArgs["result"]["course_branches"]>
+  export type course_branchesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    courses?: boolean | coursesDefaultArgs<ExtArgs>
+  }
+
+  export type $course_branchesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "course_branches"
+    objects: {
+      courses: Prisma.$coursesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      course_code: string
+      branch: string
+      semester: number
+    }, ExtArgs["result"]["course_branches"]>
+    composites: {}
+  }
+
+  type course_branchesGetPayload<S extends boolean | null | undefined | course_branchesDefaultArgs> = $Result.GetResult<Prisma.$course_branchesPayload, S>
+
+  type course_branchesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<course_branchesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Course_branchesCountAggregateInputType | true
+    }
+
+  export interface course_branchesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['course_branches'], meta: { name: 'course_branches' } }
+    /**
+     * Find zero or one Course_branches that matches the filter.
+     * @param {course_branchesFindUniqueArgs} args - Arguments to find a Course_branches
+     * @example
+     * // Get one Course_branches
+     * const course_branches = await prisma.course_branches.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends course_branchesFindUniqueArgs>(args: SelectSubset<T, course_branchesFindUniqueArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Course_branches that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {course_branchesFindUniqueOrThrowArgs} args - Arguments to find a Course_branches
+     * @example
+     * // Get one Course_branches
+     * const course_branches = await prisma.course_branches.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends course_branchesFindUniqueOrThrowArgs>(args: SelectSubset<T, course_branchesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Course_branches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {course_branchesFindFirstArgs} args - Arguments to find a Course_branches
+     * @example
+     * // Get one Course_branches
+     * const course_branches = await prisma.course_branches.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends course_branchesFindFirstArgs>(args?: SelectSubset<T, course_branchesFindFirstArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Course_branches that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {course_branchesFindFirstOrThrowArgs} args - Arguments to find a Course_branches
+     * @example
+     * // Get one Course_branches
+     * const course_branches = await prisma.course_branches.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends course_branchesFindFirstOrThrowArgs>(args?: SelectSubset<T, course_branchesFindFirstOrThrowArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Course_branches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {course_branchesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Course_branches
+     * const course_branches = await prisma.course_branches.findMany()
+     * 
+     * // Get first 10 Course_branches
+     * const course_branches = await prisma.course_branches.findMany({ take: 10 })
+     * 
+     * // Only select the `course_code`
+     * const course_branchesWithCourse_codeOnly = await prisma.course_branches.findMany({ select: { course_code: true } })
+     * 
+     */
+    findMany<T extends course_branchesFindManyArgs>(args?: SelectSubset<T, course_branchesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Course_branches.
+     * @param {course_branchesCreateArgs} args - Arguments to create a Course_branches.
+     * @example
+     * // Create one Course_branches
+     * const Course_branches = await prisma.course_branches.create({
+     *   data: {
+     *     // ... data to create a Course_branches
+     *   }
+     * })
+     * 
+     */
+    create<T extends course_branchesCreateArgs>(args: SelectSubset<T, course_branchesCreateArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Course_branches.
+     * @param {course_branchesCreateManyArgs} args - Arguments to create many Course_branches.
+     * @example
+     * // Create many Course_branches
+     * const course_branches = await prisma.course_branches.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends course_branchesCreateManyArgs>(args?: SelectSubset<T, course_branchesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Course_branches.
+     * @param {course_branchesDeleteArgs} args - Arguments to delete one Course_branches.
+     * @example
+     * // Delete one Course_branches
+     * const Course_branches = await prisma.course_branches.delete({
+     *   where: {
+     *     // ... filter to delete one Course_branches
+     *   }
+     * })
+     * 
+     */
+    delete<T extends course_branchesDeleteArgs>(args: SelectSubset<T, course_branchesDeleteArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Course_branches.
+     * @param {course_branchesUpdateArgs} args - Arguments to update one Course_branches.
+     * @example
+     * // Update one Course_branches
+     * const course_branches = await prisma.course_branches.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends course_branchesUpdateArgs>(args: SelectSubset<T, course_branchesUpdateArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Course_branches.
+     * @param {course_branchesDeleteManyArgs} args - Arguments to filter Course_branches to delete.
+     * @example
+     * // Delete a few Course_branches
+     * const { count } = await prisma.course_branches.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends course_branchesDeleteManyArgs>(args?: SelectSubset<T, course_branchesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Course_branches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {course_branchesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Course_branches
+     * const course_branches = await prisma.course_branches.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends course_branchesUpdateManyArgs>(args: SelectSubset<T, course_branchesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Course_branches.
+     * @param {course_branchesUpsertArgs} args - Arguments to update or create a Course_branches.
+     * @example
+     * // Update or create a Course_branches
+     * const course_branches = await prisma.course_branches.upsert({
+     *   create: {
+     *     // ... data to create a Course_branches
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Course_branches we want to update
+     *   }
+     * })
+     */
+    upsert<T extends course_branchesUpsertArgs>(args: SelectSubset<T, course_branchesUpsertArgs<ExtArgs>>): Prisma__course_branchesClient<$Result.GetResult<Prisma.$course_branchesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Course_branches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {course_branchesCountArgs} args - Arguments to filter Course_branches to count.
+     * @example
+     * // Count the number of Course_branches
+     * const count = await prisma.course_branches.count({
+     *   where: {
+     *     // ... the filter for the Course_branches we want to count
+     *   }
+     * })
+    **/
+    count<T extends course_branchesCountArgs>(
+      args?: Subset<T, course_branchesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Course_branchesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Course_branches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Course_branchesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Course_branchesAggregateArgs>(args: Subset<T, Course_branchesAggregateArgs>): Prisma.PrismaPromise<GetCourse_branchesAggregateType<T>>
+
+    /**
+     * Group by Course_branches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {course_branchesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends course_branchesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: course_branchesGroupByArgs['orderBy'] }
+        : { orderBy?: course_branchesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, course_branchesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCourse_branchesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the course_branches model
+   */
+  readonly fields: course_branchesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for course_branches.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__course_branchesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    courses<T extends coursesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, coursesDefaultArgs<ExtArgs>>): Prisma__coursesClient<$Result.GetResult<Prisma.$coursesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the course_branches model
+   */
+  interface course_branchesFieldRefs {
+    readonly course_code: FieldRef<"course_branches", 'String'>
+    readonly branch: FieldRef<"course_branches", 'String'>
+    readonly semester: FieldRef<"course_branches", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * course_branches findUnique
+   */
+  export type course_branchesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * Filter, which course_branches to fetch.
+     */
+    where: course_branchesWhereUniqueInput
+  }
+
+  /**
+   * course_branches findUniqueOrThrow
+   */
+  export type course_branchesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * Filter, which course_branches to fetch.
+     */
+    where: course_branchesWhereUniqueInput
+  }
+
+  /**
+   * course_branches findFirst
+   */
+  export type course_branchesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * Filter, which course_branches to fetch.
+     */
+    where?: course_branchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of course_branches to fetch.
+     */
+    orderBy?: course_branchesOrderByWithRelationInput | course_branchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for course_branches.
+     */
+    cursor?: course_branchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` course_branches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` course_branches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of course_branches.
+     */
+    distinct?: Course_branchesScalarFieldEnum | Course_branchesScalarFieldEnum[]
+  }
+
+  /**
+   * course_branches findFirstOrThrow
+   */
+  export type course_branchesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * Filter, which course_branches to fetch.
+     */
+    where?: course_branchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of course_branches to fetch.
+     */
+    orderBy?: course_branchesOrderByWithRelationInput | course_branchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for course_branches.
+     */
+    cursor?: course_branchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` course_branches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` course_branches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of course_branches.
+     */
+    distinct?: Course_branchesScalarFieldEnum | Course_branchesScalarFieldEnum[]
+  }
+
+  /**
+   * course_branches findMany
+   */
+  export type course_branchesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * Filter, which course_branches to fetch.
+     */
+    where?: course_branchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of course_branches to fetch.
+     */
+    orderBy?: course_branchesOrderByWithRelationInput | course_branchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing course_branches.
+     */
+    cursor?: course_branchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` course_branches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` course_branches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of course_branches.
+     */
+    distinct?: Course_branchesScalarFieldEnum | Course_branchesScalarFieldEnum[]
+  }
+
+  /**
+   * course_branches create
+   */
+  export type course_branchesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * The data needed to create a course_branches.
+     */
+    data: XOR<course_branchesCreateInput, course_branchesUncheckedCreateInput>
+  }
+
+  /**
+   * course_branches createMany
+   */
+  export type course_branchesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many course_branches.
+     */
+    data: course_branchesCreateManyInput | course_branchesCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * course_branches update
+   */
+  export type course_branchesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * The data needed to update a course_branches.
+     */
+    data: XOR<course_branchesUpdateInput, course_branchesUncheckedUpdateInput>
+    /**
+     * Choose, which course_branches to update.
+     */
+    where: course_branchesWhereUniqueInput
+  }
+
+  /**
+   * course_branches updateMany
+   */
+  export type course_branchesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update course_branches.
+     */
+    data: XOR<course_branchesUpdateManyMutationInput, course_branchesUncheckedUpdateManyInput>
+    /**
+     * Filter which course_branches to update
+     */
+    where?: course_branchesWhereInput
+    /**
+     * Limit how many course_branches to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * course_branches upsert
+   */
+  export type course_branchesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * The filter to search for the course_branches to update in case it exists.
+     */
+    where: course_branchesWhereUniqueInput
+    /**
+     * In case the course_branches found by the `where` argument doesn't exist, create a new course_branches with this data.
+     */
+    create: XOR<course_branchesCreateInput, course_branchesUncheckedCreateInput>
+    /**
+     * In case the course_branches was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<course_branchesUpdateInput, course_branchesUncheckedUpdateInput>
+  }
+
+  /**
+   * course_branches delete
+   */
+  export type course_branchesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
+    /**
+     * Filter which course_branches to delete.
+     */
+    where: course_branchesWhereUniqueInput
+  }
+
+  /**
+   * course_branches deleteMany
+   */
+  export type course_branchesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which course_branches to delete
+     */
+    where?: course_branchesWhereInput
+    /**
+     * Limit how many course_branches to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * course_branches without action
+   */
+  export type course_branchesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the course_branches
+     */
+    select?: course_branchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the course_branches
+     */
+    omit?: course_branchesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: course_branchesInclude<ExtArgs> | null
   }
 
 
@@ -5337,12 +6347,19 @@ export namespace Prisma {
 
   export const CoursesScalarFieldEnum: {
     course_code: 'course_code',
-    course_name: 'course_name',
-    semester: 'semester',
-    branch: 'branch'
+    course_name: 'course_name'
   };
 
   export type CoursesScalarFieldEnum = (typeof CoursesScalarFieldEnum)[keyof typeof CoursesScalarFieldEnum]
+
+
+  export const Course_branchesScalarFieldEnum: {
+    course_code: 'course_code',
+    branch: 'branch',
+    semester: 'semester'
+  };
+
+  export type Course_branchesScalarFieldEnum = (typeof Course_branchesScalarFieldEnum)[keyof typeof Course_branchesScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -5394,11 +6411,18 @@ export namespace Prisma {
 
   export const coursesOrderByRelevanceFieldEnum: {
     course_code: 'course_code',
-    course_name: 'course_name',
-    branch: 'branch'
+    course_name: 'course_name'
   };
 
   export type coursesOrderByRelevanceFieldEnum = (typeof coursesOrderByRelevanceFieldEnum)[keyof typeof coursesOrderByRelevanceFieldEnum]
+
+
+  export const course_branchesOrderByRelevanceFieldEnum: {
+    course_code: 'course_code',
+    branch: 'branch'
+  };
+
+  export type course_branchesOrderByRelevanceFieldEnum = (typeof course_branchesOrderByRelevanceFieldEnum)[keyof typeof course_branchesOrderByRelevanceFieldEnum]
 
 
   /**
@@ -5673,19 +6697,17 @@ export namespace Prisma {
     NOT?: coursesWhereInput | coursesWhereInput[]
     course_code?: StringFilter<"courses"> | string
     course_name?: StringFilter<"courses"> | string
-    semester?: IntFilter<"courses"> | number
-    branch?: StringFilter<"courses"> | string
     attendance_logs?: Attendance_logsListRelationFilter
     course_attendance?: Course_attendanceListRelationFilter
+    course_branches?: Course_branchesListRelationFilter
   }
 
   export type coursesOrderByWithRelationInput = {
     course_code?: SortOrder
     course_name?: SortOrder
-    semester?: SortOrder
-    branch?: SortOrder
     attendance_logs?: attendance_logsOrderByRelationAggregateInput
     course_attendance?: course_attendanceOrderByRelationAggregateInput
+    course_branches?: course_branchesOrderByRelationAggregateInput
     _relevance?: coursesOrderByRelevanceInput
   }
 
@@ -5695,22 +6717,17 @@ export namespace Prisma {
     OR?: coursesWhereInput[]
     NOT?: coursesWhereInput | coursesWhereInput[]
     course_name?: StringFilter<"courses"> | string
-    semester?: IntFilter<"courses"> | number
-    branch?: StringFilter<"courses"> | string
     attendance_logs?: Attendance_logsListRelationFilter
     course_attendance?: Course_attendanceListRelationFilter
+    course_branches?: Course_branchesListRelationFilter
   }, "course_code">
 
   export type coursesOrderByWithAggregationInput = {
     course_code?: SortOrder
     course_name?: SortOrder
-    semester?: SortOrder
-    branch?: SortOrder
     _count?: coursesCountOrderByAggregateInput
-    _avg?: coursesAvgOrderByAggregateInput
     _max?: coursesMaxOrderByAggregateInput
     _min?: coursesMinOrderByAggregateInput
-    _sum?: coursesSumOrderByAggregateInput
   }
 
   export type coursesScalarWhereWithAggregatesInput = {
@@ -5719,8 +6736,55 @@ export namespace Prisma {
     NOT?: coursesScalarWhereWithAggregatesInput | coursesScalarWhereWithAggregatesInput[]
     course_code?: StringWithAggregatesFilter<"courses"> | string
     course_name?: StringWithAggregatesFilter<"courses"> | string
-    semester?: IntWithAggregatesFilter<"courses"> | number
-    branch?: StringWithAggregatesFilter<"courses"> | string
+  }
+
+  export type course_branchesWhereInput = {
+    AND?: course_branchesWhereInput | course_branchesWhereInput[]
+    OR?: course_branchesWhereInput[]
+    NOT?: course_branchesWhereInput | course_branchesWhereInput[]
+    course_code?: StringFilter<"course_branches"> | string
+    branch?: StringFilter<"course_branches"> | string
+    semester?: IntFilter<"course_branches"> | number
+    courses?: XOR<CoursesScalarRelationFilter, coursesWhereInput>
+  }
+
+  export type course_branchesOrderByWithRelationInput = {
+    course_code?: SortOrder
+    branch?: SortOrder
+    semester?: SortOrder
+    courses?: coursesOrderByWithRelationInput
+    _relevance?: course_branchesOrderByRelevanceInput
+  }
+
+  export type course_branchesWhereUniqueInput = Prisma.AtLeast<{
+    course_code_branch?: course_branchesCourse_codeBranchCompoundUniqueInput
+    AND?: course_branchesWhereInput | course_branchesWhereInput[]
+    OR?: course_branchesWhereInput[]
+    NOT?: course_branchesWhereInput | course_branchesWhereInput[]
+    course_code?: StringFilter<"course_branches"> | string
+    branch?: StringFilter<"course_branches"> | string
+    semester?: IntFilter<"course_branches"> | number
+    courses?: XOR<CoursesScalarRelationFilter, coursesWhereInput>
+  }, "course_code_branch">
+
+  export type course_branchesOrderByWithAggregationInput = {
+    course_code?: SortOrder
+    branch?: SortOrder
+    semester?: SortOrder
+    _count?: course_branchesCountOrderByAggregateInput
+    _avg?: course_branchesAvgOrderByAggregateInput
+    _max?: course_branchesMaxOrderByAggregateInput
+    _min?: course_branchesMinOrderByAggregateInput
+    _sum?: course_branchesSumOrderByAggregateInput
+  }
+
+  export type course_branchesScalarWhereWithAggregatesInput = {
+    AND?: course_branchesScalarWhereWithAggregatesInput | course_branchesScalarWhereWithAggregatesInput[]
+    OR?: course_branchesScalarWhereWithAggregatesInput[]
+    NOT?: course_branchesScalarWhereWithAggregatesInput | course_branchesScalarWhereWithAggregatesInput[]
+    course_code?: StringWithAggregatesFilter<"course_branches"> | string
+    branch?: StringWithAggregatesFilter<"course_branches"> | string
+    semester?: IntWithAggregatesFilter<"course_branches"> | number
   }
 
   export type usersCreateInput = {
@@ -5954,58 +7018,89 @@ export namespace Prisma {
   export type coursesCreateInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     attendance_logs?: attendance_logsCreateNestedManyWithoutCoursesInput
     course_attendance?: course_attendanceCreateNestedManyWithoutCoursesInput
+    course_branches?: course_branchesCreateNestedManyWithoutCoursesInput
   }
 
   export type coursesUncheckedCreateInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     attendance_logs?: attendance_logsUncheckedCreateNestedManyWithoutCoursesInput
     course_attendance?: course_attendanceUncheckedCreateNestedManyWithoutCoursesInput
+    course_branches?: course_branchesUncheckedCreateNestedManyWithoutCoursesInput
   }
 
   export type coursesUpdateInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
     attendance_logs?: attendance_logsUpdateManyWithoutCoursesNestedInput
     course_attendance?: course_attendanceUpdateManyWithoutCoursesNestedInput
+    course_branches?: course_branchesUpdateManyWithoutCoursesNestedInput
   }
 
   export type coursesUncheckedUpdateInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
     attendance_logs?: attendance_logsUncheckedUpdateManyWithoutCoursesNestedInput
     course_attendance?: course_attendanceUncheckedUpdateManyWithoutCoursesNestedInput
+    course_branches?: course_branchesUncheckedUpdateManyWithoutCoursesNestedInput
   }
 
   export type coursesCreateManyInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
   }
 
   export type coursesUpdateManyMutationInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
   }
 
   export type coursesUncheckedUpdateManyInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type course_branchesCreateInput = {
+    branch: string
+    semester: number
+    courses: coursesCreateNestedOneWithoutCourse_branchesInput
+  }
+
+  export type course_branchesUncheckedCreateInput = {
+    course_code: string
+    branch: string
+    semester: number
+  }
+
+  export type course_branchesUpdateInput = {
     branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
+    courses?: coursesUpdateOneRequiredWithoutCourse_branchesNestedInput
+  }
+
+  export type course_branchesUncheckedUpdateInput = {
+    course_code?: StringFieldUpdateOperationsInput | string
+    branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type course_branchesCreateManyInput = {
+    course_code: string
+    branch: string
+    semester: number
+  }
+
+  export type course_branchesUpdateManyMutationInput = {
+    branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type course_branchesUncheckedUpdateManyInput = {
+    course_code?: StringFieldUpdateOperationsInput | string
+    branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -6328,6 +7423,16 @@ export namespace Prisma {
     total_classes?: SortOrder
   }
 
+  export type Course_branchesListRelationFilter = {
+    every?: course_branchesWhereInput
+    some?: course_branchesWhereInput
+    none?: course_branchesWhereInput
+  }
+
+  export type course_branchesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type coursesOrderByRelevanceInput = {
     fields: coursesOrderByRelevanceFieldEnum | coursesOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -6337,29 +7442,52 @@ export namespace Prisma {
   export type coursesCountOrderByAggregateInput = {
     course_code?: SortOrder
     course_name?: SortOrder
-    semester?: SortOrder
-    branch?: SortOrder
-  }
-
-  export type coursesAvgOrderByAggregateInput = {
-    semester?: SortOrder
   }
 
   export type coursesMaxOrderByAggregateInput = {
     course_code?: SortOrder
     course_name?: SortOrder
-    semester?: SortOrder
-    branch?: SortOrder
   }
 
   export type coursesMinOrderByAggregateInput = {
     course_code?: SortOrder
     course_name?: SortOrder
-    semester?: SortOrder
-    branch?: SortOrder
   }
 
-  export type coursesSumOrderByAggregateInput = {
+  export type course_branchesOrderByRelevanceInput = {
+    fields: course_branchesOrderByRelevanceFieldEnum | course_branchesOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type course_branchesCourse_codeBranchCompoundUniqueInput = {
+    course_code: string
+    branch: string
+  }
+
+  export type course_branchesCountOrderByAggregateInput = {
+    course_code?: SortOrder
+    branch?: SortOrder
+    semester?: SortOrder
+  }
+
+  export type course_branchesAvgOrderByAggregateInput = {
+    semester?: SortOrder
+  }
+
+  export type course_branchesMaxOrderByAggregateInput = {
+    course_code?: SortOrder
+    branch?: SortOrder
+    semester?: SortOrder
+  }
+
+  export type course_branchesMinOrderByAggregateInput = {
+    course_code?: SortOrder
+    branch?: SortOrder
+    semester?: SortOrder
+  }
+
+  export type course_branchesSumOrderByAggregateInput = {
     semester?: SortOrder
   }
 
@@ -6541,6 +7669,13 @@ export namespace Prisma {
     connect?: course_attendanceWhereUniqueInput | course_attendanceWhereUniqueInput[]
   }
 
+  export type course_branchesCreateNestedManyWithoutCoursesInput = {
+    create?: XOR<course_branchesCreateWithoutCoursesInput, course_branchesUncheckedCreateWithoutCoursesInput> | course_branchesCreateWithoutCoursesInput[] | course_branchesUncheckedCreateWithoutCoursesInput[]
+    connectOrCreate?: course_branchesCreateOrConnectWithoutCoursesInput | course_branchesCreateOrConnectWithoutCoursesInput[]
+    createMany?: course_branchesCreateManyCoursesInputEnvelope
+    connect?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+  }
+
   export type attendance_logsUncheckedCreateNestedManyWithoutCoursesInput = {
     create?: XOR<attendance_logsCreateWithoutCoursesInput, attendance_logsUncheckedCreateWithoutCoursesInput> | attendance_logsCreateWithoutCoursesInput[] | attendance_logsUncheckedCreateWithoutCoursesInput[]
     connectOrCreate?: attendance_logsCreateOrConnectWithoutCoursesInput | attendance_logsCreateOrConnectWithoutCoursesInput[]
@@ -6553,6 +7688,13 @@ export namespace Prisma {
     connectOrCreate?: course_attendanceCreateOrConnectWithoutCoursesInput | course_attendanceCreateOrConnectWithoutCoursesInput[]
     createMany?: course_attendanceCreateManyCoursesInputEnvelope
     connect?: course_attendanceWhereUniqueInput | course_attendanceWhereUniqueInput[]
+  }
+
+  export type course_branchesUncheckedCreateNestedManyWithoutCoursesInput = {
+    create?: XOR<course_branchesCreateWithoutCoursesInput, course_branchesUncheckedCreateWithoutCoursesInput> | course_branchesCreateWithoutCoursesInput[] | course_branchesUncheckedCreateWithoutCoursesInput[]
+    connectOrCreate?: course_branchesCreateOrConnectWithoutCoursesInput | course_branchesCreateOrConnectWithoutCoursesInput[]
+    createMany?: course_branchesCreateManyCoursesInputEnvelope
+    connect?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
   }
 
   export type attendance_logsUpdateManyWithoutCoursesNestedInput = {
@@ -6583,6 +7725,20 @@ export namespace Prisma {
     deleteMany?: course_attendanceScalarWhereInput | course_attendanceScalarWhereInput[]
   }
 
+  export type course_branchesUpdateManyWithoutCoursesNestedInput = {
+    create?: XOR<course_branchesCreateWithoutCoursesInput, course_branchesUncheckedCreateWithoutCoursesInput> | course_branchesCreateWithoutCoursesInput[] | course_branchesUncheckedCreateWithoutCoursesInput[]
+    connectOrCreate?: course_branchesCreateOrConnectWithoutCoursesInput | course_branchesCreateOrConnectWithoutCoursesInput[]
+    upsert?: course_branchesUpsertWithWhereUniqueWithoutCoursesInput | course_branchesUpsertWithWhereUniqueWithoutCoursesInput[]
+    createMany?: course_branchesCreateManyCoursesInputEnvelope
+    set?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    disconnect?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    delete?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    connect?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    update?: course_branchesUpdateWithWhereUniqueWithoutCoursesInput | course_branchesUpdateWithWhereUniqueWithoutCoursesInput[]
+    updateMany?: course_branchesUpdateManyWithWhereWithoutCoursesInput | course_branchesUpdateManyWithWhereWithoutCoursesInput[]
+    deleteMany?: course_branchesScalarWhereInput | course_branchesScalarWhereInput[]
+  }
+
   export type attendance_logsUncheckedUpdateManyWithoutCoursesNestedInput = {
     create?: XOR<attendance_logsCreateWithoutCoursesInput, attendance_logsUncheckedCreateWithoutCoursesInput> | attendance_logsCreateWithoutCoursesInput[] | attendance_logsUncheckedCreateWithoutCoursesInput[]
     connectOrCreate?: attendance_logsCreateOrConnectWithoutCoursesInput | attendance_logsCreateOrConnectWithoutCoursesInput[]
@@ -6609,6 +7765,34 @@ export namespace Prisma {
     update?: course_attendanceUpdateWithWhereUniqueWithoutCoursesInput | course_attendanceUpdateWithWhereUniqueWithoutCoursesInput[]
     updateMany?: course_attendanceUpdateManyWithWhereWithoutCoursesInput | course_attendanceUpdateManyWithWhereWithoutCoursesInput[]
     deleteMany?: course_attendanceScalarWhereInput | course_attendanceScalarWhereInput[]
+  }
+
+  export type course_branchesUncheckedUpdateManyWithoutCoursesNestedInput = {
+    create?: XOR<course_branchesCreateWithoutCoursesInput, course_branchesUncheckedCreateWithoutCoursesInput> | course_branchesCreateWithoutCoursesInput[] | course_branchesUncheckedCreateWithoutCoursesInput[]
+    connectOrCreate?: course_branchesCreateOrConnectWithoutCoursesInput | course_branchesCreateOrConnectWithoutCoursesInput[]
+    upsert?: course_branchesUpsertWithWhereUniqueWithoutCoursesInput | course_branchesUpsertWithWhereUniqueWithoutCoursesInput[]
+    createMany?: course_branchesCreateManyCoursesInputEnvelope
+    set?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    disconnect?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    delete?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    connect?: course_branchesWhereUniqueInput | course_branchesWhereUniqueInput[]
+    update?: course_branchesUpdateWithWhereUniqueWithoutCoursesInput | course_branchesUpdateWithWhereUniqueWithoutCoursesInput[]
+    updateMany?: course_branchesUpdateManyWithWhereWithoutCoursesInput | course_branchesUpdateManyWithWhereWithoutCoursesInput[]
+    deleteMany?: course_branchesScalarWhereInput | course_branchesScalarWhereInput[]
+  }
+
+  export type coursesCreateNestedOneWithoutCourse_branchesInput = {
+    create?: XOR<coursesCreateWithoutCourse_branchesInput, coursesUncheckedCreateWithoutCourse_branchesInput>
+    connectOrCreate?: coursesCreateOrConnectWithoutCourse_branchesInput
+    connect?: coursesWhereUniqueInput
+  }
+
+  export type coursesUpdateOneRequiredWithoutCourse_branchesNestedInput = {
+    create?: XOR<coursesCreateWithoutCourse_branchesInput, coursesUncheckedCreateWithoutCourse_branchesInput>
+    connectOrCreate?: coursesCreateOrConnectWithoutCourse_branchesInput
+    upsert?: coursesUpsertWithoutCourse_branchesInput
+    connect?: coursesWhereUniqueInput
+    update?: XOR<XOR<coursesUpdateToOneWithWhereWithoutCourse_branchesInput, coursesUpdateWithoutCourse_branchesInput>, coursesUncheckedUpdateWithoutCourse_branchesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -6882,17 +8066,15 @@ export namespace Prisma {
   export type coursesCreateWithoutAttendance_logsInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     course_attendance?: course_attendanceCreateNestedManyWithoutCoursesInput
+    course_branches?: course_branchesCreateNestedManyWithoutCoursesInput
   }
 
   export type coursesUncheckedCreateWithoutAttendance_logsInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     course_attendance?: course_attendanceUncheckedCreateNestedManyWithoutCoursesInput
+    course_branches?: course_branchesUncheckedCreateNestedManyWithoutCoursesInput
   }
 
   export type coursesCreateOrConnectWithoutAttendance_logsInput = {
@@ -6947,17 +8129,15 @@ export namespace Prisma {
   export type coursesUpdateWithoutAttendance_logsInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
     course_attendance?: course_attendanceUpdateManyWithoutCoursesNestedInput
+    course_branches?: course_branchesUpdateManyWithoutCoursesNestedInput
   }
 
   export type coursesUncheckedUpdateWithoutAttendance_logsInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
     course_attendance?: course_attendanceUncheckedUpdateManyWithoutCoursesNestedInput
+    course_branches?: course_branchesUncheckedUpdateManyWithoutCoursesNestedInput
   }
 
   export type usersUpsertWithoutAttendance_logsInput = {
@@ -7002,17 +8182,15 @@ export namespace Prisma {
   export type coursesCreateWithoutCourse_attendanceInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     attendance_logs?: attendance_logsCreateNestedManyWithoutCoursesInput
+    course_branches?: course_branchesCreateNestedManyWithoutCoursesInput
   }
 
   export type coursesUncheckedCreateWithoutCourse_attendanceInput = {
     course_code: string
     course_name: string
-    semester: number
-    branch: string
     attendance_logs?: attendance_logsUncheckedCreateNestedManyWithoutCoursesInput
+    course_branches?: course_branchesUncheckedCreateNestedManyWithoutCoursesInput
   }
 
   export type coursesCreateOrConnectWithoutCourse_attendanceInput = {
@@ -7067,17 +8245,15 @@ export namespace Prisma {
   export type coursesUpdateWithoutCourse_attendanceInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
     attendance_logs?: attendance_logsUpdateManyWithoutCoursesNestedInput
+    course_branches?: course_branchesUpdateManyWithoutCoursesNestedInput
   }
 
   export type coursesUncheckedUpdateWithoutCourse_attendanceInput = {
     course_code?: StringFieldUpdateOperationsInput | string
     course_name?: StringFieldUpdateOperationsInput | string
-    semester?: IntFieldUpdateOperationsInput | number
-    branch?: StringFieldUpdateOperationsInput | string
     attendance_logs?: attendance_logsUncheckedUpdateManyWithoutCoursesNestedInput
+    course_branches?: course_branchesUncheckedUpdateManyWithoutCoursesNestedInput
   }
 
   export type usersUpsertWithoutCourse_attendanceInput = {
@@ -7173,6 +8349,26 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type course_branchesCreateWithoutCoursesInput = {
+    branch: string
+    semester: number
+  }
+
+  export type course_branchesUncheckedCreateWithoutCoursesInput = {
+    branch: string
+    semester: number
+  }
+
+  export type course_branchesCreateOrConnectWithoutCoursesInput = {
+    where: course_branchesWhereUniqueInput
+    create: XOR<course_branchesCreateWithoutCoursesInput, course_branchesUncheckedCreateWithoutCoursesInput>
+  }
+
+  export type course_branchesCreateManyCoursesInputEnvelope = {
+    data: course_branchesCreateManyCoursesInput | course_branchesCreateManyCoursesInput[]
+    skipDuplicates?: boolean
+  }
+
   export type attendance_logsUpsertWithWhereUniqueWithoutCoursesInput = {
     where: attendance_logsWhereUniqueInput
     update: XOR<attendance_logsUpdateWithoutCoursesInput, attendance_logsUncheckedUpdateWithoutCoursesInput>
@@ -7203,6 +8399,75 @@ export namespace Prisma {
   export type course_attendanceUpdateManyWithWhereWithoutCoursesInput = {
     where: course_attendanceScalarWhereInput
     data: XOR<course_attendanceUpdateManyMutationInput, course_attendanceUncheckedUpdateManyWithoutCoursesInput>
+  }
+
+  export type course_branchesUpsertWithWhereUniqueWithoutCoursesInput = {
+    where: course_branchesWhereUniqueInput
+    update: XOR<course_branchesUpdateWithoutCoursesInput, course_branchesUncheckedUpdateWithoutCoursesInput>
+    create: XOR<course_branchesCreateWithoutCoursesInput, course_branchesUncheckedCreateWithoutCoursesInput>
+  }
+
+  export type course_branchesUpdateWithWhereUniqueWithoutCoursesInput = {
+    where: course_branchesWhereUniqueInput
+    data: XOR<course_branchesUpdateWithoutCoursesInput, course_branchesUncheckedUpdateWithoutCoursesInput>
+  }
+
+  export type course_branchesUpdateManyWithWhereWithoutCoursesInput = {
+    where: course_branchesScalarWhereInput
+    data: XOR<course_branchesUpdateManyMutationInput, course_branchesUncheckedUpdateManyWithoutCoursesInput>
+  }
+
+  export type course_branchesScalarWhereInput = {
+    AND?: course_branchesScalarWhereInput | course_branchesScalarWhereInput[]
+    OR?: course_branchesScalarWhereInput[]
+    NOT?: course_branchesScalarWhereInput | course_branchesScalarWhereInput[]
+    course_code?: StringFilter<"course_branches"> | string
+    branch?: StringFilter<"course_branches"> | string
+    semester?: IntFilter<"course_branches"> | number
+  }
+
+  export type coursesCreateWithoutCourse_branchesInput = {
+    course_code: string
+    course_name: string
+    attendance_logs?: attendance_logsCreateNestedManyWithoutCoursesInput
+    course_attendance?: course_attendanceCreateNestedManyWithoutCoursesInput
+  }
+
+  export type coursesUncheckedCreateWithoutCourse_branchesInput = {
+    course_code: string
+    course_name: string
+    attendance_logs?: attendance_logsUncheckedCreateNestedManyWithoutCoursesInput
+    course_attendance?: course_attendanceUncheckedCreateNestedManyWithoutCoursesInput
+  }
+
+  export type coursesCreateOrConnectWithoutCourse_branchesInput = {
+    where: coursesWhereUniqueInput
+    create: XOR<coursesCreateWithoutCourse_branchesInput, coursesUncheckedCreateWithoutCourse_branchesInput>
+  }
+
+  export type coursesUpsertWithoutCourse_branchesInput = {
+    update: XOR<coursesUpdateWithoutCourse_branchesInput, coursesUncheckedUpdateWithoutCourse_branchesInput>
+    create: XOR<coursesCreateWithoutCourse_branchesInput, coursesUncheckedCreateWithoutCourse_branchesInput>
+    where?: coursesWhereInput
+  }
+
+  export type coursesUpdateToOneWithWhereWithoutCourse_branchesInput = {
+    where?: coursesWhereInput
+    data: XOR<coursesUpdateWithoutCourse_branchesInput, coursesUncheckedUpdateWithoutCourse_branchesInput>
+  }
+
+  export type coursesUpdateWithoutCourse_branchesInput = {
+    course_code?: StringFieldUpdateOperationsInput | string
+    course_name?: StringFieldUpdateOperationsInput | string
+    attendance_logs?: attendance_logsUpdateManyWithoutCoursesNestedInput
+    course_attendance?: course_attendanceUpdateManyWithoutCoursesNestedInput
+  }
+
+  export type coursesUncheckedUpdateWithoutCourse_branchesInput = {
+    course_code?: StringFieldUpdateOperationsInput | string
+    course_name?: StringFieldUpdateOperationsInput | string
+    attendance_logs?: attendance_logsUncheckedUpdateManyWithoutCoursesNestedInput
+    course_attendance?: course_attendanceUncheckedUpdateManyWithoutCoursesNestedInput
   }
 
   export type attendance_logsCreateManyUsersInput = {
@@ -7290,6 +8555,11 @@ export namespace Prisma {
     total_classes?: number
   }
 
+  export type course_branchesCreateManyCoursesInput = {
+    branch: string
+    semester: number
+  }
+
   export type attendance_logsUpdateWithoutCoursesInput = {
     id?: StringFieldUpdateOperationsInput | string
     lecture_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7339,6 +8609,21 @@ export namespace Prisma {
     absent_total?: IntFieldUpdateOperationsInput | number
     medical_total?: IntFieldUpdateOperationsInput | number
     total_classes?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type course_branchesUpdateWithoutCoursesInput = {
+    branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type course_branchesUncheckedUpdateWithoutCoursesInput = {
+    branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type course_branchesUncheckedUpdateManyWithoutCoursesInput = {
+    branch?: StringFieldUpdateOperationsInput | string
+    semester?: IntFieldUpdateOperationsInput | number
   }
 
 

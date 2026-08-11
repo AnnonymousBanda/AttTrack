@@ -29,7 +29,7 @@ model users {
 model attendance_logs {
   id           String                  @id @default(uuid())
   user_id      String
-  course_code  String                  @db.VarChar(6)
+  course_code  String                  @db.VarChar(7)
   lecture_date DateTime                @db.Date
   start_time   DateTime
   end_time     DateTime
@@ -45,7 +45,7 @@ model attendance_logs {
 
 model course_attendance {
   user_id     String
-  course_code String @db.VarChar(6)
+  course_code String @db.VarChar(7)
 
   present_total Int @default(0) @db.UnsignedInt
   absent_total  Int @default(0) @db.UnsignedInt
@@ -60,13 +60,23 @@ model course_attendance {
 }
 
 model courses {
-  course_code String @id @db.VarChar(6)
+  course_code String @id @db.VarChar(7)
   course_name String @db.VarChar(150)
-  semester    Int    @db.UnsignedTinyInt
-  branch      String @db.VarChar(100)
 
   attendance_logs   attendance_logs[]
   course_attendance course_attendance[]
+  course_branches   course_branches[]
+}
+
+model course_branches {
+  course_code String @db.VarChar(7)
+  branch      String @db.VarChar(100)
+  semester    Int    @db.UnsignedTinyInt
+
+  courses courses @relation(fields: [course_code], references: [course_code], onDelete: Cascade, onUpdate: Restrict, map: "fk_course_branches_course")
+
+  @@id([course_code, branch])
+  @@index([course_code], map: "fk_course_branches_course")
 }
 
 enum attendance_logs_status {

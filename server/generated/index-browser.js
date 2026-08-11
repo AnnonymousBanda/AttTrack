@@ -154,9 +154,13 @@ exports.Prisma.Course_attendanceScalarFieldEnum = {
 
 exports.Prisma.CoursesScalarFieldEnum = {
   course_code: 'course_code',
-  course_name: 'course_name',
-  semester: 'semester',
-  branch: 'branch'
+  course_name: 'course_name'
+};
+
+exports.Prisma.Course_branchesScalarFieldEnum = {
+  course_code: 'course_code',
+  branch: 'branch',
+  semester: 'semester'
 };
 
 exports.Prisma.SortOrder = {
@@ -193,7 +197,11 @@ exports.Prisma.course_attendanceOrderByRelevanceFieldEnum = {
 
 exports.Prisma.coursesOrderByRelevanceFieldEnum = {
   course_code: 'course_code',
-  course_name: 'course_name',
+  course_name: 'course_name'
+};
+
+exports.Prisma.course_branchesOrderByRelevanceFieldEnum = {
+  course_code: 'course_code',
   branch: 'branch'
 };
 exports.attendance_logs_status = exports.$Enums.attendance_logs_status = {
@@ -207,7 +215,8 @@ exports.Prisma.ModelName = {
   users: 'users',
   attendance_logs: 'attendance_logs',
   course_attendance: 'course_attendance',
-  courses: 'courses'
+  courses: 'courses',
+  course_branches: 'course_branches'
 };
 
 /**
