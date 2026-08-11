@@ -19,14 +19,22 @@ const protect = catchAsync(async (req, res, next) => {
         },
         include: {
             users: true,
-            courses: true,
+            courses: {
+                include: {
+                    course_branches: true,
+                },
+            },
         }
     })
 
     const userCourses = []
     for (const c of courses) {
-        if (c.users.semester === c.courses.semester)
+        const isValid = c.courses.course_branches.some(
+            (cb) => cb.semester === c.users.semester && cb.branch === c.users.branch
+        )
+        if (isValid) {
             userCourses.push(c.courses)
+        }
     }
 
     req.user = {
